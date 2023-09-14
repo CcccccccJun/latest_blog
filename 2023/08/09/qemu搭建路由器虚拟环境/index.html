@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="前言在经历了一年的glibc学习 终于也是开始接触到了真正的二进制 怀着激动的心情 开始Iot的旅途！本文用来收录不属于cve复现中的虚拟环境搭建过程 华为532e本次使用的固件是华为532e系列路由器固件下载地址： https:&#x2F;&#x2F;github.com&#x2F;CcccccccJun&#x2F;cloud 首先使用binwalk来提取固件 这里要注意一下 如果binwalk没有提取到root文件夹 那么问题出在没">
+<meta property="og:type" content="article">
+<meta property="og:title" content="qemu搭建路由器虚拟环境">
+<meta property="og:url" content="http://example.com/2023/08/09/qemu%E6%90%AD%E5%BB%BA%E8%B7%AF%E7%94%B1%E5%99%A8%E8%99%9A%E6%8B%9F%E7%8E%AF%E5%A2%83/index.html">
+<meta property="og:site_name" content="C12en">
+<meta property="og:description" content="前言在经历了一年的glibc学习 终于也是开始接触到了真正的二进制 怀着激动的心情 开始Iot的旅途！本文用来收录不属于cve复现中的虚拟环境搭建过程 华为532e本次使用的固件是华为532e系列路由器固件下载地址： https:&#x2F;&#x2F;github.com&#x2F;CcccccccJun&#x2F;cloud 首先使用binwalk来提取固件 这里要注意一下 如果binwalk没有提取到root文件夹 那么问题出在没">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202308090859342.png">
+<meta property="og:image" content="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202308090936146.png">
+<meta property="og:image" content="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202308090958896.png">
+<meta property="og:image" content="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202308091008147.png">
+<meta property="og:image" content="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202308091028108.png">
+<meta property="og:image" content="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202308091029879.png">
+<meta property="article:published_time" content="2023-08-09T00:01:57.000Z">
+<meta property="article:modified_time" content="2023-09-14T17:21:05.389Z">
+<meta property="article:author" content="C12en">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202308090859342.png">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202309142232390.png&#39;">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202309142232390.png&#39;" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202309142232390.png&#39;">
+        
+      
+    
+    <!-- title -->
+    <title>qemu搭建路由器虚拟环境</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+<meta name="generator" content="Hexo 6.3.0"><link rel="alternate" href="/atom.xml" title="C12en" type="application/atom+xml">
+</head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/categories/">categories</a></li><!--
+     --><!--
+       --><li><a href="/search/">Search</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2023/08/09/CVE-2020-24581/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2023/07/30/NssCTF-round14/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2023/08/09/qemu%E6%90%AD%E5%BB%BA%E8%B7%AF%E7%94%B1%E5%99%A8%E8%99%9A%E6%8B%9F%E7%8E%AF%E5%A2%83/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2023/08/09/qemu%E6%90%AD%E5%BB%BA%E8%B7%AF%E7%94%B1%E5%99%A8%E8%99%9A%E6%8B%9F%E7%8E%AF%E5%A2%83/&text=qemu搭建路由器虚拟环境"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2023/08/09/qemu%E6%90%AD%E5%BB%BA%E8%B7%AF%E7%94%B1%E5%99%A8%E8%99%9A%E6%8B%9F%E7%8E%AF%E5%A2%83/&title=qemu搭建路由器虚拟环境"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2023/08/09/qemu%E6%90%AD%E5%BB%BA%E8%B7%AF%E7%94%B1%E5%99%A8%E8%99%9A%E6%8B%9F%E7%8E%AF%E5%A2%83/&is_video=false&description=qemu搭建路由器虚拟环境"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=qemu搭建路由器虚拟环境&body=Check out this article: http://example.com/2023/08/09/qemu%E6%90%AD%E5%BB%BA%E8%B7%AF%E7%94%B1%E5%99%A8%E8%99%9A%E6%8B%9F%E7%8E%AF%E5%A2%83/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2023/08/09/qemu%E6%90%AD%E5%BB%BA%E8%B7%AF%E7%94%B1%E5%99%A8%E8%99%9A%E6%8B%9F%E7%8E%AF%E5%A2%83/&title=qemu搭建路由器虚拟环境"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2023/08/09/qemu%E6%90%AD%E5%BB%BA%E8%B7%AF%E7%94%B1%E5%99%A8%E8%99%9A%E6%8B%9F%E7%8E%AF%E5%A2%83/&title=qemu搭建路由器虚拟环境"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2023/08/09/qemu%E6%90%AD%E5%BB%BA%E8%B7%AF%E7%94%B1%E5%99%A8%E8%99%9A%E6%8B%9F%E7%8E%AF%E5%A2%83/&title=qemu搭建路由器虚拟环境"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2023/08/09/qemu%E6%90%AD%E5%BB%BA%E8%B7%AF%E7%94%B1%E5%99%A8%E8%99%9A%E6%8B%9F%E7%8E%AF%E5%A2%83/&title=qemu搭建路由器虚拟环境"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2023/08/09/qemu%E6%90%AD%E5%BB%BA%E8%B7%AF%E7%94%B1%E5%99%A8%E8%99%9A%E6%8B%9F%E7%8E%AF%E5%A2%83/&name=qemu搭建路由器虚拟环境&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2023/08/09/qemu%E6%90%AD%E5%BB%BA%E8%B7%AF%E7%94%B1%E5%99%A8%E8%99%9A%E6%8B%9F%E7%8E%AF%E5%A2%83/&t=qemu搭建路由器虚拟环境"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%89%8D%E8%A8%80"><span class="toc-number">1.</span> <span class="toc-text">前言</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8D%8E%E4%B8%BA532e"><span class="toc-number">2.</span> <span class="toc-text">华为532e</span></a></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        qemu搭建路由器虚拟环境
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">C12en</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2023-08-09T00:01:57.000Z" class="dt-published" itemprop="datePublished">2023-08-09</time>
+        
+        (Updated: <time datetime="2023-09-14T17:21:05.389Z" class="dt-updated" itemprop="dateModified">2023-09-15</time>)
+        
+      
+    </div>
+
+
+      
+    <div class="article-category">
+        <i class="fa-solid fa-archive"></i>
+        <a class="category-link" href="/categories/iot/">iot</a>
+    </div>
+
+
+      
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/lightgallery.js/1.0.1/css/lightgallery.min.css" /><div class=".article-gallery"><h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>在经历了一年的glibc学习 终于也是开始接触到了真正的二进制 怀着激动的心情 开始Iot的旅途！<br>本文用来收录不属于cve复现中的虚拟环境搭建过程</p>
+<h1 id="华为532e"><a href="#华为532e" class="headerlink" title="华为532e"></a>华为532e</h1><p>本次使用的固件是华为532e系列路由器<br>固件下载地址： <a target="_blank" rel="noopener" href="https://github.com/CcccccccJun/cloud">https://github.com/CcccccccJun/cloud</a></p>
+<p>首先使用binwalk来提取固件 这里要注意一下 如果binwalk没有提取到root文件夹 那么问题出在没有安装相应的文件系统<br>该固件需要安装的是sasquatch 配置好相关环境后可以成功提取到文件<br><a target="_blank" rel="noopener" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202308090859342.png" title="image.png" class="gallery-item"><img src="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202308090859342.png" alt="image.png"></a><br>随后我们将root目录打包成压缩文件 供等下上传到模拟系统中<br><code>tar -czvf 1.tar squashfs-root/</code><br>qemu模拟有多种形式 本次我们使用的是系统模拟 同时通过file观察任意的可执行文件 可以注意到该路由器使用的是MIPS架构<br>为此 我们需要准备MIPS的内核文件以及一个MIPS架构的虚拟机映像文件<br>可以在该网站上下载  <a target="_blank" rel="noopener" href="https://people.debian.org/~aurel32/qemu/mips/">https://people.debian.org/~aurel32/qemu/mips/</a><br>随后我们需要创建一个TUN&#x2F;TAP虚拟网络接口 其可以在操作系统和用户空间之间进行网络数据包的传输 便于我们在虚拟机中连接到启动后的路由器</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">tunctl -t top0 -u root</span><br><span class="line">ifconfig top0 192.168.10.1</span><br></pre></td></tr></table></figure>
+<p>我们给予的top0接口的ipv4地址的子网号可以为任意 同时要使用默认网关<br><a target="_blank" rel="noopener" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202308090936146.png" title="image.png" class="gallery-item"><img src="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202308090936146.png" alt="image.png"></a><br>随后我们利用qemu进行系统模拟<br><code>qemu-system-mips -M malta -kernel vmlinux-2.6.32-5-4kc-malta -hda debian_squeeze_mips_standard.qcow2 -append &quot;root=/dev/sda1 console=tty0&quot; -net nic -net tap,ifname=top0 -nographic</code><br>为qemu模拟出来的虚拟机增加了一个TAP设备的虚拟网络接口top0用于通信<br>默认的登录账号和密码都是root<br>我们将eth0接口配置和刚才top0接口相同的c段<br><code>ifconfig eth0 192.169.10.2</code><br>随后就可以在ubuntu中访问到debian虚拟机<br><a target="_blank" rel="noopener" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202308090958896.png" title="image.png" class="gallery-item"><img src="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202308090958896.png" alt="image.png"></a><br>随后我们利用scp把刚才打包好的压缩文件上传到debian虚拟机中<br><code>scp 1.tar root@192.168.10.2:/root/</code><br>但是这里报错了<br><a target="_blank" rel="noopener" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202308091008147.png" title="image.png" class="gallery-item"><img src="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202308091008147.png" alt="image.png"></a><br>大概意思是debian虚拟机中的openssh禁用了ssh-dss算法<br>我们需要手动加上参数来允许</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">scp -oHostKeyAlgorithms=+ssh-dss 1.tar root@192.168.10.2:/root/</span><br></pre></td></tr></table></figure>
+<p>随后回到debian虚拟机 利用<code>tar –zxvf 1.tar</code> 命令进行解压<br>接着我们需要将&#x2F;dev目录与squashfs-root目录进行绑定 使得可以访问到所需的设备文件<br>同理 将&#x2F;proc目录挂载到squashfs-root对应的目录下</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">mount -o bind /dev ./squashfs-root/dev</span><br><span class="line">mount -t proc /proc ./squashfs-root/proc/</span><br></pre></td></tr></table></figure>
+<p>随后以squashfs-root目录为根目录 执行shell<br><code>chroot ./squashfs-root/ sh</code><br>由于在路由器启动后 eth0接口的ip地址会被更改 所以我们需要在启动路由器的过程中 重新配置eth0接口 这也就意味着我们需要连接两个会话<br>已有的会话是通过qemu模拟后直接生成的虚拟机 不会随着ip的更改而断开 而通过ssh连接的会话会因为ip受到影响<br>于是 我们需要在ssh的会话中启动路由器 随后这个ssh进程就会因为ip改变而卡住 然后我们再通过原本的会话重新配置eth0 就可以成功启动路由器的同时 保证我们的eth0还是原本的ip地址</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">./bin/upnp</span><br><span class="line">./bin/mic</span><br></pre></td></tr></table></figure>
+<p>启动路由器的环境</p>
+<p><a target="_blank" rel="noopener" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202308091028108.png" title="image.png" class="gallery-item"><img src="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202308091028108.png" alt="image.png"></a><br>成功启动后 我们就可以在宿主机中访问到路由器了<br><a target="_blank" rel="noopener" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202308091029879.png" title="image.png" class="gallery-item"><img src="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202308091029879.png" alt="image.png"></a><br>这里使用360浏览器是因为其他浏览器不支持TLS1.0的协议 导致无法成功访问</p>
+</div><script src="https://cdn.jsdelivr.net/lightgallery.js/1.0.1/js/lightgallery.min.js"></script><script>if (typeof lightGallery !== 'undefined') {
+        var options = {
+            selector: '.gallery-item'
+        };
+        lightGallery(document.getElementsByClassName('.article-gallery')[0], options);
+        }</script>
+  </div>
+</article>
+
+    <div class="blog-post-comments">
+        <div id="disqus_thread">
+            <noscript>Please enable JavaScript to view the comments.</noscript>
+        </div>
+    </div>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/about/">About</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+          <li><a href="/categories/">categories</a></li>
+        
+          <li><a href="/search/">Search</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%89%8D%E8%A8%80"><span class="toc-number">1.</span> <span class="toc-text">前言</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8D%8E%E4%B8%BA532e"><span class="toc-number">2.</span> <span class="toc-text">华为532e</span></a></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2023/08/09/qemu%E6%90%AD%E5%BB%BA%E8%B7%AF%E7%94%B1%E5%99%A8%E8%99%9A%E6%8B%9F%E7%8E%AF%E5%A2%83/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2023/08/09/qemu%E6%90%AD%E5%BB%BA%E8%B7%AF%E7%94%B1%E5%99%A8%E8%99%9A%E6%8B%9F%E7%8E%AF%E5%A2%83/&text=qemu搭建路由器虚拟环境"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2023/08/09/qemu%E6%90%AD%E5%BB%BA%E8%B7%AF%E7%94%B1%E5%99%A8%E8%99%9A%E6%8B%9F%E7%8E%AF%E5%A2%83/&title=qemu搭建路由器虚拟环境"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2023/08/09/qemu%E6%90%AD%E5%BB%BA%E8%B7%AF%E7%94%B1%E5%99%A8%E8%99%9A%E6%8B%9F%E7%8E%AF%E5%A2%83/&is_video=false&description=qemu搭建路由器虚拟环境"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=qemu搭建路由器虚拟环境&body=Check out this article: http://example.com/2023/08/09/qemu%E6%90%AD%E5%BB%BA%E8%B7%AF%E7%94%B1%E5%99%A8%E8%99%9A%E6%8B%9F%E7%8E%AF%E5%A2%83/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2023/08/09/qemu%E6%90%AD%E5%BB%BA%E8%B7%AF%E7%94%B1%E5%99%A8%E8%99%9A%E6%8B%9F%E7%8E%AF%E5%A2%83/&title=qemu搭建路由器虚拟环境"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2023/08/09/qemu%E6%90%AD%E5%BB%BA%E8%B7%AF%E7%94%B1%E5%99%A8%E8%99%9A%E6%8B%9F%E7%8E%AF%E5%A2%83/&title=qemu搭建路由器虚拟环境"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2023/08/09/qemu%E6%90%AD%E5%BB%BA%E8%B7%AF%E7%94%B1%E5%99%A8%E8%99%9A%E6%8B%9F%E7%8E%AF%E5%A2%83/&title=qemu搭建路由器虚拟环境"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2023/08/09/qemu%E6%90%AD%E5%BB%BA%E8%B7%AF%E7%94%B1%E5%99%A8%E8%99%9A%E6%8B%9F%E7%8E%AF%E5%A2%83/&title=qemu搭建路由器虚拟环境"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2023/08/09/qemu%E6%90%AD%E5%BB%BA%E8%B7%AF%E7%94%B1%E5%99%A8%E8%99%9A%E6%8B%9F%E7%8E%AF%E5%A2%83/&name=qemu搭建路由器虚拟环境&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2023/08/09/qemu%E6%90%AD%E5%BB%BA%E8%B7%AF%E7%94%B1%E5%99%A8%E8%99%9A%E6%8B%9F%E7%8E%AF%E5%A2%83/&t=qemu搭建路由器虚拟环境"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2023
+    C12en
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/categories/">categories</a></li><!--
+     --><!--
+       --><li><a href="/search/">Search</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+    <script type="text/javascript">
+        var disqus_shortname = 'c12en';
+
+        (function(){
+            var dsq = document.createElement('script');
+            dsq.type = 'text/javascript';
+            dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        }());
+    </script>
+
+<!-- utterances Comments -->
+
+</body>
+</html>

