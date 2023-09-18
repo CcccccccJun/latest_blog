@@ -1,3 +1,5 @@
+http://example.com/2023/09/18/totolink-a810r/
+http://example.com/2023/09/18/thm%E6%B8%97%E9%80%8F%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-%E8%87%AA%E7%94%A8/
 http://example.com/2023/09/15/cve-2018-5767/
 http://example.com/about/index.html
 http://example.com/2022/09/22/%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%9F%BA%E7%A1%80%E6%BC%8F%E6%B4%9E/
@@ -111,3 +113,4 @@ http://example.com/categories/iot/
 http://example.com/categories/heap/
 http://example.com/categories/extra/
 http://example.com/categories/something-to-say/
+http://example.com/categories/permeability/
