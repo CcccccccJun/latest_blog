@@ -4,44 +4,6 @@
   
     
     <entry>
-      <title>TOTOLINK-A810R</title>
-      <link href="/2023/09/18/totolink-a810r/"/>
-      <url>/2023/09/18/totolink-a810r/</url>
-      
-        <content type="html"><![CDATA[<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/lightgallery.js/1.0.1/css/lightgallery.min.css" /><div class=".article-gallery"><h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>在跟着其他师傅的复现文章复现了几个cve后 决定买一个路由器 试着自己挑一个cve只从官方的poc来复现 同时试着提取出固件 以及自己研究看看能不能挖到洞(哪怕是已经提交过的cve 都可以对能力进行一个提升<br>我手上这一款路由器是TOTOLINK的 A810R 发布日期为2018-04-13 14:58:38<br>固件版本为V5.9c.1528<br>固件下载地址: <a href="http://www.totolink.cn/home/menu/detail.html?menu_listtpl=download&id=2&ids=36">http://www.totolink.cn/home/menu/detail.html?menu_listtpl=download&amp;id=2&amp;ids=36</a><br>一开始提取路由器固件的工具还没到 所以先用qemu模拟打打看</p><h1 id="环境搭建"><a href="#环境搭建" class="headerlink" title="环境搭建"></a>环境搭建</h1><p>使用binwalk提取出文件系统后 随便挑一个文件查看架构和操作系统位数<br><a href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202309182336810.png" title="image.png" class="gallery-item"><img src="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202309182336810.png" alt="image.png"></a><br>32位的mips架构 这里直接用写好的脚本起一个debian的系统模拟</p><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">#/bin/sh</span><br><span class="line"></span><br><span class="line">sudo tunctl -t top0 -u root</span><br><span class="line"></span><br><span class="line">sudo ifconfig top0 192.168.6.2</span><br><span class="line"></span><br><span class="line">sudo qemu-system-mipsel -M malta -kernel ./mipsel_kernel/vmlinux-3.2.0-4-4kc-malta -hda ./mipsel_kernel/debian_squeeze_mipsel_standard.qcow2 -append &quot;root=/dev/sda1 console=tty0&quot; -net nic -net tap,ifname=top0 -nographic</span><br></pre></td></tr></table></figure><p>随后使用scp把squashfs-root文件夹传输过去<br>这里要注意的一点是 系统模拟成功后 对应的机子需要设置成跟top0接口的c段一样 但是标识符不能一样 不然scp和ssh都无法连接 会提示Permission denied, please try again</p></div><script src="https://cdn.jsdelivr.net/lightgallery.js/1.0.1/js/lightgallery.min.js"></script><script>if (typeof lightGallery !== 'undefined') {        var options = {            selector: '.gallery-item'        };        lightGallery(document.getElementsByClassName('.article-gallery')[0], options);        }</script>]]></content>
-      
-      
-      <categories>
-          
-          <category> iot </category>
-          
-      </categories>
-      
-      
-    </entry>
-    
-    
-    
-    <entry>
-      <title>THM渗透学习笔记(自用</title>
-      <link href="/2023/09/18/thm%E6%B8%97%E9%80%8F%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-%E8%87%AA%E7%94%A8/"/>
-      <url>/2023/09/18/thm%E6%B8%97%E9%80%8F%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-%E8%87%AA%E7%94%A8/</url>
-      
-        <content type="html"><![CDATA[<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/lightgallery.js/1.0.1/css/lightgallery.min.css" /><div class=".article-gallery"><p>注意网页的源代码中的注释 以及 &lt;a 开头的超链接<br>如果web服务器没有对存储外部文件的路径做限制 可以以此访问非公开文件<br>同时可以查看网页使用的框架 方便获取一些信息</p><p>检查器修改部分参数</p><p>源代码中可以下断点来获取一些信息</p><p>网络中可以通过包来获取目标页面或者包的内容</p><p>robots.txt中存储的是禁止搜索引擎访问的目录</p><p>如果没有更改网站图标的话 可以以此来判断所用的框架</p><p>sitemap.xml存储希望在搜索引擎上呈现的列表</p><p>curl xxxxx -v 可以获取HTTP标头</p><p>Wappalyzer (<a href="https://www.wappalyzer.com/">https://www.wappalyzer.com/</a>) 是一种在线工具和浏览器扩展，可帮助识别网站使用的技术，例如框架、内容管理系统 (CMS)、支付处理器等等，它甚至可以还可以找到版本号。</p><p>Wayback Machine (<a href="https://archive.org/web/">https://archive.org/web/</a>) 是一个网站的历史档案，其历史可以追溯到 90 年代末。您可以搜索域名，它会向您显示该服务抓取网页并保存内容的所有时间。此服务可以帮助发现当前网站上可能仍处于活动状态的旧页面。</p><p>自动化发现目录工具 ffuf、dirb 和 gobuster等</p><p>SSL&#x2F;TLS 证书可以获得一些子域信息 <a href="https://crt.sh/">https://crt.sh/</a></p><p>-site:<a href="http://www.tryhackme.com/">www.tryhackme.com</a> site:*.tryhackme.com 谷歌搜索 这样可以限制只搜索tryhackme的子域</p><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">ffuf -w /usr/share/wordlists/SecLists/Discovery/DNS/namelist.txt -H &quot;Host: FUZZ.acmeitsupport.thm&quot; -u http://MACHINE_IP</span><br><span class="line"></span><br><span class="line">ffuf -w /usr/share/wordlists/SecLists/Discovery/DNS/namelist.txt -H &quot;Host: FUZZ.acmeitsupport.thm&quot; -u http://MACHINE_IP -fs &#123;size&#125;</span><br></pre></td></tr></table></figure></div><script src="https://cdn.jsdelivr.net/lightgallery.js/1.0.1/js/lightgallery.min.js"></script><script>if (typeof lightGallery !== 'undefined') {        var options = {            selector: '.gallery-item'        };        lightGallery(document.getElementsByClassName('.article-gallery')[0], options);        }</script>]]></content>
-      
-      
-      <categories>
-          
-          <category> permeability </category>
-          
-      </categories>
-      
-      
-    </entry>
-    
-    
-    
-    <entry>
       <title>cve-2018-5767</title>
       <link href="/2023/09/15/cve-2018-5767/"/>
       <url>/2023/09/15/cve-2018-5767/</url>
