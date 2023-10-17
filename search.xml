@@ -4,11 +4,30 @@
   
     
     <entry>
-      <title>初步学习socket</title>
-      <link href="/2023/10/17/%E5%88%9D%E6%AD%A5%E5%AD%A6%E4%B9%A0socket/"/>
-      <url>/2023/10/17/%E5%88%9D%E6%AD%A5%E5%AD%A6%E4%B9%A0socket/</url>
+      <title>Fuzzing: Art, Science, and Engineering论文阅读</title>
+      <link href="/2023/10/17/fuzzing-art-science-and-engineering%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB/"/>
+      <url>/2023/10/17/fuzzing-art-science-and-engineering%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB/</url>
       
-        <content type="html"><![CDATA[<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/lightgallery.js/1.0.1/css/lightgallery.min.css" /><div class=".article-gallery"></div><script src="https://cdn.jsdelivr.net/lightgallery.js/1.0.1/js/lightgallery.min.js"></script><script>if (typeof lightGallery !== 'undefined') {        var options = {            selector: '.gallery-item'        };        lightGallery(document.getElementsByClassName('.article-gallery')[0], options);        }</script>]]></content>
+        <content type="html"><![CDATA[<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/lightgallery.js/1.0.1/css/lightgallery.min.css" /><div class=".article-gallery"><h1 id="Abstract"><a href="#Abstract" class="headerlink" title="Abstract"></a>Abstract</h1><p>模糊测试是一种概念简单 部署门槛低 且成效显著的漏洞发现技术<br>本文的目的旨在帮助保存大量的模糊测试样例以及保证其连贯性 提出一个统一的通用模型</p><h1 id="Introduction"><a href="#Introduction" class="headerlink" title="Introduction"></a>Introduction</h1><p>作者简单介绍了fuzz是什么 以及此前其存在的缺陷 同时举了几个比赛队伍或者厂商使用FUZZ的案例  随后简要概括了fuzz社区的规模<br>因为fuzz的逐渐发展 导致了各种fuzz工具之间的术语存在明显的“歧义”(fragmentation)<br>作者认为 这种歧义很有可能会阻碍fuzz的传播  影响到fuzz的发展<br>所以 其认为有必要巩固和提炼模糊测试的进展 </p><h1 id="SYSTEMIZATION-TAXONOMY-AND-TEST-PRO-GRAMS"><a href="#SYSTEMIZATION-TAXONOMY-AND-TEST-PRO-GRAMS" class="headerlink" title="SYSTEMIZATION, TAXONOMY, AND TEST PRO-GRAMS"></a>SYSTEMIZATION, TAXONOMY, AND TEST PRO-GRAMS</h1><p>介绍了模糊测试最开始的提出者以及其最开始的定义 列举了模糊测试可适用的领域 接着为了使得大量模糊测试文献中的用语系统化 作者决定介绍一个由现代用途中提取的术语</p><h2 id="1-Fuzzing-Fuzz-Testing"><a href="#1-Fuzzing-Fuzz-Testing" class="headerlink" title="1.Fuzzing &amp; Fuzz Testing"></a>1.Fuzzing &amp; Fuzz Testing</h2></div><script src="https://cdn.jsdelivr.net/lightgallery.js/1.0.1/js/lightgallery.min.js"></script><script>if (typeof lightGallery !== 'undefined') {        var options = {            selector: '.gallery-item'        };        lightGallery(document.getElementsByClassName('.article-gallery')[0], options);        }</script>]]></content>
+      
+      
+      <categories>
+          
+          <category> extra </category>
+          
+      </categories>
+      
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>FUZZ学习</title>
+      <link href="/2023/10/17/fuzz%E5%AD%A6%E4%B9%A0/"/>
+      <url>/2023/10/17/fuzz%E5%AD%A6%E4%B9%A0/</url>
+      
+        <content type="html"><![CDATA[<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/lightgallery.js/1.0.1/css/lightgallery.min.css" /><div class=".article-gallery"><h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>对于FUZZ的大名早有耳闻 今天终于开始正式学习这一知识<br>水平有限 本篇文章可能部分地方存在描述错误等问题</p><h1 id="什么是FUZZ"><a href="#什么是FUZZ" class="headerlink" title="什么是FUZZ"></a>什么是FUZZ</h1><p>为了弄清楚FUZZ的概念 拜读了《Fuzzing: Art, Science, and Engineering》这篇经典的论文 如果有想看我阅读后总结的 可以去看另外一篇博客 这里就简单概述</p></div><script src="https://cdn.jsdelivr.net/lightgallery.js/1.0.1/js/lightgallery.min.js"></script><script>if (typeof lightGallery !== 'undefined') {        var options = {            selector: '.gallery-item'        };        lightGallery(document.getElementsByClassName('.article-gallery')[0], options);        }</script>]]></content>
       
       
       <categories>

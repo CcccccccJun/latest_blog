@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="Abstract模糊测试是一种概念简单 部署门槛低 且成效显著的漏洞发现技术本文的目的旨在帮助保存大量的模糊测试样例以及保证其连贯性 提出一个统一的通用模型 Introduction作者简单介绍了fuzz是什么 以及此前其存在的缺陷 同时举了几个比赛队伍或者厂商使用FUZZ的案例  随后简要概括了fuzz社区的规模因为fuzz的逐渐发展 导致了各种fuzz工具之间的术语存在明显的“歧义”(frag">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Fuzzing: Art, Science, and Engineering论文阅读">
+<meta property="og:url" content="http://example.com/2023/10/17/fuzzing-art-science-and-engineering%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB/index.html">
+<meta property="og:site_name" content="C12en">
+<meta property="og:description" content="Abstract模糊测试是一种概念简单 部署门槛低 且成效显著的漏洞发现技术本文的目的旨在帮助保存大量的模糊测试样例以及保证其连贯性 提出一个统一的通用模型 Introduction作者简单介绍了fuzz是什么 以及此前其存在的缺陷 同时举了几个比赛队伍或者厂商使用FUZZ的案例  随后简要概括了fuzz社区的规模因为fuzz的逐渐发展 导致了各种fuzz工具之间的术语存在明显的“歧义”(frag">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2023-10-17T09:13:39.000Z">
+<meta property="article:modified_time" content="2023-10-17T10:53:45.681Z">
+<meta property="article:author" content="C12en">
+<meta name="twitter:card" content="summary">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202309142232390.png&#39;">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202309142232390.png&#39;" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202309142232390.png&#39;">
+        
+      
+    
+    <!-- title -->
+    <title>Fuzzing: Art, Science, and Engineering论文阅读</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+<meta name="generator" content="Hexo 6.3.0"><link rel="alternate" href="/atom.xml" title="C12en" type="application/atom+xml">
+</head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/categories/">categories</a></li><!--
+     --><!--
+       --><li><a href="/search/">Search</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2023/10/17/fuzz%E5%AD%A6%E4%B9%A0/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2023/10/17/fuzzing-art-science-and-engineering%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2023/10/17/fuzzing-art-science-and-engineering%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB/&text=Fuzzing: Art, Science, and Engineering论文阅读"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2023/10/17/fuzzing-art-science-and-engineering%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB/&title=Fuzzing: Art, Science, and Engineering论文阅读"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2023/10/17/fuzzing-art-science-and-engineering%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB/&is_video=false&description=Fuzzing: Art, Science, and Engineering论文阅读"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=Fuzzing: Art, Science, and Engineering论文阅读&body=Check out this article: http://example.com/2023/10/17/fuzzing-art-science-and-engineering%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2023/10/17/fuzzing-art-science-and-engineering%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB/&title=Fuzzing: Art, Science, and Engineering论文阅读"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2023/10/17/fuzzing-art-science-and-engineering%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB/&title=Fuzzing: Art, Science, and Engineering论文阅读"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2023/10/17/fuzzing-art-science-and-engineering%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB/&title=Fuzzing: Art, Science, and Engineering论文阅读"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2023/10/17/fuzzing-art-science-and-engineering%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB/&title=Fuzzing: Art, Science, and Engineering论文阅读"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2023/10/17/fuzzing-art-science-and-engineering%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB/&name=Fuzzing: Art, Science, and Engineering论文阅读&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2023/10/17/fuzzing-art-science-and-engineering%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB/&t=Fuzzing: Art, Science, and Engineering论文阅读"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Abstract"><span class="toc-number">1.</span> <span class="toc-text">Abstract</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Introduction"><span class="toc-number">2.</span> <span class="toc-text">Introduction</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#SYSTEMIZATION-TAXONOMY-AND-TEST-PRO-GRAMS"><span class="toc-number">3.</span> <span class="toc-text">SYSTEMIZATION, TAXONOMY, AND TEST PRO-GRAMS</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-Fuzzing-Fuzz-Testing"><span class="toc-number">3.1.</span> <span class="toc-text">1.Fuzzing &amp; Fuzz Testing</span></a></li></ol></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        Fuzzing: Art, Science, and Engineering论文阅读
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">C12en</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2023-10-17T09:13:39.000Z" class="dt-published" itemprop="datePublished">2023-10-17</time>
+        
+      
+    </div>
+
+
+      
+    <div class="article-category">
+        <i class="fa-solid fa-archive"></i>
+        <a class="category-link" href="/categories/extra/">extra</a>
+    </div>
+
+
+      
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/lightgallery.js/1.0.1/css/lightgallery.min.css" /><div class=".article-gallery"><h1 id="Abstract"><a href="#Abstract" class="headerlink" title="Abstract"></a>Abstract</h1><p>模糊测试是一种概念简单 部署门槛低 且成效显著的漏洞发现技术<br>本文的目的旨在帮助保存大量的模糊测试样例以及保证其连贯性 提出一个统一的通用模型</p>
+<h1 id="Introduction"><a href="#Introduction" class="headerlink" title="Introduction"></a>Introduction</h1><p>作者简单介绍了fuzz是什么 以及此前其存在的缺陷 同时举了几个比赛队伍或者厂商使用FUZZ的案例  随后简要概括了fuzz社区的规模<br>因为fuzz的逐渐发展 导致了各种fuzz工具之间的术语存在明显的“歧义”(fragmentation)<br>作者认为 这种歧义很有可能会阻碍fuzz的传播  影响到fuzz的发展<br>所以 其认为有必要巩固和提炼模糊测试的进展 </p>
+<h1 id="SYSTEMIZATION-TAXONOMY-AND-TEST-PRO-GRAMS"><a href="#SYSTEMIZATION-TAXONOMY-AND-TEST-PRO-GRAMS" class="headerlink" title="SYSTEMIZATION, TAXONOMY, AND TEST PRO-GRAMS"></a>SYSTEMIZATION, TAXONOMY, AND TEST PRO-GRAMS</h1><p>介绍了模糊测试最开始的提出者以及其最开始的定义 列举了模糊测试可适用的领域 接着为了使得大量模糊测试文献中的用语系统化 作者决定介绍一个由现代用途中提取的术语</p>
+<h2 id="1-Fuzzing-Fuzz-Testing"><a href="#1-Fuzzing-Fuzz-Testing" class="headerlink" title="1.Fuzzing &amp; Fuzz Testing"></a>1.Fuzzing &amp; Fuzz Testing</h2></div><script src="https://cdn.jsdelivr.net/lightgallery.js/1.0.1/js/lightgallery.min.js"></script><script>if (typeof lightGallery !== 'undefined') {
+        var options = {
+            selector: '.gallery-item'
+        };
+        lightGallery(document.getElementsByClassName('.article-gallery')[0], options);
+        }</script>
+  </div>
+</article>
+
+    <div class="blog-post-comments">
+        <div id="disqus_thread">
+            <noscript>Please enable JavaScript to view the comments.</noscript>
+        </div>
+    </div>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/about/">About</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+          <li><a href="/categories/">categories</a></li>
+        
+          <li><a href="/search/">Search</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Abstract"><span class="toc-number">1.</span> <span class="toc-text">Abstract</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Introduction"><span class="toc-number">2.</span> <span class="toc-text">Introduction</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#SYSTEMIZATION-TAXONOMY-AND-TEST-PRO-GRAMS"><span class="toc-number">3.</span> <span class="toc-text">SYSTEMIZATION, TAXONOMY, AND TEST PRO-GRAMS</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-Fuzzing-Fuzz-Testing"><span class="toc-number">3.1.</span> <span class="toc-text">1.Fuzzing &amp; Fuzz Testing</span></a></li></ol></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2023/10/17/fuzzing-art-science-and-engineering%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2023/10/17/fuzzing-art-science-and-engineering%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB/&text=Fuzzing: Art, Science, and Engineering论文阅读"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2023/10/17/fuzzing-art-science-and-engineering%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB/&title=Fuzzing: Art, Science, and Engineering论文阅读"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2023/10/17/fuzzing-art-science-and-engineering%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB/&is_video=false&description=Fuzzing: Art, Science, and Engineering论文阅读"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=Fuzzing: Art, Science, and Engineering论文阅读&body=Check out this article: http://example.com/2023/10/17/fuzzing-art-science-and-engineering%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2023/10/17/fuzzing-art-science-and-engineering%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB/&title=Fuzzing: Art, Science, and Engineering论文阅读"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2023/10/17/fuzzing-art-science-and-engineering%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB/&title=Fuzzing: Art, Science, and Engineering论文阅读"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2023/10/17/fuzzing-art-science-and-engineering%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB/&title=Fuzzing: Art, Science, and Engineering论文阅读"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2023/10/17/fuzzing-art-science-and-engineering%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB/&title=Fuzzing: Art, Science, and Engineering论文阅读"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2023/10/17/fuzzing-art-science-and-engineering%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB/&name=Fuzzing: Art, Science, and Engineering论文阅读&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2023/10/17/fuzzing-art-science-and-engineering%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB/&t=Fuzzing: Art, Science, and Engineering论文阅读"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2022-2023
+    C12en
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/categories/">categories</a></li><!--
+     --><!--
+       --><li><a href="/search/">Search</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+    <script type="text/javascript">
+        var disqus_shortname = 'c12en';
+
+        (function(){
+            var dsq = document.createElement('script');
+            dsq.type = 'text/javascript';
+            dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        }());
+    </script>
+
+<!-- utterances Comments -->
+
+</body>
+</html>
