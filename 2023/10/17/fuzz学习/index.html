@@ -6,17 +6,25 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="HandheldFriendly" content="True">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
-    <meta name="description" content="前言对于FUZZ的大名早有耳闻 今天终于开始正式学习这一知识水平有限 本篇文章可能部分地方存在描述错误等问题 什么是FUZZ为了弄清楚FUZZ的概念 拜读了《Fuzzing: Art, Science, and Engineering》这篇经典的论文 如果有想看我阅读后总结的 可以去看另外一篇博客 这里就简单概述 if (typeof lightGallery !&#x3D;&#x3D; &#39;undefined&#39;) {">
+    <meta name="description" content="前言对于FUZZ的大名早有耳闻 今天终于开始正式学习这一知识水平有限 本篇文章可能部分地方存在描述错误等问题本篇文章使用AFL模糊器参考文章:https:&#x2F;&#x2F;thinkycx.me&#x2F;2019-01-28-a-simple-AFL-tutorial-for-beginners.html 什么是FUZZ为了弄清楚FUZZ的概念 拜读了《Fuzzing: Art, Science, and Engine">
 <meta property="og:type" content="article">
 <meta property="og:title" content="FUZZ学习">
 <meta property="og:url" content="http://example.com/2023/10/17/fuzz%E5%AD%A6%E4%B9%A0/index.html">
 <meta property="og:site_name" content="C12en">
-<meta property="og:description" content="前言对于FUZZ的大名早有耳闻 今天终于开始正式学习这一知识水平有限 本篇文章可能部分地方存在描述错误等问题 什么是FUZZ为了弄清楚FUZZ的概念 拜读了《Fuzzing: Art, Science, and Engineering》这篇经典的论文 如果有想看我阅读后总结的 可以去看另外一篇博客 这里就简单概述 if (typeof lightGallery !&#x3D;&#x3D; &#39;undefined&#39;) {">
+<meta property="og:description" content="前言对于FUZZ的大名早有耳闻 今天终于开始正式学习这一知识水平有限 本篇文章可能部分地方存在描述错误等问题本篇文章使用AFL模糊器参考文章:https:&#x2F;&#x2F;thinkycx.me&#x2F;2019-01-28-a-simple-AFL-tutorial-for-beginners.html 什么是FUZZ为了弄清楚FUZZ的概念 拜读了《Fuzzing: Art, Science, and Engine">
 <meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202310242045496.png">
+<meta property="og:image" content="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202310242047047.png">
+<meta property="og:image" content="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202310242131457.png">
+<meta property="og:image" content="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202310242131539.png">
+<meta property="og:image" content="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202310242151963.png">
+<meta property="og:image" content="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202310242207740.png">
+<meta property="og:image" content="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202310242208078.png">
 <meta property="article:published_time" content="2023-10-17T08:37:27.000Z">
-<meta property="article:modified_time" content="2023-10-17T09:13:15.462Z">
+<meta property="article:modified_time" content="2023-10-24T15:06:45.728Z">
 <meta property="article:author" content="C12en">
 <meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202310242045496.png">
     
     
       
@@ -117,7 +125,7 @@
     
     
       <div id="toc">
-        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%89%8D%E8%A8%80"><span class="toc-number">1.</span> <span class="toc-text">前言</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BB%80%E4%B9%88%E6%98%AFFUZZ"><span class="toc-number">2.</span> <span class="toc-text">什么是FUZZ</span></a></li></ol>
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%89%8D%E8%A8%80"><span class="toc-number">1.</span> <span class="toc-text">前言</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BB%80%E4%B9%88%E6%98%AFFUZZ"><span class="toc-number">2.</span> <span class="toc-text">什么是FUZZ</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E9%85%8D%E7%BD%AEFUZZ%E7%8E%AF%E5%A2%83"><span class="toc-number">3.</span> <span class="toc-text">配置FUZZ环境</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%AC%AC%E4%B8%80%E6%AC%A1FUZZ"><span class="toc-number">4.</span> <span class="toc-text">第一次FUZZ</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%80%E4%BA%9B%E8%87%AA%E5%B7%B1%E7%9A%84%E7%A0%94%E7%A9%B6"><span class="toc-number">5.</span> <span class="toc-text">一些自己的研究</span></a></li></ol>
       </div>
     
   </span>
@@ -162,8 +170,23 @@
   
 
   <div class="content e-content" itemprop="articleBody">
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/lightgallery.js/1.0.1/css/lightgallery.min.css" /><div class=".article-gallery"><h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>对于FUZZ的大名早有耳闻 今天终于开始正式学习这一知识<br>水平有限 本篇文章可能部分地方存在描述错误等问题</p>
-<h1 id="什么是FUZZ"><a href="#什么是FUZZ" class="headerlink" title="什么是FUZZ"></a>什么是FUZZ</h1><p>为了弄清楚FUZZ的概念 拜读了《Fuzzing: Art, Science, and Engineering》这篇经典的论文 如果有想看我阅读后总结的 可以去看另外一篇博客 这里就简单概述</p>
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/lightgallery.js/1.0.1/css/lightgallery.min.css" /><div class=".article-gallery"><h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>对于FUZZ的大名早有耳闻 今天终于开始正式学习这一知识<br>水平有限 本篇文章可能部分地方存在描述错误等问题<br>本篇文章使用AFL模糊器<br>参考文章:<a target="_blank" rel="noopener" href="https://thinkycx.me/2019-01-28-a-simple-AFL-tutorial-for-beginners.html">https://thinkycx.me/2019-01-28-a-simple-AFL-tutorial-for-beginners.html</a></p>
+<h1 id="什么是FUZZ"><a href="#什么是FUZZ" class="headerlink" title="什么是FUZZ"></a>什么是FUZZ</h1><p>为了弄清楚FUZZ的概念 拜读了《Fuzzing: Art, Science, and Engineering》这篇经典的论文 如果有想看我阅读后总结的 可以去看另外一篇博客 这里就简单概述<br>FUZZ相比传统的软件测试 其包含的漏洞预测器用于决定测试过程中是否违反了安全策略<br>二者的目的性不一样 而FUZZ又分为三种 白盒 黑盒 灰盒 三者最大的差别在于模糊器对于PUT(待测程序)的了解程度有多少 是否知晓PUT的内部逻辑等<br>FUZZ采用模糊算法来生成随机的测试样例 部分复杂的模糊配置可以演变种子池来迭代测试样例 通常依靠代码覆盖率(即PUT执行路径)</p>
+<h1 id="配置FUZZ环境"><a href="#配置FUZZ环境" class="headerlink" title="配置FUZZ环境"></a>配置FUZZ环境</h1><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">wget http://lcamtuf.coredump.cx/afl/releases/afl-latest.tgz</span><br><span class="line">tar xvf afl-latest.tgz</span><br><span class="line">cd afl-2.52b</span><br><span class="line">sudo make &amp;&amp; sudo make install</span><br></pre></td></tr></table></figure>
+<p>上述是afl的安装 我个人建议是使用afl++ 不过本篇文章均采用afl</p>
+<h1 id="第一次FUZZ"><a href="#第一次FUZZ" class="headerlink" title="第一次FUZZ"></a>第一次FUZZ</h1><p>我们先来自己编写一个程序 逻辑很简单 输入对应的字符串就触发段错误</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">#include &lt;stdio.h&gt;</span><br><span class="line">#include &lt;stdlib.h&gt;</span><br><span class="line">#include &lt;signal.h&gt;</span><br><span class="line">#include &lt;string.h&gt;</span><br><span class="line">int main(int argc, char *argv[]) &#123;</span><br><span class="line">    char buf[100];</span><br><span class="line">    scanf(&quot;%s&quot;,buf);</span><br><span class="line">    char buf1[] = &quot;aaaa&quot;;</span><br><span class="line">    if(!strcmp(buf,buf1))&#123;</span><br><span class="line">        printf(&quot;success!\n&quot;);</span><br><span class="line">        raise(SIGSEGV);</span><br><span class="line">    &#125;else&#123;</span><br><span class="line">        printf(&quot;faile\n&quot;);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>随便创建两个空目录 一个用来存放测试样例  一个用来存放输出信息<br>本次模糊测试 测试样例由我们自己填写<br><a target="_blank" rel="noopener" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202310242045496.png" title="image.png" class="gallery-item"><img src="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202310242045496.png" alt="image.png"></a><br>随后使用-i指定前者 -o指定后者 开始fuzz</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">afl-fuzz -i ./fuzz/in -o ./fuzz/out ./test</span><br></pre></td></tr></table></figure>
+<p>当然了 如果你使用的是afl 那么你就会发现 模糊器读取到第二个样例的时候就终止了<br><a target="_blank" rel="noopener" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202310242047047.png" title="image.png" class="gallery-item"><img src="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202310242047047.png" alt="image.png"></a><br>原因在于afl的测试样例貌似不能直接导致PUT触发crash<br>所以这里更改第二个样例 使其为aaa 让模糊器使其迭代 延伸成aaaa这个字符串<br>随后重新开始fuzz 发现成功找到了三个crash<br><a target="_blank" rel="noopener" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202310242131457.png" title="image.png" class="gallery-item"><img src="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202310242131457.png" alt="image.png"></a></p>
+<p>看到官方文档说 如果要让模糊器运行完毕 需要几个小时到一周左右 所以这里直接ctrl+c终止了<br>官方文档提到</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">crashes/ - unique test cases that cause the tested program to receive a fatal signal (e.g., SIGSEGV, SIGILL, SIGABRT). The entries are grouped by the received signal.</span><br></pre></td></tr></table></figure>
+<p>所以去crashes目录下找到了三个触发崩溃的样例<br><a target="_blank" rel="noopener" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202310242131539.png" title="image.png" class="gallery-item"><img src="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202310242131539.png" alt="image.png"></a><br>第一个不出所料 是我们原定的字符串aaaa 第二个和第三个有点意外 貌似也是一些无规则字节 打算动调来看看 利用hexdump获取一下16进制格式的ascii字节码<br><a target="_blank" rel="noopener" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202310242151963.png" title="image.png" class="gallery-item"><img src="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202310242151963.png" alt="image.png"></a></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">\x68\x68\x68\x68\x32\x00\x00\x68\xC6\xC6\xC6\xC6\xC6\xC6\xC6\xC6\xC6\xC6\xC6\xC6\xC6\xC6\xC6\xC6\xCE\xC6\xC6\xC6\xC6\xC6\xC6\xC6\xC6\x68\x87\x68\xE8\x00\x10\x68\x7F\xFF\xF0\xF0\xF0\xF0\xF0\xCF\xF0\xF0\xF0\xE4\xF0\xF0\xF0\x70\xF0\x68\x68\x68\x68\x32\x68\x68\x68\x68\x68\x68\xE8\x68\x68\x68\x68\xF0\xF0\xF0\xF0\xF0\xF0\xCF\xF0\xF0\xF0\xF0\x68\x68\xF0\xE9\xF0\xF0\xFB\xF0\xCF\xF0\xF0\xF0\xF0\xF0\xF0\x07\x70\xF0\x68\x68\x68\x68\x68\x68\x68\x6E\x00\x00\x01\x00\x70\xF0\x68\x68\x68\x68\x68\x68\x68\x68\x68\x68\xDF\xD1</span><br></pre></td></tr></table></figure>
+<p>调试exp:</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">from pwn import*</span><br><span class="line">io = process(&quot;./test&quot;)</span><br><span class="line">elf = ELF(&quot;./test&quot;)</span><br><span class="line">context.arch = &quot;amd64&quot;</span><br><span class="line">context.log_level = &quot;debug&quot;</span><br><span class="line">context.terminal = [&#x27;tmux&#x27;,&#x27;splitw&#x27;,&#x27;-h&#x27;]</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">payload = &quot;\x68\x68\x68\x68\x32\x00\x00\x68\xC6\xC6\xC6\xC6\xC6\xC6\xC6\xC6\xC6\xC6\xC6\xC6\xC6\xC6\xC6\xC6\xCE\xC6\xC6\xC6\xC6\xC6\xC6\xC6\xC6\x68\x87\x68\xE8\x00\x10\x68\x7F\xFF\xF0\xF0\xF0\xF0\xF0\xCF\xF0\xF0\xF0\xE4\xF0\xF0\xF0\x70\xF0\x68\x68\x68\x68\x32\x68\x68\x68\x68\x68\x68\xE8\x68\x68\x68\x68\xF0\xF0\xF0\xF0\xF0\xF0\xCF\xF0\xF0\xF0\xF0\x68\x68\xF0\xE9\xF0\xF0\xFB\xF0\xCF\xF0\xF0\xF0\xF0\xF0\xF0\x07\x70\xF0\x68\x68\x68\x68\x68\x68\x68\x6E\x00\x00\x01\x00\x70\xF0\x68\x68\x68\x68\x68\x68\x68\x68\x68\x68\xDF\xD1&quot;</span><br><span class="line">gdb.attach(io,&#x27;b *$rebase(0x1244)&#x27;)</span><br><span class="line">io.sendline(payload)</span><br><span class="line">pause()</span><br></pre></td></tr></table></figure>
+<p>在程序执行到pthread_kill函数后 回溯一下执行流 发现了检查canary的函数<br><a target="_blank" rel="noopener" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202310242207740.png" title="image.png" class="gallery-item"><img src="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202310242207740.png" alt="image.png"></a><br>应该是由于栈溢出触发的crash<br>那么接下来来看第三个<br><a target="_blank" rel="noopener" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202310242208078.png" title="image.png" class="gallery-item"><img src="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202310242208078.png" alt="image.png"></a><br>看这个长度应该也是因为栈溢出导致的crash 那么这里就不进一步动调了</p>
+<h1 id="一些自己的研究"><a href="#一些自己的研究" class="headerlink" title="一些自己的研究"></a>一些自己的研究</h1><p>本小节用来记录自己对于afl官方文档阅读后的理解和实操  没啥重要性<br>文档中粗略介绍了afl所采用的模糊算法</p>
 </div><script src="https://cdn.jsdelivr.net/lightgallery.js/1.0.1/js/lightgallery.min.js"></script><script>if (typeof lightGallery !== 'undefined') {
         var options = {
             selector: '.gallery-item'
@@ -204,7 +227,7 @@
     
     
       <div id="toc-footer" style="display: none">
-        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%89%8D%E8%A8%80"><span class="toc-number">1.</span> <span class="toc-text">前言</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BB%80%E4%B9%88%E6%98%AFFUZZ"><span class="toc-number">2.</span> <span class="toc-text">什么是FUZZ</span></a></li></ol>
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%89%8D%E8%A8%80"><span class="toc-number">1.</span> <span class="toc-text">前言</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BB%80%E4%B9%88%E6%98%AFFUZZ"><span class="toc-number">2.</span> <span class="toc-text">什么是FUZZ</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E9%85%8D%E7%BD%AEFUZZ%E7%8E%AF%E5%A2%83"><span class="toc-number">3.</span> <span class="toc-text">配置FUZZ环境</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%AC%AC%E4%B8%80%E6%AC%A1FUZZ"><span class="toc-number">4.</span> <span class="toc-text">第一次FUZZ</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%80%E4%BA%9B%E8%87%AA%E5%B7%B1%E7%9A%84%E7%A0%94%E7%A9%B6"><span class="toc-number">5.</span> <span class="toc-text">一些自己的研究</span></a></li></ol>
       </div>
     
 
