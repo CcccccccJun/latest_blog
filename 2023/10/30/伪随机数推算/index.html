@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="前言以往遇到的考察伪随机数的题目都相对比较简单 无非就是通过seed来推算出后续的随机数 但是这次的核心在于 seed不可控且不可知的情况下 如何通过seed生成的伪随机数 来推算出后续的随机数 rand函数源码分析先来弄懂 rand函数究竟是如何通过seed来生成随机数的以下代码均从 https:&#x2F;&#x2F;codebrowser.dev&#x2F;glibc&#x2F; 摘录 &#x2F;* Return a random int">
+<meta property="og:type" content="article">
+<meta property="og:title" content="伪随机数推算">
+<meta property="og:url" content="http://example.com/2023/10/30/%E4%BC%AA%E9%9A%8F%E6%9C%BA%E6%95%B0%E6%8E%A8%E7%AE%97/index.html">
+<meta property="og:site_name" content="C12en">
+<meta property="og:description" content="前言以往遇到的考察伪随机数的题目都相对比较简单 无非就是通过seed来推算出后续的随机数 但是这次的核心在于 seed不可控且不可知的情况下 如何通过seed生成的伪随机数 来推算出后续的随机数 rand函数源码分析先来弄懂 rand函数究竟是如何通过seed来生成随机数的以下代码均从 https:&#x2F;&#x2F;codebrowser.dev&#x2F;glibc&#x2F; 摘录 &#x2F;* Return a random int">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202310312226443.png">
+<meta property="article:published_time" content="2023-10-30T12:42:05.000Z">
+<meta property="article:modified_time" content="2023-10-31T14:42:25.422Z">
+<meta property="article:author" content="C12en">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202310312226443.png">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202309142232390.png&#39;">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202309142232390.png&#39;" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202309142232390.png&#39;">
+        
+      
+    
+    <!-- title -->
+    <title>伪随机数推算</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+<meta name="generator" content="Hexo 6.3.0"><link rel="alternate" href="/atom.xml" title="C12en" type="application/atom+xml">
+</head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/categories/">categories</a></li><!--
+     --><!--
+       --><li><a href="/search/">Search</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2023/10/17/fuzzing-art-science-and-engineering%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2023/10/30/%E4%BC%AA%E9%9A%8F%E6%9C%BA%E6%95%B0%E6%8E%A8%E7%AE%97/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2023/10/30/%E4%BC%AA%E9%9A%8F%E6%9C%BA%E6%95%B0%E6%8E%A8%E7%AE%97/&text=伪随机数推算"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2023/10/30/%E4%BC%AA%E9%9A%8F%E6%9C%BA%E6%95%B0%E6%8E%A8%E7%AE%97/&title=伪随机数推算"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2023/10/30/%E4%BC%AA%E9%9A%8F%E6%9C%BA%E6%95%B0%E6%8E%A8%E7%AE%97/&is_video=false&description=伪随机数推算"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=伪随机数推算&body=Check out this article: http://example.com/2023/10/30/%E4%BC%AA%E9%9A%8F%E6%9C%BA%E6%95%B0%E6%8E%A8%E7%AE%97/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2023/10/30/%E4%BC%AA%E9%9A%8F%E6%9C%BA%E6%95%B0%E6%8E%A8%E7%AE%97/&title=伪随机数推算"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2023/10/30/%E4%BC%AA%E9%9A%8F%E6%9C%BA%E6%95%B0%E6%8E%A8%E7%AE%97/&title=伪随机数推算"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2023/10/30/%E4%BC%AA%E9%9A%8F%E6%9C%BA%E6%95%B0%E6%8E%A8%E7%AE%97/&title=伪随机数推算"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2023/10/30/%E4%BC%AA%E9%9A%8F%E6%9C%BA%E6%95%B0%E6%8E%A8%E7%AE%97/&title=伪随机数推算"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2023/10/30/%E4%BC%AA%E9%9A%8F%E6%9C%BA%E6%95%B0%E6%8E%A8%E7%AE%97/&name=伪随机数推算&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2023/10/30/%E4%BC%AA%E9%9A%8F%E6%9C%BA%E6%95%B0%E6%8E%A8%E7%AE%97/&t=伪随机数推算"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%89%8D%E8%A8%80"><span class="toc-number">1.</span> <span class="toc-text">前言</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#rand%E5%87%BD%E6%95%B0%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90"><span class="toc-number">2.</span> <span class="toc-text">rand函数源码分析</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%A6%82%E4%BD%95%E9%A2%84%E6%B5%8B%E9%9A%8F%E6%9C%BA%E6%95%B0"><span class="toc-number">3.</span> <span class="toc-text">如何预测随机数</span></a></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        伪随机数推算
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">C12en</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2023-10-30T12:42:05.000Z" class="dt-published" itemprop="datePublished">2023-10-30</time>
+        
+      
+    </div>
+
+
+      
+    <div class="article-category">
+        <i class="fa-solid fa-archive"></i>
+        <a class="category-link" href="/categories/extra/">extra</a>
+    </div>
+
+
+      
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/lightgallery.js/1.0.1/css/lightgallery.min.css" /><div class=".article-gallery"><h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>以往遇到的考察伪随机数的题目都相对比较简单 无非就是通过seed来推算出后续的随机数 但是这次的核心在于 seed不可控且不可知的情况下 如何通过seed生成的伪随机数 来推算出后续的随机数</p>
+<h1 id="rand函数源码分析"><a href="#rand函数源码分析" class="headerlink" title="rand函数源码分析"></a>rand函数源码分析</h1><p>先来弄懂 rand函数究竟是如何通过seed来生成随机数的<br>以下代码均从 <a target="_blank" rel="noopener" href="https://codebrowser.dev/glibc/">https://codebrowser.dev/glibc/</a> 摘录</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">/* Return a random integer between 0 and RAND_MAX.  */</span><br><span class="line">int</span><br><span class="line">rand (void)</span><br><span class="line">&#123;</span><br><span class="line">  return (int) __random ();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>内部进而调用了__random函数 跟进一下看看</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">__random (void)</span><br><span class="line">&#123;</span><br><span class="line">  int32_t retval;</span><br><span class="line"></span><br><span class="line">  __libc_lock_lock (lock);</span><br><span class="line"></span><br><span class="line">  (void) __random_r (buf: &amp;unsafe_state, result: &amp;retval);</span><br><span class="line"></span><br><span class="line">  __libc_lock_unlock (lock);</span><br><span class="line"></span><br><span class="line">  return retval;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>重点关注一下__random_r函数 unsafe_state结构体作为参数传输 返回值存储于retval</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">static struct random_data unsafe_state =</span><br><span class="line">&#123;</span><br><span class="line">    /* FPTR和RPTR是指向状态信息的两个指针，一个前指针和一个后指针。</span><br><span class="line">       这两个指针始终相隔rand_sep个位置，因为它们在状态信息中循环。</span><br><span class="line">       （是的，这意味着我们可以只用一个指针，但是这种方式的random代码更高效）。</span><br><span class="line">       这两个指针的位置是从调用initstate(1, randtbl, 128)的位置开始：</span><br><span class="line">       （后指针rptr的位置实际上是0（如上面在初始化randtbl时解释的那样），</span><br><span class="line">       因为状态表指针被设置为指向randtbl[1]（如下面解释的那样）。）*/</span><br><span class="line"></span><br><span class="line">    .fptr = &amp;randtbl[SEP_3 + 1],    // SEP_3 = 3</span><br><span class="line">    .rptr = &amp;randtbl[1],</span><br><span class="line"></span><br><span class="line">    /* 以下内容是指向状态信息表的指针、当前生成器的类型、当前多项式的度数和两个指针之间的间隔。</span><br><span class="line">       注意，为了random的效率，我们记住状态信息的第一个位置，而不是第零个位置。</span><br><span class="line">       因此，访问state[-1]是有效的，它用于存储R.N.G.的类型。</span><br><span class="line">       另外，我们记住最后一个位置，因为这比每次索引以查找最后一个元素的地址来判断前后指针是否已经回绕更高效。 */</span><br><span class="line"></span><br><span class="line">    .state = &amp;randtbl[1],</span><br><span class="line"></span><br><span class="line">    .rand_type = TYPE_3,    // 3</span><br><span class="line">    .rand_deg = DEG_3,      // 3</span><br><span class="line">    .rand_sep = SEP_3,      // 3</span><br><span class="line"></span><br><span class="line">    .end_ptr = &amp;randtbl[sizeof(randtbl) / sizeof(randtbl[0])]</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p>根据注释可以得到 fptr和rptr是指向状态信息的前后指针 并且虽然rptr的起始是randtbl[1]但是实际上是0<br>为了理解这一描述 我们先来看一下randtbl数组的内容</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">static int32_t randtbl[DEG_3 + 1] =</span><br><span class="line">&#123;</span><br><span class="line">    TYPE_3,</span><br><span class="line"></span><br><span class="line">    -1726662223, 379960547, 1735697613, 1040273694, 1313901226,</span><br><span class="line">    1627687941, -179304937, -2073333483, 1780058412, -1989503057,</span><br><span class="line">    -615974602, 344556628, 939512070, -1249116260, 1507946756,</span><br><span class="line">    -812545463, 154635395, 1388815473, -1926676823, 525320961,</span><br><span class="line">    -1009028674, 968117788, -123449607, 1284210865, 435012392,</span><br><span class="line">    -2017506339, -911064859, -370259173, 1132637927, 1398500161,</span><br><span class="line">    -205601318</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p>该数组存储着内部状态信息 用于随机数的生成<br>通过randtbl数组的注释 我们可以得知上文中 后指针的位置为0的原因</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Initially, everything is set up as if from: ↪</span><br><span class="line">    initstate(1, randtbl, 128); ↪</span><br><span class="line">   Note that this initialization takes advantage of the fact that srandom ↪</span><br><span class="line">   advances the front and rear pointers 10*rand_deg times, and hence the ↪</span><br><span class="line">   rear pointer which starts at 0 will also end up at zero; thus the zeroth ↪</span><br><span class="line">   element of the state information, which contains info about the current ↪</span><br><span class="line">   position of the rear pointer is just ↪</span><br><span class="line">    (MAX_TYPES * (rptr - state)) + TYPE_3 == TYPE_3.</span><br></pre></td></tr></table></figure>
+<p>后指针在初始化的时候指向第一个元素 所以第一个元素存储的是后指针当前位置的信息<br>接着我们回到unsafe_state结构体<br>其还定义了其他成员 用来记录生成器类型 随机次数 随机间隔<br>此外还记录了最后一个元素的位置<br>接下来分析一下__random_r函数</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">int __random_r(struct random_data *buf, int32_t *result)</span><br><span class="line">&#123;</span><br><span class="line">    int32_t *state;</span><br><span class="line"></span><br><span class="line">    if (buf == NULL || result == NULL)</span><br><span class="line">        goto fail;</span><br><span class="line"></span><br><span class="line">    state = buf-&gt;state;</span><br><span class="line"></span><br><span class="line">    if (buf-&gt;rand_type == TYPE_0)</span><br><span class="line">    &#123;</span><br><span class="line">        int32_t val = ((state[0] * 1103515245U) + 12345U) &amp; 0x7fffffff;</span><br><span class="line">        state[0] = val;</span><br><span class="line">        *result = val;</span><br><span class="line">    &#125;</span><br><span class="line">    else</span><br><span class="line">    &#123;</span><br><span class="line">        int32_t *fptr = buf-&gt;fptr;</span><br><span class="line">        int32_t *rptr = buf-&gt;rptr;</span><br><span class="line">        int32_t *end_ptr = buf-&gt;end_ptr;</span><br><span class="line">        uint32_t val;</span><br><span class="line"></span><br><span class="line">        val = *fptr += (uint32_t)*rptr;</span><br><span class="line">        /* Chucking least random bit. */</span><br><span class="line">        *result = val &gt;&gt; 1;</span><br><span class="line">        ++fptr;</span><br><span class="line">        if (fptr &gt;= end_ptr)</span><br><span class="line">        &#123;</span><br><span class="line">            fptr = state;</span><br><span class="line">            ++rptr;</span><br><span class="line">        &#125;</span><br><span class="line">        else</span><br><span class="line">        &#123;</span><br><span class="line">            ++rptr;</span><br><span class="line">            if (rptr &gt;= end_ptr)</span><br><span class="line">                rptr = state;</span><br><span class="line">        &#125;</span><br><span class="line">        buf-&gt;fptr = fptr;</span><br><span class="line">        buf-&gt;rptr = rptr;</span><br><span class="line">    &#125;</span><br><span class="line">    return 0;</span><br><span class="line"></span><br><span class="line">fail:</span><br><span class="line">    __set_errno(EINVAL);</span><br><span class="line">    return -1;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>参考注释可以得知 生成器有两种类型 TYPE_0是使用旧的线性同余法  另外一个则是使用精巧三项式算法<br>先来看较为简单的前者 state[0]指向randtbl数组的第二个元素 将其乘以1103515245 U代表无符号整数 随后加上12345 最后进行与运算<br>这里清空了符号位 并且只保留低31位<br>随后更新state[0]以及result</p>
+<p>接下来看后者<br>开始先将结构体的成员赋值给对应的局部变量(下面 前指针和后指针所指向的数值 为了方便描述 均采用缩写为前后指针<br>接着将后指针加上前指针 其和重新赋值给了前指针以及val变量<br>随后的注释比较耐人寻味 其说舍弃最不随机的位<br>下一条指令对val右移了一位 相当于val除2 结果取整<br>这里说的最不随机的位指的是最低1位<br>就拿线性同余运算举例<br>其运算式为</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">val = ((state[0] * 1103515245U) + 12345U) &amp; 0x7fffffff</span><br></pre></td></tr></table></figure>
+<p>这里使用state[0]默认的值379960547代入<br>可以编写这样一个测试程序</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">#include &lt;stdio.h&gt;</span><br><span class="line">#include &lt;stdlib.h&gt;</span><br><span class="line">#include &lt;signal.h&gt;</span><br><span class="line">#include &lt;string.h&gt;</span><br><span class="line">int main()&#123;</span><br><span class="line">    int32_t state = 379960547;</span><br><span class="line">    int32_t val =0;</span><br><span class="line">    int time=1;</span><br><span class="line">    int bit =0;</span><br><span class="line">    for(int i=0;i&lt;20;i++)&#123;</span><br><span class="line">        val = ((state * 1103515245U) + 12345U) &amp; 0x7fffffff;</span><br><span class="line">        bit = val&amp;1;</span><br><span class="line">        state = val;</span><br><span class="line">        printf(&quot;count :%d ,val :%d,last bit: %d\n&quot;,time,val,bit);</span><br><span class="line">        time ++;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>最后得到的结果为<br><a target="_blank" rel="noopener" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202310312226443.png" title="image.png" class="gallery-item"><img src="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202310312226443.png" alt="image.png"></a><br>可以看到最后一个bit为0和1交替 呈现出一定规律 所以称之为最不随机的位<br>说回正文 在进行了右移运算后 自增了前指针<br>如果前指针超过了数组的最后一个元素 那么就重置前指针 使其重新指向randtbl数组的第二个元素<br>如果没有超过 再自增后指针 如果后指针超过 那么就重置后指针 同上</p>
+<h1 id="如何预测随机数"><a href="#如何预测随机数" class="headerlink" title="如何预测随机数"></a>如何预测随机数</h1></div><script src="https://cdn.jsdelivr.net/lightgallery.js/1.0.1/js/lightgallery.min.js"></script><script>if (typeof lightGallery !== 'undefined') {
+        var options = {
+            selector: '.gallery-item'
+        };
+        lightGallery(document.getElementsByClassName('.article-gallery')[0], options);
+        }</script>
+  </div>
+</article>
+
+    <div class="blog-post-comments">
+        <div id="disqus_thread">
+            <noscript>Please enable JavaScript to view the comments.</noscript>
+        </div>
+    </div>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/about/">About</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+          <li><a href="/categories/">categories</a></li>
+        
+          <li><a href="/search/">Search</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%89%8D%E8%A8%80"><span class="toc-number">1.</span> <span class="toc-text">前言</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#rand%E5%87%BD%E6%95%B0%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90"><span class="toc-number">2.</span> <span class="toc-text">rand函数源码分析</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%A6%82%E4%BD%95%E9%A2%84%E6%B5%8B%E9%9A%8F%E6%9C%BA%E6%95%B0"><span class="toc-number">3.</span> <span class="toc-text">如何预测随机数</span></a></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2023/10/30/%E4%BC%AA%E9%9A%8F%E6%9C%BA%E6%95%B0%E6%8E%A8%E7%AE%97/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2023/10/30/%E4%BC%AA%E9%9A%8F%E6%9C%BA%E6%95%B0%E6%8E%A8%E7%AE%97/&text=伪随机数推算"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2023/10/30/%E4%BC%AA%E9%9A%8F%E6%9C%BA%E6%95%B0%E6%8E%A8%E7%AE%97/&title=伪随机数推算"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2023/10/30/%E4%BC%AA%E9%9A%8F%E6%9C%BA%E6%95%B0%E6%8E%A8%E7%AE%97/&is_video=false&description=伪随机数推算"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=伪随机数推算&body=Check out this article: http://example.com/2023/10/30/%E4%BC%AA%E9%9A%8F%E6%9C%BA%E6%95%B0%E6%8E%A8%E7%AE%97/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2023/10/30/%E4%BC%AA%E9%9A%8F%E6%9C%BA%E6%95%B0%E6%8E%A8%E7%AE%97/&title=伪随机数推算"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2023/10/30/%E4%BC%AA%E9%9A%8F%E6%9C%BA%E6%95%B0%E6%8E%A8%E7%AE%97/&title=伪随机数推算"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2023/10/30/%E4%BC%AA%E9%9A%8F%E6%9C%BA%E6%95%B0%E6%8E%A8%E7%AE%97/&title=伪随机数推算"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2023/10/30/%E4%BC%AA%E9%9A%8F%E6%9C%BA%E6%95%B0%E6%8E%A8%E7%AE%97/&title=伪随机数推算"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2023/10/30/%E4%BC%AA%E9%9A%8F%E6%9C%BA%E6%95%B0%E6%8E%A8%E7%AE%97/&name=伪随机数推算&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2023/10/30/%E4%BC%AA%E9%9A%8F%E6%9C%BA%E6%95%B0%E6%8E%A8%E7%AE%97/&t=伪随机数推算"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2022-2023
+    C12en
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/categories/">categories</a></li><!--
+     --><!--
+       --><li><a href="/search/">Search</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+    <script type="text/javascript">
+        var disqus_shortname = 'c12en';
+
+        (function(){
+            var dsq = document.createElement('script');
+            dsq.type = 'text/javascript';
+            dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        }());
+    </script>
+
+<!-- utterances Comments -->
+
+</body>
+</html>

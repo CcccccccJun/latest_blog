@@ -1,3 +1,4 @@
+http://example.com/2023/10/30/%E4%BC%AA%E9%9A%8F%E6%9C%BA%E6%95%B0%E6%8E%A8%E7%AE%97/
 http://example.com/2023/10/17/fuzz%E5%AD%A6%E4%B9%A0/
 http://example.com/2023/10/17/fuzzing-art-science-and-engineering%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB/
 http://example.com/2023/10/13/2023%E6%9F%8F%E9%B9%AD%E6%9D%AF/
