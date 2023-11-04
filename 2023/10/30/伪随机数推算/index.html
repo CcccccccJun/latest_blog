@@ -14,8 +14,10 @@
 <meta property="og:description" content="前言以往遇到的考察伪随机数的题目都相对比较简单 无非就是通过seed来推算出后续的随机数 但是这次的核心在于 seed不可控且不可知的情况下 如何通过seed生成的伪随机数 来推算出后续的随机数 rand函数源码分析先来弄懂 rand函数究竟是如何通过seed来生成随机数的以下代码均从 https:&#x2F;&#x2F;codebrowser.dev&#x2F;glibc&#x2F; 摘录 &#x2F;* Return a random int">
 <meta property="og:locale" content="en_US">
 <meta property="og:image" content="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202310312226443.png">
+<meta property="og:image" content="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202311041006599.png">
+<meta property="og:image" content="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202311041009081.png">
 <meta property="article:published_time" content="2023-10-30T12:42:05.000Z">
-<meta property="article:modified_time" content="2023-10-31T14:42:25.422Z">
+<meta property="article:modified_time" content="2023-11-04T02:09:44.907Z">
 <meta property="article:author" content="C12en">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:image" content="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202310312226443.png">
@@ -117,7 +119,7 @@
     
     
       <div id="toc">
-        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%89%8D%E8%A8%80"><span class="toc-number">1.</span> <span class="toc-text">前言</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#rand%E5%87%BD%E6%95%B0%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90"><span class="toc-number">2.</span> <span class="toc-text">rand函数源码分析</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%A6%82%E4%BD%95%E9%A2%84%E6%B5%8B%E9%9A%8F%E6%9C%BA%E6%95%B0"><span class="toc-number">3.</span> <span class="toc-text">如何预测随机数</span></a></li></ol>
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%89%8D%E8%A8%80"><span class="toc-number">1.</span> <span class="toc-text">前言</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#rand%E5%87%BD%E6%95%B0%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90"><span class="toc-number">2.</span> <span class="toc-text">rand函数源码分析</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%A6%82%E4%BD%95%E9%A2%84%E6%B5%8B%E9%9A%8F%E6%9C%BA%E6%95%B0"><span class="toc-number">3.</span> <span class="toc-text">如何预测随机数</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%AE%9E%E9%99%85%E6%BC%94%E7%A4%BA"><span class="toc-number">4.</span> <span class="toc-text">实际演示</span></a></li></ol>
       </div>
     
   </span>
@@ -181,7 +183,64 @@
 <p>这里使用state[0]默认的值379960547代入<br>可以编写这样一个测试程序</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">#include &lt;stdio.h&gt;</span><br><span class="line">#include &lt;stdlib.h&gt;</span><br><span class="line">#include &lt;signal.h&gt;</span><br><span class="line">#include &lt;string.h&gt;</span><br><span class="line">int main()&#123;</span><br><span class="line">    int32_t state = 379960547;</span><br><span class="line">    int32_t val =0;</span><br><span class="line">    int time=1;</span><br><span class="line">    int bit =0;</span><br><span class="line">    for(int i=0;i&lt;20;i++)&#123;</span><br><span class="line">        val = ((state * 1103515245U) + 12345U) &amp; 0x7fffffff;</span><br><span class="line">        bit = val&amp;1;</span><br><span class="line">        state = val;</span><br><span class="line">        printf(&quot;count :%d ,val :%d,last bit: %d\n&quot;,time,val,bit);</span><br><span class="line">        time ++;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <p>最后得到的结果为<br><a target="_blank" rel="noopener" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202310312226443.png" title="image.png" class="gallery-item"><img src="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202310312226443.png" alt="image.png"></a><br>可以看到最后一个bit为0和1交替 呈现出一定规律 所以称之为最不随机的位<br>说回正文 在进行了右移运算后 自增了前指针<br>如果前指针超过了数组的最后一个元素 那么就重置前指针 使其重新指向randtbl数组的第二个元素<br>如果没有超过 再自增后指针 如果后指针超过 那么就重置后指针 同上</p>
-<h1 id="如何预测随机数"><a href="#如何预测随机数" class="headerlink" title="如何预测随机数"></a>如何预测随机数</h1></div><script src="https://cdn.jsdelivr.net/lightgallery.js/1.0.1/js/lightgallery.min.js"></script><script>if (typeof lightGallery !== 'undefined') {
+<h1 id="如何预测随机数"><a href="#如何预测随机数" class="headerlink" title="如何预测随机数"></a>如何预测随机数</h1><p>经过上面的源码分析<br>可以大概清楚随机数的生成逻辑<br>state数组从randtbl数组的第二个元素开始 也就是说state一共有31个元素<br>前指针初始指向s[3] (这里将state数组缩写成s)<br>后指针初始指向s[0]<br>那么我们这里就可以得到随机数数组o的第一个元素为<br>o[0] &#x3D; (s[3]+s[0])&gt;&gt;1<br>随后前指针和后指针均自增<br>随着推移 前指针会率先来到s数组的最后一个元素s[30]<br>根据源码推断 超过了s[30]后 就会重新赋值成s[0]<br>但是这里要注意 在随机数生成后 后指针与前指针之和会赋值给前指针<br>所以我们这里的s[?]只是一个代号 而非具体的值<br>也就是o[28] &#x3D; (s[0]+s[28])&gt;&gt;1<br>同理 o[31] &#x3D; (s[3]+s[0])&gt;&gt;1<br>如果拆分开成 s[3]&#x3D;s[3]+s[0],s[0] &#x3D; s[0]+s[28]<br>o[31]的值就有两种可能性<br>第一种为o[31] &#x3D; o[0]+o[28]<br>第二种为o[31] &#x3D; o[0]+o[28]+1<br>见下面表格</p>
+<table>
+<thead>
+<tr>
+<th>s[0]</th>
+<th>s[3]</th>
+<th>s[28]</th>
+<th>o[31]</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>奇</td>
+<td>奇</td>
+<td>奇</td>
+<td>1</td>
+</tr>
+<tr>
+<td>奇</td>
+<td>奇</td>
+<td>偶</td>
+<td>1</td>
+</tr>
+<tr>
+<td>奇</td>
+<td>偶</td>
+<td>奇</td>
+<td>1</td>
+</tr>
+<tr>
+<td>偶</td>
+<td>奇</td>
+<td>奇</td>
+<td>2</td>
+</tr>
+<tr>
+<td>奇</td>
+<td>偶</td>
+<td>偶</td>
+<td>2</td>
+</tr>
+<tr>
+<td>偶</td>
+<td>偶</td>
+<td>奇</td>
+<td>1</td>
+</tr>
+<tr>
+<td>偶</td>
+<td>偶</td>
+<td>偶</td>
+<td>1</td>
+</tr>
+</tbody></table>
+<p>可以看出是第一种可能性的概率为七分之五<br>也就是说 如果我们得到了o[0]和o[28] 我们就有比较大的概率预测出o[31]<br>同理 可以继续往下推  o[1]和o[29] 可得出o[32]等等<br>o[n] &#x3D; o[n-31]+o[n-3]或o[n] &#x3D; o[n-31]+o[n-3]+1<br>由于本人数学水平不高 所以无法想出怎么百分百预测 感兴趣的可以自己尝试(顺顺教教我</p>
+<h1 id="实际演示"><a href="#实际演示" class="headerlink" title="实际演示"></a>实际演示</h1><p><a target="_blank" rel="noopener" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202311041006599.png" title="image.png" class="gallery-item"><img src="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202311041006599.png" alt="image.png"></a><br>以上面这题来举例 seed无法得知也无法覆盖<br>一共有101次机会<br>在猜数错误后 会提供正确的随机数<br>所以我们只需要保留o[0]和o[28]<br>就可以得出第32个随机数o[31]</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">o = []</span><br><span class="line">buf = 0</span><br><span class="line">for i in range(31):</span><br><span class="line">    io.recvuntil(&quot;Knowledge is power, not luck.\n&quot;)</span><br><span class="line">    io.sendline(b&#x27;0&#x27;)</span><br><span class="line">    io.recvuntil(&#x27;Here is some knowledge to help you become powerful...: &#x27;)</span><br><span class="line">    c = int(io.recvuntil(&quot;\n&quot;,drop = True))</span><br><span class="line">    o.append(c)</span><br><span class="line">buf = o[0]+o[28]</span><br><span class="line">print(buf)</span><br><span class="line">io.recvuntil(&quot;Knowledge is power, not luck.\n&quot;)</span><br><span class="line">io.sendline(str(buf))</span><br><span class="line">io.recv()</span><br><span class="line">io.recv()</span><br></pre></td></tr></table></figure>
+<p><a target="_blank" rel="noopener" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202311041009081.png" title="image.png" class="gallery-item"><img src="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202311041009081.png" alt="image.png"></a><br>成功得到正确的数值</p>
+</div><script src="https://cdn.jsdelivr.net/lightgallery.js/1.0.1/js/lightgallery.min.js"></script><script>if (typeof lightGallery !== 'undefined') {
         var options = {
             selector: '.gallery-item'
         };
@@ -221,7 +280,7 @@
     
     
       <div id="toc-footer" style="display: none">
-        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%89%8D%E8%A8%80"><span class="toc-number">1.</span> <span class="toc-text">前言</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#rand%E5%87%BD%E6%95%B0%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90"><span class="toc-number">2.</span> <span class="toc-text">rand函数源码分析</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%A6%82%E4%BD%95%E9%A2%84%E6%B5%8B%E9%9A%8F%E6%9C%BA%E6%95%B0"><span class="toc-number">3.</span> <span class="toc-text">如何预测随机数</span></a></li></ol>
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%89%8D%E8%A8%80"><span class="toc-number">1.</span> <span class="toc-text">前言</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#rand%E5%87%BD%E6%95%B0%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90"><span class="toc-number">2.</span> <span class="toc-text">rand函数源码分析</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%A6%82%E4%BD%95%E9%A2%84%E6%B5%8B%E9%9A%8F%E6%9C%BA%E6%95%B0"><span class="toc-number">3.</span> <span class="toc-text">如何预测随机数</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%AE%9E%E9%99%85%E6%BC%94%E7%A4%BA"><span class="toc-number">4.</span> <span class="toc-text">实际演示</span></a></li></ol>
       </div>
     
 
