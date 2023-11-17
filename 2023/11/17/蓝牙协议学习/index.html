@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="前言最近看到新出的星闪 有点兴趣 所以打算先从基础的蓝牙学起 顺便借此机会熟悉一下通讯以及协议相关的知识 本文用来记录关于蓝牙的一些研究 不做教学用途参考链接:https:&#x2F;&#x2F;cloud.tencent.com&#x2F;developer&#x2F;article&#x2F;2336764https:&#x2F;&#x2F;seedeer.github.io&#x2F;2022&#x2F;03&#x2F;16&#x2F;bluetooth&#x2F;#3-%E5%AD%A6%E4%B9%A0%">
+<meta property="og:type" content="article">
+<meta property="og:title" content="蓝牙协议学习">
+<meta property="og:url" content="http://example.com/2023/11/17/%E8%93%9D%E7%89%99%E5%8D%8F%E8%AE%AE%E5%AD%A6%E4%B9%A0/index.html">
+<meta property="og:site_name" content="C12en">
+<meta property="og:description" content="前言最近看到新出的星闪 有点兴趣 所以打算先从基础的蓝牙学起 顺便借此机会熟悉一下通讯以及协议相关的知识 本文用来记录关于蓝牙的一些研究 不做教学用途参考链接:https:&#x2F;&#x2F;cloud.tencent.com&#x2F;developer&#x2F;article&#x2F;2336764https:&#x2F;&#x2F;seedeer.github.io&#x2F;2022&#x2F;03&#x2F;16&#x2F;bluetooth&#x2F;#3-%E5%AD%A6%E4%B9%A0%">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202311171817663.png">
+<meta property="og:image" content="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202311171847386.png">
+<meta property="og:image" content="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202311172113422.png">
+<meta property="og:image" content="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202311172231870.png">
+<meta property="og:image" content="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202311172257393.png">
+<meta property="article:published_time" content="2023-11-17T04:17:39.000Z">
+<meta property="article:modified_time" content="2023-11-17T15:15:54.768Z">
+<meta property="article:author" content="C12en">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202311171817663.png">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202309142232390.png&#39;">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202309142232390.png&#39;" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202309142232390.png&#39;">
+        
+      
+    
+    <!-- title -->
+    <title>蓝牙协议学习</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+<meta name="generator" content="Hexo 6.3.0"><link rel="alternate" href="/atom.xml" title="C12en" type="application/atom+xml">
+</head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/categories/">categories</a></li><!--
+     --><!--
+       --><li><a href="/search/">Search</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2023/10/30/%E4%BC%AA%E9%9A%8F%E6%9C%BA%E6%95%B0%E6%8E%A8%E7%AE%97/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2023/11/17/%E8%93%9D%E7%89%99%E5%8D%8F%E8%AE%AE%E5%AD%A6%E4%B9%A0/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2023/11/17/%E8%93%9D%E7%89%99%E5%8D%8F%E8%AE%AE%E5%AD%A6%E4%B9%A0/&text=蓝牙协议学习"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2023/11/17/%E8%93%9D%E7%89%99%E5%8D%8F%E8%AE%AE%E5%AD%A6%E4%B9%A0/&title=蓝牙协议学习"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2023/11/17/%E8%93%9D%E7%89%99%E5%8D%8F%E8%AE%AE%E5%AD%A6%E4%B9%A0/&is_video=false&description=蓝牙协议学习"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=蓝牙协议学习&body=Check out this article: http://example.com/2023/11/17/%E8%93%9D%E7%89%99%E5%8D%8F%E8%AE%AE%E5%AD%A6%E4%B9%A0/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2023/11/17/%E8%93%9D%E7%89%99%E5%8D%8F%E8%AE%AE%E5%AD%A6%E4%B9%A0/&title=蓝牙协议学习"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2023/11/17/%E8%93%9D%E7%89%99%E5%8D%8F%E8%AE%AE%E5%AD%A6%E4%B9%A0/&title=蓝牙协议学习"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2023/11/17/%E8%93%9D%E7%89%99%E5%8D%8F%E8%AE%AE%E5%AD%A6%E4%B9%A0/&title=蓝牙协议学习"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2023/11/17/%E8%93%9D%E7%89%99%E5%8D%8F%E8%AE%AE%E5%AD%A6%E4%B9%A0/&title=蓝牙协议学习"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2023/11/17/%E8%93%9D%E7%89%99%E5%8D%8F%E8%AE%AE%E5%AD%A6%E4%B9%A0/&name=蓝牙协议学习&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2023/11/17/%E8%93%9D%E7%89%99%E5%8D%8F%E8%AE%AE%E5%AD%A6%E4%B9%A0/&t=蓝牙协议学习"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%89%8D%E8%A8%80"><span class="toc-number">1.</span> <span class="toc-text">前言</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E8%93%9D%E7%89%99%E6%98%AF%E4%BB%80%E4%B9%88"><span class="toc-number">2.</span> <span class="toc-text">蓝牙是什么</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E8%93%9D%E7%89%99%E5%8D%8F%E8%AE%AE%E6%A0%88"><span class="toc-number">3.</span> <span class="toc-text">蓝牙协议栈</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%89%A9%E7%90%86%E5%B1%82"><span class="toc-number">4.</span> <span class="toc-text">物理层</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E9%93%BE%E8%B7%AF%E5%B1%82"><span class="toc-number">5.</span> <span class="toc-text">链路层</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#HCI%E5%B1%82"><span class="toc-number">6.</span> <span class="toc-text">HCI层</span></a></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        蓝牙协议学习
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">C12en</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2023-11-17T04:17:39.000Z" class="dt-published" itemprop="datePublished">2023-11-17</time>
+        
+      
+    </div>
+
+
+      
+    <div class="article-category">
+        <i class="fa-solid fa-archive"></i>
+        <a class="category-link" href="/categories/iot/">iot</a>
+    </div>
+
+
+      
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/lightgallery.js/1.0.1/css/lightgallery.min.css" /><div class=".article-gallery"><h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>最近看到新出的星闪 有点兴趣 所以打算先从基础的蓝牙学起 顺便借此机会熟悉一下通讯以及协议相关的知识 本文用来记录关于蓝牙的一些研究 不做教学用途<br>参考链接:<br><a target="_blank" rel="noopener" href="https://cloud.tencent.com/developer/article/2336764">https://cloud.tencent.com/developer/article/2336764</a><br><a target="_blank" rel="noopener" href="https://seedeer.github.io/2022/03/16/bluetooth/#3-%E5%AD%A6%E4%B9%A0%E8%B7%AF%E7%BA%BF">https://seedeer.github.io/2022/03/16/bluetooth/#3-%E5%AD%A6%E4%B9%A0%E8%B7%AF%E7%BA%BF</a><br><a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s?__biz=MzkwOTE5MDY5NA==&mid=2247488663&idx=1&sn=2014b5981f9d51af4621a63149f18ca8&chksm=c13f27def648aec897e2c96a7047f3dbb0c9e6ff61c912c5f41ce46bdb770408732e69dab55a&scene=21#wechat_redirect">https://mp.weixin.qq.com/s?__biz=MzkwOTE5MDY5NA==&amp;mid=2247488663&amp;idx=1&amp;sn=2014b5981f9d51af4621a63149f18ca8&amp;chksm=c13f27def648aec897e2c96a7047f3dbb0c9e6ff61c912c5f41ce46bdb770408732e69dab55a&amp;scene=21#wechat_redirect</a></p>
+<h1 id="蓝牙是什么"><a href="#蓝牙是什么" class="headerlink" title="蓝牙是什么"></a>蓝牙是什么</h1><p>蓝牙(Bluetooth)是一种无线通讯技术标准 用来让固定设备(手机 电脑等)以及移动设备(耳机 鼠标等)在短距离之间交换数据 形成个人局域网(PNA)<br>其使用短波特高频 在2.4G到2.485G的ISM频段进行通讯<br>蓝牙技术分为BR&#x2F;EDR(基本速率&#x2F;增强数据率)和LE(低耗能)两种<br>前者是传统的蓝牙传输模式 拥有较高的传输速率 适用于需要较高宽带的应用 并且采用的是点对点的网络拓扑 即1对1通信<br>后者的功耗需求更低 提供了更快的连接 但是传输速率较小 适用于低功耗应用和设备 其采用点对点(1对1) 广播(1对多) 网格(多对多)等网络拓扑结构<br>二者是相互独立的传输模式 都有自己的协议栈和通讯方式 但是二者并非不可共存 我们称双模式设备为蓝牙双模设备<br>目前蓝牙由蓝牙技术联盟来负责维护技术标准 其并不负责制造蓝牙设备<br><a target="_blank" rel="noopener" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202311171817663.png" title="image.png" class="gallery-item"><img src="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202311171817663.png" alt="image.png"></a><br>上图为蓝牙各代版本的发展 自4.0以后 分为了BR&#x2F;EDR和LE两种模式<br>本文所要仔细研究的BLE 并不等于蓝牙4.0 其只是4.0的一个子集</p>
+<h1 id="蓝牙协议栈"><a href="#蓝牙协议栈" class="headerlink" title="蓝牙协议栈"></a>蓝牙协议栈</h1><p>先明白协议栈是一个什么东西<br>他是指网络通信中所有协议的一个集合  由多个层级组成<br>协议栈通常由三个部分组成 媒体 传输 应用<br>来看看TCP&#x2F;IP协议栈<br>其不仅包括TCP IP协议 还包括http ip dns tcp arp等协议<br>该协议有一个参考模型 所有的协议都归类到四个层级中 分别是链路层 网络层 传输层 应用层 每一层使用其下一层的协议来完成需求<br><a target="_blank" rel="noopener" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202311171847386.png" title="image.png" class="gallery-item"><img src="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202311171847386.png" alt="image.png"></a><br>具体的层级利用流程这里就不延申了 回到蓝牙协议栈<br>其也由三个部分组成 Host + HCI + Controller<br>主机(Host) 这部分由核心协议层(L2CAP、SDP、SMP、ATT)和核心规范(GAP、GATT)构成<br>控制器(Controller) 分为低功耗蓝牙(LE)和经典蓝牙(BR&#x2F;EDR)<br>HCI 此部分定义了主机和控制器之间的通信标准 比如UART或者USB<br><a target="_blank" rel="noopener" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202311172113422.png" title="image.png" class="gallery-item"><img src="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202311172113422.png" alt="image.png"></a><br>上图中 红色部分是经典蓝牙的必选项 绿色部分是低功耗蓝牙的必选项 蓝色部分是公共选项 但是经典蓝牙也可以有绿色部分的特性<br>HCI根据芯片的架构决定 为可选项<br>BLE协议栈也采用了分层的思想<br>Host部分由 SMP(安全管理层) GATT(通用属性配置文件层) ATT(属性协议层) L2CAP(裸机链路控制及自适应协议层) GAP(通用访问配置文件层)组成<br>Controller部分由物理层(PHY) 链路层(LL) 控制接口层(HCI)组成<br>接下来拆分各层进行概念的解析</p>
+<h1 id="物理层"><a href="#物理层" class="headerlink" title="物理层"></a>物理层</h1><p>BLE的物理层定义了无线电接收器&#x2F;发射器如何编码和解码传输的数据 以及应用的无线电的其他参数<br>其在2.4G到2.485G的免授权频段工作 采用40个信道 每个信道间隔2MHZ<br>分为广播信道和数据信道两个部分 广播频道只占用3个信道 固定为最后三个信道 用于发现设备建立连接<br>建立连接的设备 必须在同一信道 同一时间上才能传输数据<br><a target="_blank" rel="noopener" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202311172231870.png" title="image.png" class="gallery-item"><img src="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202311172231870.png" alt="image.png"></a></p>
+<h1 id="链路层"><a href="#链路层" class="headerlink" title="链路层"></a>链路层</h1><p>该部分参考《core_v5.3.pdf》中的Part B: Link Layer Specification章节 即2662页起<br>下载地址: <a target="_blank" rel="noopener" href="https://www.bluetooth.com/zh-cn/specifications/specs/core-specification-5-3/">https://www.bluetooth.com/zh-cn/specifications/specs/core-specification-5-3/</a><br>链路层起到的作用很多 比如负责指定选择哪个射频通道进行通信 怎么确保数据的完整性 具体在哪个时间点把包发送出去等等 其是整个BLE协议栈的核心 不过链路层只负责数据的发送和接收 对于数据的解析则交给GAP和GATT<br>在以往的学习过程中 复现过一个tddp报文的协议洞 同理 来看一下BLE的报文的基础格式<br>其包含4个字段 前导码 访问地址 协议数据单元(PDU) 循环冗余检验<br>在建立连接的过程中 使用广播通道(PDU) 传输数据用数据通道(PDU)<br><a target="_blank" rel="noopener" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202311172257393.png" title="image.png" class="gallery-item"><img src="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202311172257393.png" alt="image.png"></a><br>其中 广播报文和数据报文的格式也不一样<br>广播报头包括 广播报文类型(4字节) RFU(无实际作用 用来对齐字节 1字节) ChSel(无实际作用 用来对齐字节 1字节) TxAdd(发送地址类型 1字节) RxAdd(接收地址类型 1字节) Length(用来表示payload的长度 8字节)<br>数据报头包括 LLID(逻辑链路标识符 2字节)  NESN(下一个预期序列号 1字节) SN(序列号 1字节) MD(更多数据 1字节) CP(报文类型 4字节)RFU(保留 3字节) length(payload的长度 8字节) CTEinfo (连续音扩展 8字节)</p>
+<h1 id="HCI层"><a href="#HCI层" class="headerlink" title="HCI层"></a>HCI层</h1><p>其为主机和控制器之间提供一组标准接口<br>主要的3个任务:<br>-将主机的命令下达给控制器<br>-控制器将事件传送给主机<br>-在连接通道上进行数据传输<br>这里的接口不单单指物理接口 也包括逻辑接口 逻辑接口定义了命令 事件 数据的封包格式 物理接口定义了主机和控制器之间如何传输数据</p>
+</div><script src="https://cdn.jsdelivr.net/lightgallery.js/1.0.1/js/lightgallery.min.js"></script><script>if (typeof lightGallery !== 'undefined') {
+        var options = {
+            selector: '.gallery-item'
+        };
+        lightGallery(document.getElementsByClassName('.article-gallery')[0], options);
+        }</script>
+  </div>
+</article>
+
+    <div class="blog-post-comments">
+        <div id="disqus_thread">
+            <noscript>Please enable JavaScript to view the comments.</noscript>
+        </div>
+    </div>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/about/">About</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+          <li><a href="/categories/">categories</a></li>
+        
+          <li><a href="/search/">Search</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%89%8D%E8%A8%80"><span class="toc-number">1.</span> <span class="toc-text">前言</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E8%93%9D%E7%89%99%E6%98%AF%E4%BB%80%E4%B9%88"><span class="toc-number">2.</span> <span class="toc-text">蓝牙是什么</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E8%93%9D%E7%89%99%E5%8D%8F%E8%AE%AE%E6%A0%88"><span class="toc-number">3.</span> <span class="toc-text">蓝牙协议栈</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%89%A9%E7%90%86%E5%B1%82"><span class="toc-number">4.</span> <span class="toc-text">物理层</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E9%93%BE%E8%B7%AF%E5%B1%82"><span class="toc-number">5.</span> <span class="toc-text">链路层</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#HCI%E5%B1%82"><span class="toc-number">6.</span> <span class="toc-text">HCI层</span></a></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2023/11/17/%E8%93%9D%E7%89%99%E5%8D%8F%E8%AE%AE%E5%AD%A6%E4%B9%A0/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2023/11/17/%E8%93%9D%E7%89%99%E5%8D%8F%E8%AE%AE%E5%AD%A6%E4%B9%A0/&text=蓝牙协议学习"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2023/11/17/%E8%93%9D%E7%89%99%E5%8D%8F%E8%AE%AE%E5%AD%A6%E4%B9%A0/&title=蓝牙协议学习"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2023/11/17/%E8%93%9D%E7%89%99%E5%8D%8F%E8%AE%AE%E5%AD%A6%E4%B9%A0/&is_video=false&description=蓝牙协议学习"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=蓝牙协议学习&body=Check out this article: http://example.com/2023/11/17/%E8%93%9D%E7%89%99%E5%8D%8F%E8%AE%AE%E5%AD%A6%E4%B9%A0/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2023/11/17/%E8%93%9D%E7%89%99%E5%8D%8F%E8%AE%AE%E5%AD%A6%E4%B9%A0/&title=蓝牙协议学习"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2023/11/17/%E8%93%9D%E7%89%99%E5%8D%8F%E8%AE%AE%E5%AD%A6%E4%B9%A0/&title=蓝牙协议学习"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2023/11/17/%E8%93%9D%E7%89%99%E5%8D%8F%E8%AE%AE%E5%AD%A6%E4%B9%A0/&title=蓝牙协议学习"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2023/11/17/%E8%93%9D%E7%89%99%E5%8D%8F%E8%AE%AE%E5%AD%A6%E4%B9%A0/&title=蓝牙协议学习"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2023/11/17/%E8%93%9D%E7%89%99%E5%8D%8F%E8%AE%AE%E5%AD%A6%E4%B9%A0/&name=蓝牙协议学习&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2023/11/17/%E8%93%9D%E7%89%99%E5%8D%8F%E8%AE%AE%E5%AD%A6%E4%B9%A0/&t=蓝牙协议学习"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2022-2023
+    C12en
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/categories/">categories</a></li><!--
+     --><!--
+       --><li><a href="/search/">Search</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+    <script type="text/javascript">
+        var disqus_shortname = 'c12en';
+
+        (function(){
+            var dsq = document.createElement('script');
+            dsq.type = 'text/javascript';
+            dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        }());
+    </script>
+
+<!-- utterances Comments -->
+
+</body>
+</html>
