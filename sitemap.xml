@@ -4,7 +4,7 @@
   <url>
     <loc>http://example.com/2024/02/27/mips%E6%9E%B6%E6%9E%84%E5%AD%A6%E4%B9%A0/</loc>
     
-    <lastmod>2024-03-22</lastmod>
+    <lastmod>2024-03-28</lastmod>
     
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
@@ -1057,7 +1057,7 @@
 
   <url>
     <loc>http://example.com/</loc>
-    <lastmod>2024-03-22</lastmod>
+    <lastmod>2024-03-28</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
@@ -1067,42 +1067,42 @@
   
   <url>
     <loc>http://example.com/categories/wp/</loc>
-    <lastmod>2024-03-22</lastmod>
+    <lastmod>2024-03-28</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>http://example.com/categories/stack/</loc>
-    <lastmod>2024-03-22</lastmod>
+    <lastmod>2024-03-28</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>http://example.com/categories/iot/</loc>
-    <lastmod>2024-03-22</lastmod>
+    <lastmod>2024-03-28</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>http://example.com/categories/heap/</loc>
-    <lastmod>2024-03-22</lastmod>
+    <lastmod>2024-03-28</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>http://example.com/categories/extra/</loc>
-    <lastmod>2024-03-22</lastmod>
+    <lastmod>2024-03-28</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>http://example.com/categories/something-to-say/</loc>
-    <lastmod>2024-03-22</lastmod>
+    <lastmod>2024-03-28</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
