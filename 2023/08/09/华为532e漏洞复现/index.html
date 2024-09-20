@@ -6,12 +6,12 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="HandheldFriendly" content="True">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
-    <meta name="description" content="前言在经历了一年的glibc学习 终于也是开始接触到了真正的二进制 怀着激动的心情 开始Iot的旅途！本文用来收录不属于cve复现中的虚拟环境搭建过程 华为532e本次使用的固件是华为532e系列路由器固件下载地址： https:&#x2F;&#x2F;github.com&#x2F;CcccccccJun&#x2F;cloud 首先使用binwalk来提取固件 这里要注意一下 如果binwalk没有提取到root文件夹 那么问题出在没">
+    <meta name="description" content="华为532e本次使用的固件是华为532e系列路由器固件下载地址： https:&#x2F;&#x2F;github.com&#x2F;CcccccccJun&#x2F;cloud 首先使用binwalk来提取固件 这里要注意一下 如果binwalk没有提取到root文件夹 那么问题出在没有安装相应的文件系统该固件需要安装的是sasquatch 配置好相关环境后可以成功提取到文件随后我们将root目录打包成压缩文件 供等下上传到模拟系统中">
 <meta property="og:type" content="article">
-<meta property="og:title" content="qemu搭建路由器虚拟环境">
-<meta property="og:url" content="http://example.com/2023/08/09/qemu%E6%90%AD%E5%BB%BA%E8%B7%AF%E7%94%B1%E5%99%A8%E8%99%9A%E6%8B%9F%E7%8E%AF%E5%A2%83/index.html">
+<meta property="og:title" content="华为532e漏洞复现">
+<meta property="og:url" content="http://example.com/2023/08/09/%E5%8D%8E%E4%B8%BA532e%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/index.html">
 <meta property="og:site_name" content="C12en">
-<meta property="og:description" content="前言在经历了一年的glibc学习 终于也是开始接触到了真正的二进制 怀着激动的心情 开始Iot的旅途！本文用来收录不属于cve复现中的虚拟环境搭建过程 华为532e本次使用的固件是华为532e系列路由器固件下载地址： https:&#x2F;&#x2F;github.com&#x2F;CcccccccJun&#x2F;cloud 首先使用binwalk来提取固件 这里要注意一下 如果binwalk没有提取到root文件夹 那么问题出在没">
+<meta property="og:description" content="华为532e本次使用的固件是华为532e系列路由器固件下载地址： https:&#x2F;&#x2F;github.com&#x2F;CcccccccJun&#x2F;cloud 首先使用binwalk来提取固件 这里要注意一下 如果binwalk没有提取到root文件夹 那么问题出在没有安装相应的文件系统该固件需要安装的是sasquatch 配置好相关环境后可以成功提取到文件随后我们将root目录打包成压缩文件 供等下上传到模拟系统中">
 <meta property="og:locale" content="en_US">
 <meta property="og:image" content="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202308090859342.png">
 <meta property="og:image" content="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202308090936146.png">
@@ -20,7 +20,7 @@
 <meta property="og:image" content="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202308091028108.png">
 <meta property="og:image" content="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202308091029879.png">
 <meta property="article:published_time" content="2023-08-09T00:01:57.000Z">
-<meta property="article:modified_time" content="2023-09-14T17:21:05.389Z">
+<meta property="article:modified_time" content="2024-09-20T09:15:39.157Z">
 <meta property="article:author" content="C12en">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:image" content="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202308090859342.png">
@@ -43,7 +43,7 @@
       
     
     <!-- title -->
-    <title>qemu搭建路由器虚拟环境</title>
+    <title>华为532e漏洞复现</title>
     <!-- async scripts -->
     <!-- Google Analytics -->
 
@@ -107,24 +107,24 @@
     <br/>
     <div id="share" style="display: none">
       <ul>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2023/08/09/qemu%E6%90%AD%E5%BB%BA%E8%B7%AF%E7%94%B1%E5%99%A8%E8%99%9A%E6%8B%9F%E7%8E%AF%E5%A2%83/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2023/08/09/qemu%E6%90%AD%E5%BB%BA%E8%B7%AF%E7%94%B1%E5%99%A8%E8%99%9A%E6%8B%9F%E7%8E%AF%E5%A2%83/&text=qemu搭建路由器虚拟环境"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2023/08/09/qemu%E6%90%AD%E5%BB%BA%E8%B7%AF%E7%94%B1%E5%99%A8%E8%99%9A%E6%8B%9F%E7%8E%AF%E5%A2%83/&title=qemu搭建路由器虚拟环境"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2023/08/09/qemu%E6%90%AD%E5%BB%BA%E8%B7%AF%E7%94%B1%E5%99%A8%E8%99%9A%E6%8B%9F%E7%8E%AF%E5%A2%83/&is_video=false&description=qemu搭建路由器虚拟环境"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="mailto:?subject=qemu搭建路由器虚拟环境&body=Check out this article: http://example.com/2023/08/09/qemu%E6%90%AD%E5%BB%BA%E8%B7%AF%E7%94%B1%E5%99%A8%E8%99%9A%E6%8B%9F%E7%8E%AF%E5%A2%83/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2023/08/09/qemu%E6%90%AD%E5%BB%BA%E8%B7%AF%E7%94%B1%E5%99%A8%E8%99%9A%E6%8B%9F%E7%8E%AF%E5%A2%83/&title=qemu搭建路由器虚拟环境"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2023/08/09/qemu%E6%90%AD%E5%BB%BA%E8%B7%AF%E7%94%B1%E5%99%A8%E8%99%9A%E6%8B%9F%E7%8E%AF%E5%A2%83/&title=qemu搭建路由器虚拟环境"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2023/08/09/qemu%E6%90%AD%E5%BB%BA%E8%B7%AF%E7%94%B1%E5%99%A8%E8%99%9A%E6%8B%9F%E7%8E%AF%E5%A2%83/&title=qemu搭建路由器虚拟环境"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2023/08/09/qemu%E6%90%AD%E5%BB%BA%E8%B7%AF%E7%94%B1%E5%99%A8%E8%99%9A%E6%8B%9F%E7%8E%AF%E5%A2%83/&title=qemu搭建路由器虚拟环境"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2023/08/09/qemu%E6%90%AD%E5%BB%BA%E8%B7%AF%E7%94%B1%E5%99%A8%E8%99%9A%E6%8B%9F%E7%8E%AF%E5%A2%83/&name=qemu搭建路由器虚拟环境&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2023/08/09/qemu%E6%90%AD%E5%BB%BA%E8%B7%AF%E7%94%B1%E5%99%A8%E8%99%9A%E6%8B%9F%E7%8E%AF%E5%A2%83/&t=qemu搭建路由器虚拟环境"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2023/08/09/%E5%8D%8E%E4%B8%BA532e%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2023/08/09/%E5%8D%8E%E4%B8%BA532e%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/&text=华为532e漏洞复现"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2023/08/09/%E5%8D%8E%E4%B8%BA532e%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/&title=华为532e漏洞复现"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2023/08/09/%E5%8D%8E%E4%B8%BA532e%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/&is_video=false&description=华为532e漏洞复现"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=华为532e漏洞复现&body=Check out this article: http://example.com/2023/08/09/%E5%8D%8E%E4%B8%BA532e%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2023/08/09/%E5%8D%8E%E4%B8%BA532e%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/&title=华为532e漏洞复现"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2023/08/09/%E5%8D%8E%E4%B8%BA532e%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/&title=华为532e漏洞复现"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2023/08/09/%E5%8D%8E%E4%B8%BA532e%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/&title=华为532e漏洞复现"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2023/08/09/%E5%8D%8E%E4%B8%BA532e%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/&title=华为532e漏洞复现"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2023/08/09/%E5%8D%8E%E4%B8%BA532e%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/&name=华为532e漏洞复现&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2023/08/09/%E5%8D%8E%E4%B8%BA532e%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/&t=华为532e漏洞复现"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
 </ul>
 
     </div>
     
     
       <div id="toc">
-        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%89%8D%E8%A8%80"><span class="toc-number">1.</span> <span class="toc-text">前言</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8D%8E%E4%B8%BA532e"><span class="toc-number">2.</span> <span class="toc-text">华为532e</span></a></li></ol>
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8D%8E%E4%B8%BA532e"><span class="toc-number">1.</span> <span class="toc-text">华为532e</span></a></li></ol>
       </div>
     
   </span>
@@ -137,7 +137,7 @@
   <header>
     
     <h1 class="posttitle p-name" itemprop="name headline">
-        qemu搭建路由器虚拟环境
+        华为532e漏洞复现
     </h1>
 
 
@@ -169,8 +169,7 @@
   
 
   <div class="content e-content" itemprop="articleBody">
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/lightgallery.js/1.0.1/css/lightgallery.min.css" /><div class=".article-gallery"><h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>在经历了一年的glibc学习 终于也是开始接触到了真正的二进制 怀着激动的心情 开始Iot的旅途！<br>本文用来收录不属于cve复现中的虚拟环境搭建过程</p>
-<h1 id="华为532e"><a href="#华为532e" class="headerlink" title="华为532e"></a>华为532e</h1><p>本次使用的固件是华为532e系列路由器<br>固件下载地址： <a target="_blank" rel="noopener" href="https://github.com/CcccccccJun/cloud">https://github.com/CcccccccJun/cloud</a></p>
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/lightgallery.js/1.0.1/css/lightgallery.min.css" /><div class=".article-gallery"><h1 id="华为532e"><a href="#华为532e" class="headerlink" title="华为532e"></a>华为532e</h1><p>本次使用的固件是华为532e系列路由器<br>固件下载地址： <a target="_blank" rel="noopener" href="https://github.com/CcccccccJun/cloud">https://github.com/CcccccccJun/cloud</a></p>
 <p>首先使用binwalk来提取固件 这里要注意一下 如果binwalk没有提取到root文件夹 那么问题出在没有安装相应的文件系统<br>该固件需要安装的是sasquatch 配置好相关环境后可以成功提取到文件<br><a target="_blank" rel="noopener" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202308090859342.png" title="image.png" class="gallery-item"><img src="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202308090859342.png" alt="image.png"></a><br>随后我们将root目录打包成压缩文件 供等下上传到模拟系统中<br><code>tar -czvf 1.tar squashfs-root/</code><br>qemu模拟有多种形式 本次我们使用的是系统模拟 同时通过file观察任意的可执行文件 可以注意到该路由器使用的是MIPS架构<br>为此 我们需要准备MIPS的内核文件以及一个MIPS架构的虚拟机映像文件<br>可以在该网站上下载  <a target="_blank" rel="noopener" href="https://people.debian.org/~aurel32/qemu/mips/">https://people.debian.org/~aurel32/qemu/mips/</a><br>随后我们需要创建一个TUN&#x2F;TAP虚拟网络接口 其可以在操作系统和用户空间之间进行网络数据包的传输 便于我们在虚拟机中连接到启动后的路由器</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">tunctl -t top0 -u root</span><br><span class="line">ifconfig top0 192.168.10.1</span><br></pre></td></tr></table></figure>
 <p>我们给予的top0接口的ipv4地址的子网号可以为任意 同时要使用默认网关<br><a target="_blank" rel="noopener" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202308090936146.png" title="image.png" class="gallery-item"><img src="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202308090936146.png" alt="image.png"></a><br>随后我们利用qemu进行系统模拟<br><code>qemu-system-mips -M malta -kernel vmlinux-2.6.32-5-4kc-malta -hda debian_squeeze_mips_standard.qcow2 -append &quot;root=/dev/sda1 console=tty0&quot; -net nic -net tap,ifname=top0 -nographic</code><br>为qemu模拟出来的虚拟机增加了一个TAP设备的虚拟网络接口top0用于通信<br>默认的登录账号和密码都是root<br>我们将eth0接口配置和刚才top0接口相同的c段<br><code>ifconfig eth0 192.169.10.2</code><br>随后就可以在ubuntu中访问到debian虚拟机<br><a target="_blank" rel="noopener" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202308090958896.png" title="image.png" class="gallery-item"><img src="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202308090958896.png" alt="image.png"></a><br>随后我们利用scp把刚才打包好的压缩文件上传到debian虚拟机中<br><code>scp 1.tar root@192.168.10.2:/root/</code><br>但是这里报错了<br><a target="_blank" rel="noopener" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202308091008147.png" title="image.png" class="gallery-item"><img src="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202308091008147.png" alt="image.png"></a><br>大概意思是debian虚拟机中的openssh禁用了ssh-dss算法<br>我们需要手动加上参数来允许</p>
@@ -221,23 +220,23 @@
     
     
       <div id="toc-footer" style="display: none">
-        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%89%8D%E8%A8%80"><span class="toc-number">1.</span> <span class="toc-text">前言</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8D%8E%E4%B8%BA532e"><span class="toc-number">2.</span> <span class="toc-text">华为532e</span></a></li></ol>
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8D%8E%E4%B8%BA532e"><span class="toc-number">1.</span> <span class="toc-text">华为532e</span></a></li></ol>
       </div>
     
 
     <div id="share-footer" style="display: none">
       <ul>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2023/08/09/qemu%E6%90%AD%E5%BB%BA%E8%B7%AF%E7%94%B1%E5%99%A8%E8%99%9A%E6%8B%9F%E7%8E%AF%E5%A2%83/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2023/08/09/qemu%E6%90%AD%E5%BB%BA%E8%B7%AF%E7%94%B1%E5%99%A8%E8%99%9A%E6%8B%9F%E7%8E%AF%E5%A2%83/&text=qemu搭建路由器虚拟环境"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2023/08/09/qemu%E6%90%AD%E5%BB%BA%E8%B7%AF%E7%94%B1%E5%99%A8%E8%99%9A%E6%8B%9F%E7%8E%AF%E5%A2%83/&title=qemu搭建路由器虚拟环境"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2023/08/09/qemu%E6%90%AD%E5%BB%BA%E8%B7%AF%E7%94%B1%E5%99%A8%E8%99%9A%E6%8B%9F%E7%8E%AF%E5%A2%83/&is_video=false&description=qemu搭建路由器虚拟环境"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="mailto:?subject=qemu搭建路由器虚拟环境&body=Check out this article: http://example.com/2023/08/09/qemu%E6%90%AD%E5%BB%BA%E8%B7%AF%E7%94%B1%E5%99%A8%E8%99%9A%E6%8B%9F%E7%8E%AF%E5%A2%83/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2023/08/09/qemu%E6%90%AD%E5%BB%BA%E8%B7%AF%E7%94%B1%E5%99%A8%E8%99%9A%E6%8B%9F%E7%8E%AF%E5%A2%83/&title=qemu搭建路由器虚拟环境"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2023/08/09/qemu%E6%90%AD%E5%BB%BA%E8%B7%AF%E7%94%B1%E5%99%A8%E8%99%9A%E6%8B%9F%E7%8E%AF%E5%A2%83/&title=qemu搭建路由器虚拟环境"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2023/08/09/qemu%E6%90%AD%E5%BB%BA%E8%B7%AF%E7%94%B1%E5%99%A8%E8%99%9A%E6%8B%9F%E7%8E%AF%E5%A2%83/&title=qemu搭建路由器虚拟环境"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2023/08/09/qemu%E6%90%AD%E5%BB%BA%E8%B7%AF%E7%94%B1%E5%99%A8%E8%99%9A%E6%8B%9F%E7%8E%AF%E5%A2%83/&title=qemu搭建路由器虚拟环境"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2023/08/09/qemu%E6%90%AD%E5%BB%BA%E8%B7%AF%E7%94%B1%E5%99%A8%E8%99%9A%E6%8B%9F%E7%8E%AF%E5%A2%83/&name=qemu搭建路由器虚拟环境&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2023/08/09/qemu%E6%90%AD%E5%BB%BA%E8%B7%AF%E7%94%B1%E5%99%A8%E8%99%9A%E6%8B%9F%E7%8E%AF%E5%A2%83/&t=qemu搭建路由器虚拟环境"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2023/08/09/%E5%8D%8E%E4%B8%BA532e%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2023/08/09/%E5%8D%8E%E4%B8%BA532e%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/&text=华为532e漏洞复现"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2023/08/09/%E5%8D%8E%E4%B8%BA532e%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/&title=华为532e漏洞复现"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2023/08/09/%E5%8D%8E%E4%B8%BA532e%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/&is_video=false&description=华为532e漏洞复现"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=华为532e漏洞复现&body=Check out this article: http://example.com/2023/08/09/%E5%8D%8E%E4%B8%BA532e%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2023/08/09/%E5%8D%8E%E4%B8%BA532e%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/&title=华为532e漏洞复现"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2023/08/09/%E5%8D%8E%E4%B8%BA532e%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/&title=华为532e漏洞复现"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2023/08/09/%E5%8D%8E%E4%B8%BA532e%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/&title=华为532e漏洞复现"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2023/08/09/%E5%8D%8E%E4%B8%BA532e%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/&title=华为532e漏洞复现"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2023/08/09/%E5%8D%8E%E4%B8%BA532e%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/&name=华为532e漏洞复现&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2023/08/09/%E5%8D%8E%E4%B8%BA532e%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/&t=华为532e漏洞复现"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
 </ul>
 
     </div>
