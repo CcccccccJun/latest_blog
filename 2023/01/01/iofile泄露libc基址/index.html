@@ -14,7 +14,7 @@
 <meta property="og:description" content="部分堆题没有给予我们打印堆块中间的机会 这种情况下 无法通过unsortedbin来泄露基址 这里学习一种新办法 通过io file来泄露基址 在一个程序中 初始的文件描述符为1,2,3 分别对应着标准输入 标准输出 标准错误 当我们调用scanf函数或者read函数的时候 就会通过调用文件描述符0来从终端输入数据 也就意味着我们可以利用这一点来做到泄露数据 在linux系统中的IO库 存在FIL">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2023-01-01T09:21:57.000Z">
-<meta property="article:modified_time" content="2023-09-14T17:19:48.071Z">
+<meta property="article:modified_time" content="2023-09-14T17:19:50.000Z">
 <meta property="article:author" content="C12en">
 <meta name="twitter:card" content="summary">
     
