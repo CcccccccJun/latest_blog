@@ -1,3 +1,4 @@
+http://example.com/2024/10/10/arm%E6%9E%B6%E6%9E%84%E5%AD%A6%E4%B9%A0/
 http://example.com/2024/09/21/psv-2020-0437%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/
 http://example.com/2024/11/19/house-of-some/
 http://example.com/2024/12/20/s8%E5%BC%BA%E7%BD%91%E6%9D%AF%E6%80%BB%E5%86%B3%E8%B5%9B/
@@ -5,7 +6,6 @@ http://example.com/2024/11/23/%E7%BD%91%E9%BC%8E%E6%9D%AF%E5%8D%8A%E5%86%B3%E8%B
 http://example.com/2024/10/11/%E5%AE%89%E5%85%A8%E5%8D%8F%E8%AE%AE%E8%AE%BE%E8%AE%A1%E8%BF%87%E7%A8%8B/
 http://example.com/about/index.html
 http://example.com/2022/11/13/vscode%E8%BF%9C%E7%A8%8B%E8%BF%9E%E6%8E%A5/
-http://example.com/2024/10/10/arm%E6%9E%B6%E6%9E%84%E5%AD%A6%E4%B9%A0/
 http://example.com/2024/02/27/mips%E6%9E%B6%E6%9E%84%E5%AD%A6%E4%B9%A0/
 http://example.com/2023/10/13/2023%E6%9F%8F%E9%B9%AD%E6%9D%AF/
 http://example.com/2023/08/09/%E5%8D%8E%E4%B8%BA532e%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/
