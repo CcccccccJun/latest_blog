@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="对于课设的学习不是特别重视 所以时间安排较为碎片化 故不做小标题来对内容进行区分 本篇文章仅作参考使用 初步了解了静态代码分析器的概念以及如何实现目前只打算实现 c和python两种语言的代码分析前者用pycparser库 后者用ast库  后面如果找到更好的方案再进行替换 打算先从c语言的代码分析开始做 毕竟比较熟悉c的代码安全隐患pycparser库默认是不支持预处理语句的 比如#define">
+<meta property="og:type" content="article">
+<meta property="og:title" content="静态程序分析大作业设计过程">
+<meta property="og:url" content="http://example.com/2025/02/20/%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%E5%A4%A7%E4%BD%9C%E4%B8%9A%E8%AE%BE%E8%AE%A1%E8%BF%87%E7%A8%8B/index.html">
+<meta property="og:site_name" content="C12en">
+<meta property="og:description" content="对于课设的学习不是特别重视 所以时间安排较为碎片化 故不做小标题来对内容进行区分 本篇文章仅作参考使用 初步了解了静态代码分析器的概念以及如何实现目前只打算实现 c和python两种语言的代码分析前者用pycparser库 后者用ast库  后面如果找到更好的方案再进行替换 打算先从c语言的代码分析开始做 毕竟比较熟悉c的代码安全隐患pycparser库默认是不支持预处理语句的 比如#define">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/img/20250224183411838.png">
+<meta property="og:image" content="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/img/20250224185932868.png">
+<meta property="article:published_time" content="2025-02-20T01:12:14.000Z">
+<meta property="article:modified_time" content="2025-02-24T11:13:35.122Z">
+<meta property="article:author" content="C12en">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/img/20250224183411838.png">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202309142232390.png&#39;">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202309142232390.png&#39;" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/202309142232390.png&#39;">
+        
+      
+    
+    <!-- title -->
+    <title>静态程序分析大作业设计过程</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+<meta name="generator" content="Hexo 6.3.0"><link rel="alternate" href="/atom.xml" title="C12en" type="application/atom+xml">
+</head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/categories/">categories</a></li><!--
+     --><!--
+       --><li><a href="/search/">Search</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2024/12/20/s8%E5%BC%BA%E7%BD%91%E6%9D%AF%E6%80%BB%E5%86%B3%E8%B5%9B/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2025/02/20/%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%E5%A4%A7%E4%BD%9C%E4%B8%9A%E8%AE%BE%E8%AE%A1%E8%BF%87%E7%A8%8B/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2025/02/20/%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%E5%A4%A7%E4%BD%9C%E4%B8%9A%E8%AE%BE%E8%AE%A1%E8%BF%87%E7%A8%8B/&text=静态程序分析大作业设计过程"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2025/02/20/%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%E5%A4%A7%E4%BD%9C%E4%B8%9A%E8%AE%BE%E8%AE%A1%E8%BF%87%E7%A8%8B/&title=静态程序分析大作业设计过程"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2025/02/20/%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%E5%A4%A7%E4%BD%9C%E4%B8%9A%E8%AE%BE%E8%AE%A1%E8%BF%87%E7%A8%8B/&is_video=false&description=静态程序分析大作业设计过程"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=静态程序分析大作业设计过程&body=Check out this article: http://example.com/2025/02/20/%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%E5%A4%A7%E4%BD%9C%E4%B8%9A%E8%AE%BE%E8%AE%A1%E8%BF%87%E7%A8%8B/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2025/02/20/%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%E5%A4%A7%E4%BD%9C%E4%B8%9A%E8%AE%BE%E8%AE%A1%E8%BF%87%E7%A8%8B/&title=静态程序分析大作业设计过程"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2025/02/20/%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%E5%A4%A7%E4%BD%9C%E4%B8%9A%E8%AE%BE%E8%AE%A1%E8%BF%87%E7%A8%8B/&title=静态程序分析大作业设计过程"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2025/02/20/%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%E5%A4%A7%E4%BD%9C%E4%B8%9A%E8%AE%BE%E8%AE%A1%E8%BF%87%E7%A8%8B/&title=静态程序分析大作业设计过程"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2025/02/20/%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%E5%A4%A7%E4%BD%9C%E4%B8%9A%E8%AE%BE%E8%AE%A1%E8%BF%87%E7%A8%8B/&title=静态程序分析大作业设计过程"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2025/02/20/%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%E5%A4%A7%E4%BD%9C%E4%B8%9A%E8%AE%BE%E8%AE%A1%E8%BF%87%E7%A8%8B/&name=静态程序分析大作业设计过程&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2025/02/20/%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%E5%A4%A7%E4%BD%9C%E4%B8%9A%E8%AE%BE%E8%AE%A1%E8%BF%87%E7%A8%8B/&t=静态程序分析大作业设计过程"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E6%96%87%E7%AB%A0"><span class="toc-number">1.</span> <span class="toc-text">参考文章</span></a></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        静态程序分析大作业设计过程
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">C12en</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2025-02-20T01:12:14.000Z" class="dt-published" itemprop="datePublished">2025-02-20</time>
+        
+      
+    </div>
+
+
+      
+    <div class="article-category">
+        <i class="fa-solid fa-archive"></i>
+        <a class="category-link" href="/categories/extra/">extra</a>
+    </div>
+
+
+      
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/lightgallery.js/1.0.1/css/lightgallery.min.css" /><div class=".article-gallery"><p>对于课设的学习不是特别重视 所以时间安排较为碎片化 故不做小标题来对内容进行区分 本篇文章仅作参考使用</p>
+<p>初步了解了静态代码分析器的概念以及如何实现<br>目前只打算实现 c和python两种语言的代码分析<br>前者用pycparser库 后者用ast库  后面如果找到更好的方案再进行替换</p>
+<p>打算先从c语言的代码分析开始做 毕竟比较熟悉c的代码安全隐患<br>pycparser库默认是不支持预处理语句的 比如#define和#include<br>要么是自己删除或者就是使用fake_libc_include来提前处理好<br>个人更偏向于前一种办法吧 后者输出的节点实在太多了 感觉会影响到处理效率(主要还是一开始不熟悉 看的头都大了 后面再看看怎么优化)</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">import ast</span><br><span class="line">from pycparser import c_parser, parse_file</span><br><span class="line"></span><br><span class="line">ast = parse_file(&quot;test.c&quot;, use_cpp = True, cpp_path=r&#x27;D:\环境\c\mingw64\bin\gcc.exe&#x27;, cpp_args=[&#x27;-E&#x27;, r&#x27;-Ifake_libc_include&#x27;])</span><br><span class="line"></span><br><span class="line">print(ast)</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">import ast</span><br><span class="line">from pycparser import c_parser, parse_file</span><br><span class="line"></span><br><span class="line">ast = parse_file(&quot;test.c&quot;)</span><br><span class="line"></span><br><span class="line">print(ast)</span><br></pre></td></tr></table></figure>
+<p>按照上述代码输出一个简单c语言代码的ast语法树</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">int main()&#123;</span><br><span class="line">    printf(&quot;%s&quot;,&quot;hello\n&quot;);</span><br><span class="line">    return 0;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>输出结果如下图<br><a target="_blank" rel="noopener" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/img/20250224183411838.png" title="image.png" class="gallery-item"><img src="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/img/20250224183411838.png" alt="image.png"></a><br>FileAST是根目录类型 其包括3种 也只有3种下级节点<br>    Decl: 变量声明节点<br>    FuncDef: 函数声明节点<br>    TypeDef: typedef数据类型定义<br>以上述的语法树为例 其只包括FuncDef节点<br><a target="_blank" rel="noopener" href="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/img/20250224185932868.png" title="image.png" class="gallery-item"><img src="https://blog-1259781238.cos.ap-nanjing.myqcloud.com/img/20250224185932868.png" alt="image.png"></a></p>
+<p>FuncDef一共有3个属性<br>self.decl   表示一个标识符的声明 包含FuncDecl的decl节点<br>self.coord  标识符字符串所在行列(人话就是main函数所在行列)<br>self.body  函数实现的代码块</p>
+<p>先从decl节点开始看<br>其又包括7个下级节点</p>
+<h1 id="参考文章"><a href="#参考文章" class="headerlink" title="参考文章"></a>参考文章</h1><p><a target="_blank" rel="noopener" href="https://blog.csdn.net/weixin_41238626/article/details/138434837">https://blog.csdn.net/weixin_41238626/article/details/138434837</a><br><a target="_blank" rel="noopener" href="https://blog.csdn.net/csdnnews/article/details/105592032">https://blog.csdn.net/csdnnews/article/details/105592032</a><br><a target="_blank" rel="noopener" href="https://blog.csdn.net/m0_56208280/article/details/132238997">https://blog.csdn.net/m0_56208280/article/details/132238997</a><br><a target="_blank" rel="noopener" href="https://blog.51cto.com/u_16213708/7081217">https://blog.51cto.com/u_16213708/7081217</a></p>
+</div><script src="https://cdn.jsdelivr.net/lightgallery.js/1.0.1/js/lightgallery.min.js"></script><script>if (typeof lightGallery !== 'undefined') {
+        var options = {
+            selector: '.gallery-item'
+        };
+        lightGallery(document.getElementsByClassName('.article-gallery')[0], options);
+        }</script>
+  </div>
+</article>
+
+    <div class="blog-post-comments">
+        <div id="disqus_thread">
+            <noscript>Please enable JavaScript to view the comments.</noscript>
+        </div>
+    </div>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/about/">About</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+          <li><a href="/categories/">categories</a></li>
+        
+          <li><a href="/search/">Search</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E6%96%87%E7%AB%A0"><span class="toc-number">1.</span> <span class="toc-text">参考文章</span></a></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2025/02/20/%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%E5%A4%A7%E4%BD%9C%E4%B8%9A%E8%AE%BE%E8%AE%A1%E8%BF%87%E7%A8%8B/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2025/02/20/%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%E5%A4%A7%E4%BD%9C%E4%B8%9A%E8%AE%BE%E8%AE%A1%E8%BF%87%E7%A8%8B/&text=静态程序分析大作业设计过程"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2025/02/20/%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%E5%A4%A7%E4%BD%9C%E4%B8%9A%E8%AE%BE%E8%AE%A1%E8%BF%87%E7%A8%8B/&title=静态程序分析大作业设计过程"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2025/02/20/%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%E5%A4%A7%E4%BD%9C%E4%B8%9A%E8%AE%BE%E8%AE%A1%E8%BF%87%E7%A8%8B/&is_video=false&description=静态程序分析大作业设计过程"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=静态程序分析大作业设计过程&body=Check out this article: http://example.com/2025/02/20/%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%E5%A4%A7%E4%BD%9C%E4%B8%9A%E8%AE%BE%E8%AE%A1%E8%BF%87%E7%A8%8B/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2025/02/20/%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%E5%A4%A7%E4%BD%9C%E4%B8%9A%E8%AE%BE%E8%AE%A1%E8%BF%87%E7%A8%8B/&title=静态程序分析大作业设计过程"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2025/02/20/%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%E5%A4%A7%E4%BD%9C%E4%B8%9A%E8%AE%BE%E8%AE%A1%E8%BF%87%E7%A8%8B/&title=静态程序分析大作业设计过程"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2025/02/20/%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%E5%A4%A7%E4%BD%9C%E4%B8%9A%E8%AE%BE%E8%AE%A1%E8%BF%87%E7%A8%8B/&title=静态程序分析大作业设计过程"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2025/02/20/%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%E5%A4%A7%E4%BD%9C%E4%B8%9A%E8%AE%BE%E8%AE%A1%E8%BF%87%E7%A8%8B/&title=静态程序分析大作业设计过程"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2025/02/20/%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%E5%A4%A7%E4%BD%9C%E4%B8%9A%E8%AE%BE%E8%AE%A1%E8%BF%87%E7%A8%8B/&name=静态程序分析大作业设计过程&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2025/02/20/%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%E5%A4%A7%E4%BD%9C%E4%B8%9A%E8%AE%BE%E8%AE%A1%E8%BF%87%E7%A8%8B/&t=静态程序分析大作业设计过程"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2022-2025
+    C12en
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/categories/">categories</a></li><!--
+     --><!--
+       --><li><a href="/search/">Search</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+    <script type="text/javascript">
+        var disqus_shortname = 'c12en';
+
+        (function(){
+            var dsq = document.createElement('script');
+            dsq.type = 'text/javascript';
+            dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        }());
+    </script>
+
+<!-- utterances Comments -->
+
+</body>
+</html>
